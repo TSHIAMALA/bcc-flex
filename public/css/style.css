@@ -6,16 +6,16 @@
 /* ==================== CSS VARIABLES ==================== */
 :root {
     /* Couleurs BCC Premium */
-    --bcc-primary: #007FFF;
-    --bcc-primary-dark: #0056b3;
-    --bcc-primary-light: #4da3ff;
-    --bcc-gradient: linear-gradient(135deg, #007FFF 0%, #0056b3 50%, #003d82 100%);
-    --bcc-gradient-light: linear-gradient(135deg, #4da3ff 0%, #007FFF 100%);
+    --bcc-primary: #3B6FAB;
+    --bcc-primary-dark: #2D5A8E;
+    --bcc-primary-light: #5A8BC4;
+    --bcc-gradient: linear-gradient(135deg, #3B6FAB 0%, #2D5A8E 50%, #1E4570 100%);
+    --bcc-gradient-light: linear-gradient(135deg, #5A8BC4 0%, #3B6FAB 100%);
 
     /* Couleurs de fond */
-    --bg-dark: #0a1628;
+    --bg-dark: #1E4570;
     --bg-card: #ffffff;
-    --bg-sidebar: linear-gradient(180deg, #001a3d 0%, #003366 50%, #004080 100%);
+    --bg-sidebar: linear-gradient(180deg, #2D5A8E 0%, #3B6FAB 50%, #4A7BBD 100%);
 
     /* Texte */
     --text-primary: #1a2942;

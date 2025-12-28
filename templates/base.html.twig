@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tableau de Bord de Conjoncture Économique - Banque Centrale du Congo">
+    <title>{% block title %}BCC-Flex{% endblock %} | Banque Centrale du Congo</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        {% include 'partials/_sidebar.html.twig' %}
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle" style="display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer;">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h2>{% block header_title %}Tableau de Bord{% endblock %}</h2>
+                        <span>{% block header_subtitle %}Indicateurs de Conjoncture{% endblock %}</span>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="date-display">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate">{{ "now"|date('d/m/Y H:i') }}</span>
+                    </div>
+                    <button class="refresh-btn" onclick="location.reload()" title="Actualiser">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="page-content animate-fade-in">
+                {% block body %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ asset('js/app.js') }}"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

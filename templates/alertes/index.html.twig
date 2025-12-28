@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Alertes{% endblock %}
+{% block header_title %}Alertes & Notifications{% endblock %}
+{% block header_subtitle %}Centre de surveillance et configuration{% endblock %}
+
+{% block body %}
+<!-- KPI Header Cards (Style Finances) -->
+<div class="kpi-header-grid mb-30">
+    <div class="kpi-header-card {{ alertes|length > 0 ? 'deficit' : '' }}">
+        <div class="kpi-header-icon {{ alertes|length > 0 ? 'danger' : 'success' }}">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">ALERTES ACTIVES</span>
+            <span class="kpi-header-value">{{ alertes|length }}</span>
+            <span class="kpi-header-sublabel">Requérant attention</span>
+        </div>
+    </div>
+
+    <div class="kpi-header-card">
+        <div class="kpi-header-icon info">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">RÈGLES ACTIVES</span>
+            <span class="kpi-header-value">3</span>
+            <span class="kpi-header-sublabel">Indicateurs surveillés</span>
+        </div>
+    </div>
+
+    <div class="kpi-header-card highlight">
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">DERNIÈRE VÉRIF.</span>
+            <span class="kpi-header-value">{{ "now"|date('H:i') }}</span>
+        </div>
+        <div class="kpi-header-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+    </div>
+
+    <div class="kpi-header-card">
+        <div class="kpi-header-icon success">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">STATUT SYSTÈME</span>
+            <span class="kpi-header-value">OK</span>
+            <span class="kpi-header-sublabel">Surveillance active</span>
+        </div>
+    </div>
+</div>
+
+<!-- Large Alert Box (Style Finances) -->
+{% if alertes is not empty %}
+<div class="alert-box alert-danger mb-30">
+    <i class="fas fa-exclamation-triangle alert-icon"></i>
+    <div class="alert-content">
+        <h4>⚠️ Attention : {{ alertes|length }} anomalie(s) détectée(s)</h4>
+        <p>Certains indicateurs ont dépassé les seuils critiques. Veuillez consulter les détails ci-dessous.</p>
+    </div>
+</div>
+{% else %}
+<div class="alert-box alert-success mb-30">
+    <i class="fas fa-check-circle alert-icon"></i>
+    <div class="alert-content">
+        <h4>✅ Tous les systèmes sont nominaux</h4>
+        <p>Aucune anomalie détectée sur les indicateurs surveillés.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Grid -->
+<div class="grid-2">
+    <!-- Configuration Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-sliders-h"></i>
+                État des Seuils
+            </h3>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Indicateur</th>
+                        <th>Seuil Configuré</th>
+                        <th>Valeur Actuelle</th>
+                        <th>État</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-10">
+                                <i class="fas fa-exchange-alt text-primary"></i>
+                                <strong>Écart Change</strong>
+                            </div>
+                        </td>
+                        <td>> {{ seuils.ecart_change|number_format(0, ',', ' ') }} CDF</td>
+                        <td>{{ latestMarche.ecartIndicParallele|default(0)|number_format(0, ',', ' ') }}</td>
+                        <td>
+                            {% if latestMarche.ecartIndicParallele|default(0) > seuils.ecart_change %}
+                                <span class="taux-badge danger">Critique</span>
+                            {% else %}
+                                <span class="taux-badge success">Normal</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-10">
+                                <i class="fas fa-piggy-bank text-primary"></i>
+                                <strong>Réserves Int.</strong>
+                            </div>
+                        </td>
+                        <td>< {{ seuils.reserves_min|number_format(0, ',', ' ') }} M</td>
+                        <td>{{ latestKPI.reservesInternationalesUsd|default(0)|number_format(0, ',', ' ') }} M</td>
+                        <td>
+                            {% if latestKPI.reservesInternationalesUsd|default(0) < seuils.reserves_min %}
+                                <span class="taux-badge danger">Critique</span>
+                            {% else %}
+                                <span class="taux-badge success">Normal</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-10">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                <strong>Solde Budget</strong>
+                            </div>
+                        </td>
+                        <td>< {{ seuils.deficit_max|number_format(0, ',', ' ') }} Mds</td>
+                        <td>{{ latestFinances.solde|default(0)|number_format(2, ',', ' ') }}</td>
+                        <td>
+                            {% if latestFinances.solde|default(0) < seuils.deficit_max %}
+                                <span class="taux-badge danger">Critique</span>
+                            {% else %}
+                                <span class="taux-badge success">Normal</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Active Alerts List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-list-ul"></i>
+                Journal des Alertes
+            </h3>
+        </div>
+        <div class="table-container">
+            {% if alertes is empty %}
+                <div class="text-center p-20 text-muted">
+                    <i class="fas fa-check-circle fa-3x mb-10" style="color: var(--success);"></i>
+                    <p>Aucune alerte à afficher</p>
+                </div>
+            {% else %}
+                <div class="alerts-list">
+                    {% for alerte in alertes %}
+                    <div class="alert-item {{ alerte.type }}">
+                        <div class="alert-icon-wrapper">
+                            <i class="fas fa-{{ alerte.icon }}"></i>
+                        </div>
+                        <div class="alert-details">
+                            <h5>{{ alerte.titre }}</h5>
+                            <p>{{ alerte.message }}</p>
+                            <span class="alert-time"><i class="far fa-clock"></i> {{ alerte.date|date('d/m/Y') }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Reusing styles from Finances page for consistency */
+.kpi-header-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.kpi-header-card { background: white; border-radius: var(--border-radius); padding: 20px 25px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); border-left: 4px solid var(--bcc-primary); transition: var(--transition); }
+.kpi-header-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.kpi-header-card.highlight { background: linear-gradient(135deg, #007FFF, #0056b3); color: white; border-left: none; }
+.kpi-header-card.deficit { border-left-color: var(--danger); }
+.kpi-header-card.highlight .kpi-header-label, .kpi-header-card.highlight .kpi-header-sublabel { color: rgba(255,255,255,0.8); }
+.kpi-header-card.highlight .kpi-header-value { color: white; }
+.kpi-header-card.highlight .kpi-header-icon { color: white; background: rgba(255,255,255,0.2); }
+
+.kpi-header-icon { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, rgba(0,127,255,0.15), rgba(0,127,255,0.05)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--bcc-primary); }
+.kpi-header-icon.success { background: rgba(16,185,129,0.15); color: var(--success); }
+.kpi-header-icon.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+.kpi-header-icon.info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+.kpi-header-content { display: flex; flex-direction: column; }
+.kpi-header-label { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.kpi-header-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+.kpi-header-sublabel { font-size: 0.75rem; color: var(--text-secondary); }
+
+.taux-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+.taux-badge.success { background: var(--success-light); color: var(--success); }
+.taux-badge.danger { background: var(--danger-light); color: var(--danger); }
+
+.gap-10 { gap: 10px; }
+.d-flex { display: flex; }
+.align-items-center { align-items: center; }
+
+/* Alert List Styles */
+.alerts-list { display: flex; flex-direction: column; gap: 15px; padding: 20px; }
+.alert-item { display: flex; gap: 15px; padding: 15px; border-radius: 10px; border-left: 4px solid transparent; background: #f8fafc; }
+.alert-item.danger { border-left-color: var(--danger); background: #fef2f2; }
+.alert-item.warning { border-left-color: var(--warning); background: #fffbeb; }
+
+.alert-icon-wrapper { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.alert-item.danger .alert-icon-wrapper { background: rgba(239,68,68,0.1); color: var(--danger); }
+.alert-item.warning .alert-icon-wrapper { background: rgba(245,158,11,0.1); color: var(--warning); }
+
+.alert-details h5 { margin: 0 0 5px 0; font-size: 1rem; color: var(--text-primary); }
+.alert-details p { margin: 0 0 8px 0; font-size: 0.9rem; color: var(--text-secondary); }
+.alert-time { font-size: 0.8rem; color: #94a3b8; }
+
+@media (max-width: 1200px) { .kpi-header-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .kpi-header-grid, .grid-2 { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
