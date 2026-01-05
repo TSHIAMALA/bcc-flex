@@ -26,10 +26,73 @@ function updateDateTime() {
     }
 }
 
+// Variables globales pour la navigation mobile
+let touchStartX = 0;
+let touchEndX = 0;
+
+// Toggle sidebar sur mobile
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Empêcher le scroll du body quand la sidebar est ouverte
+        if (sidebar.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+// Fermer la sidebar
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    
+    if (sidebar && overlay) {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Gestion des swipe gestures
+function handleSwipe() {
+    const swipeDistance = touchEndX - touchStartX;
+    const sidebar = document.querySelector('.sidebar');
+    
+    // Swipe vers la gauche pour fermer (distance > 50px)
+    if (swipeDistance < -50 && sidebar && sidebar.classList.contains('active')) {
+        closeSidebar();
+    }
+}
+
+// Optimisation des graphiques pour mobile
+function optimizeChartsForMobile() {
+    if (window.innerWidth <= 768) {
+        // Réduire la taille des polices pour mobile
+        Chart.defaults.font.size = 10;
+        Chart.defaults.plugins.legend.labels.font = { size: 10 };
+        Chart.defaults.plugins.legend.labels.padding = 10;
+    } else {
+        // Taille normale pour desktop
+        Chart.defaults.font.size = 12;
+        Chart.defaults.plugins.legend.labels.font = { size: 12 };
+        Chart.defaults.plugins.legend.labels.padding = 15;
+    }
+}
+
 // Exécuter au chargement
 document.addEventListener('DOMContentLoaded', function() {
     updateDateTime();
     setInterval(updateDateTime, 60000); // Mise à jour chaque minute
+    
+    // Optimiser les graphiques selon la taille d'écran
+    optimizeChartsForMobile();
     
     // Animation des KPI cards
     const kpiCards = document.querySelectorAll('.kpi-card');
@@ -52,13 +115,69 @@ document.addEventListener('DOMContentLoaded', function() {
             bar.style.width = width;
         }, 500);
     });
-});
-
-// Toggle sidebar sur mobile
-function toggleSidebar() {
+    
+    // Configuration du menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleSidebar);
+    }
+    
+    // Configuration de l'overlay
+    const overlay = document.querySelector('.mobile-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+    
+    // Fermer la sidebar quand on clique sur un lien de navigation
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 992) {
+                closeSidebar();
+            }
+        });
+    });
+    
+    // Gestion des swipe gestures
     const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('active');
-}
+    if (sidebar) {
+        sidebar.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        sidebar.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+    }
+    
+    // Réoptimiser les graphiques lors du redimensionnement
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            optimizeChartsForMobile();
+            
+            // Fermer la sidebar si on passe en mode desktop
+            if (window.innerWidth > 992) {
+                closeSidebar();
+            }
+        }, 250);
+    });
+    
+    // Indicateur de scroll pour les tableaux sur mobile
+    const tableContainers = document.querySelectorAll('.table-container');
+    tableContainers.forEach(container => {
+        container.addEventListener('scroll', function() {
+            const scrollIndicator = container.querySelector('::after');
+            if (this.scrollLeft > 0) {
+                container.style.setProperty('--scroll-opacity', '0');
+            } else {
+                container.style.setProperty('--scroll-opacity', '0.8');
+            }
+        });
+    });
+});
 
 // Fonction de formatage des nombres
 function formatNumber(num, decimals = 2) {
@@ -100,4 +219,19 @@ function exportData(format) {
     showNotification(`Export ${format.toUpperCase()} en cours de développement`, 'info');
 }
 
+// Gestion du mode sombre (pour future implémentation)
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    showNotification(`Mode ${isDark ? 'sombre' : 'clair'} activé`, 'success');
+}
+
+// Restaurer le mode sombre au chargement
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
+
 console.log('🏦 BCC-Flex - Tableau de Bord de Conjoncture chargé');
+console.log('📱 Navigation mobile optimisée avec swipe gestures');
+
