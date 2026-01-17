@@ -215,19 +215,29 @@
             <h3 class="card-title"><i class="fas fa-vault"></i> Trésorerie</h3>
         </div>
         {% if tresorerie %}
-        <div class="tresorerie-stats">
-            <div class="tresorerie-item">
-                <span class="tresorerie-label">Avant financement</span>
-                <span class="tresorerie-value">{{ tresorerie.soldeAvantFin|number_format(2, ',', ' ') }}</span>
-            </div>
-            <div class="tresorerie-item highlight">
-                <span class="tresorerie-label">Après financement</span>
-                <span class="tresorerie-value">{{ tresorerie.soldeApresFin|number_format(2, ',', ' ') }}</span>
-            </div>
-            <div class="tresorerie-item">
-                <span class="tresorerie-label">Cumulé annuel</span>
-                <span class="tresorerie-value">{{ tresorerie.soldeCumuleAnnee|number_format(2, ',', ' ') }}</span>
-            </div>
+        <div class="table-container p-0">
+            <table class="data-table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th class="pl-20">Libellé</th>
+                        <th class="text-right pr-20">Montant (Mds CDF)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pl-20">Avant financement</td>
+                        <td class="text-right font-weight-bold text-primary pr-20">{{ tresorerie.soldeAvantFin|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="pl-20">Après financement</td>
+                        <td class="text-right font-weight-bold text-primary pr-20">{{ tresorerie.soldeApresFin|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="pl-20">Cumulé annuel</td>
+                        <td class="text-right font-weight-bold text-primary pr-20">{{ tresorerie.soldeCumuleAnnee|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         {% else %}
         <p class="text-muted text-center">Données non disponibles</p>
@@ -240,23 +250,28 @@
             <h3 class="card-title"><i class="fas fa-file-contract"></i> Titres Publics</h3>
         </div>
         {% if titres %}
-        <div class="titres-grid">
-            <div class="titre-box">
-                <div class="titre-type">OT CDF</div>
-                <div class="titre-value">{{ titres.encoursOtindex|number_format(2, ',', ' ') }}</div>
-            </div>
-            <div class="titre-box">
-                <div class="titre-type">OT USD</div>
-                <div class="titre-value">{{ titres.encoursOtUsd|number_format(2, ',', ' ') }}</div>
-            </div>
-            <div class="titre-box">
-                <div class="titre-type">BT CDF</div>
-                <div class="titre-value">{{ titres.encoursBtindex|number_format(2, ',', ' ') }}</div>
-            </div>
-            <div class="titre-box">
-                <div class="titre-type">BT USD</div>
-                <div class="titre-value">{{ titres.encoursBtUsd|number_format(2, ',', ' ') }}</div>
-            </div>
+        <div class="table-container p-0">
+            <table class="data-table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th class="pl-10">Instrument</th>
+                        <th class="text-right">CDF</th>
+                        <th class="text-right pr-10">USD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="pl-10"><strong>OT</strong></td>
+                        <td class="text-right font-weight-bold text-primary">{{ titres.encoursOtindex|number_format(2, ',', ' ') }}</td>
+                        <td class="text-right font-weight-bold text-primary pr-10">{{ titres.encoursOtUsd|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="pl-10"><strong>BT</strong></td>
+                        <td class="text-right font-weight-bold text-primary">{{ titres.encoursBtindex|number_format(2, ',', ' ') }}</td>
+                        <td class="text-right font-weight-bold text-primary pr-10">{{ titres.encoursBtUsd|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         {% else %}
         <p class="text-muted text-center">Données non disponibles</p>
@@ -277,15 +292,19 @@
                 </svg>
                 <div class="paie-percent">{{ tauxPaie|number_format(0) }}%</div>
             </div>
-            <div class="paie-details">
-                <div class="paie-detail success">
-                    <i class="fas fa-check-circle"></i>
-                    <span>Payé: {{ paie.montantPaye|number_format(2, ',', ' ') }} Mds</span>
-                </div>
-                <div class="paie-detail danger">
-                    <i class="fas fa-clock"></i>
-                    <span>Restant: {{ paie.montantRestant|number_format(2, ',', ' ') }} Mds</span>
-                </div>
+            <div class="table-container p-0 mt-20">
+                <table class="data-table table-striped mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="pl-20"><i class="fas fa-check-circle text-success mr-10"></i> Payé</td>
+                            <td class="text-right font-weight-bold text-success pr-20">{{ paie.montantPaye|number_format(2, ',', ' ') }} Mds</td>
+                        </tr>
+                        <tr>
+                            <td class="pl-20"><i class="fas fa-clock text-danger mr-10"></i> Restant</td>
+                            <td class="text-right font-weight-bold text-danger pr-20">{{ paie.montantRestant|number_format(2, ',', ' ') }} Mds</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         {% else %}

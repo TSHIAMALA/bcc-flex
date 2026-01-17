@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
-use App\Repository\KPIJournalierRepository;
-use App\Repository\MarcheChangesRepository;
-use App\Repository\FinancesPubliquesRepository;
+use App\Repository\RegleInterventionRepository;
+use App\Service\AlerteService;
+use App\Service\IndiceTensionService;
+use App\Repository\ConjonctureJourRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,64 +14,69 @@ class AlertesController extends AbstractController
 {
     #[Route('/alertes', name: 'app_alertes')]
     public function index(
-        KPIJournalierRepository $kpiRepository,
-        MarcheChangesRepository $marcheRepository,
-        FinancesPubliquesRepository $financesRepository
+        AlerteService $alerteService,
+        IndiceTensionService $itmService,
+        RegleInterventionRepository $regleRepository,
+        ConjonctureJourRepository $conjonctureRepository
     ): Response {
-        $latestKPI = $kpiRepository->getLatestKPI();
-        $latestMarche = $marcheRepository->findOneBy([], ['id' => 'DESC']);
-        $latestFinances = $financesRepository->findOneBy([], ['id' => 'DESC']);
+        // Get active alerts from database
+        $activeAlerts = $alerteService->getFormattedAlerts();
+        
+        // Get all configured rules
+        $regles = $regleRepository->findAllWithIndicateurs();
+        
+        // Get latest conjoncture for ITM
+        $latestConjoncture = $conjonctureRepository->findLatest();
+        $itm = $itmService->calculateITM($latestConjoncture);
 
-        $seuils = [
-            'ecart_change' => 100,
-            'reserves_min' => 5000,
-            'deficit_max' => -200
-        ];
-
-        $alertes = [];
-
-        if ($latestMarche && $latestMarche->getEcartIndicParallele() > $seuils['ecart_change']) {
-            $alertes[] = [
-                'type' => 'warning',
-                'icon' => 'exchange-alt',
-                'titre' => 'Écart de change élevé',
-                'message' => sprintf('L\'écart indicatif/parallèle (%s CDF) dépasse le seuil de %s CDF', 
-                    number_format($latestMarche->getEcartIndicParallele(), 0, ',', ' '), 
-                    number_format($seuils['ecart_change'], 0, ',', ' ')),
-                'date' => $latestMarche->getConjoncture()->getDateSituation()
-            ];
-        }
-
-        if ($latestKPI && $latestKPI->getReservesInternationalesUsd() < $seuils['reserves_min']) {
-            $alertes[] = [
-                'type' => 'danger',
-                'icon' => 'piggy-bank',
-                'titre' => 'Réserves internationales basses',
-                'message' => sprintf('Les réserves (%s Mio USD) sont inférieures au seuil de %s Mio USD',
-                    number_format($latestKPI->getReservesInternationalesUsd(), 0, ',', ' '),
-                    number_format($seuils['reserves_min'], 0, ',', ' ')),
-                'date' => $latestKPI->getDateSituation()
-            ];
-        }
-
-        if ($latestFinances && $latestFinances->getSolde() < $seuils['deficit_max']) {
-            $alertes[] = [
-                'type' => 'danger',
-                'icon' => 'chart-line',
-                'titre' => 'Déficit budgétaire critique',
-                'message' => sprintf('Le déficit (%s Mds CDF) dépasse le seuil de %s Mds CDF',
-                    number_format($latestFinances->getSolde(), 2, ',', ' '),
-                    number_format($seuils['deficit_max'], 2, ',', ' ')),
-                'date' => $latestFinances->getConjoncture()->getDateSituation()
+        // Format rules for display
+        $formattedRules = [];
+        foreach ($regles as $regle) {
+            $indicateur = $regle->getIndicateur();
+            $value = $latestConjoncture 
+                ? $alerteService->getIndicatorValue($indicateur, $latestConjoncture) 
+                : null;
+            
+            $status = $value !== null 
+                ? $alerteService->getAlertStatus($value, $regle) 
+                : 'N/A';
+            
+            $formattedRules[] = [
+                'indicateur' => $indicateur->getLibelle(),
+                'code' => $indicateur->getCode(),
+                'unite' => $indicateur->getUnite(),
+                'seuilVigilance' => $regle->getSeuilAlerte(),
+                'seuilIntervention' => $regle->getSeuilIntervention(),
+                'sens' => $regle->getSens(),
+                'poids' => $regle->getPoids(),
+                'valeurActuelle' => $value,
+                'statut' => $status,
             ];
         }
 
         return $this->render('alertes/index.html.twig', [
-            'alertes' => $alertes,
-            'seuils' => $seuils,
-            'latestKPI' => $latestKPI,
-            'latestMarche' => $latestMarche,
-            'latestFinances' => $latestFinances,
+            'alertes' => $activeAlerts,
+            'regles' => $formattedRules,
+            'itm' => $itm,
+            'alertCount' => count(array_filter($activeAlerts, fn($a) => $a['statut'] !== 'NORMAL')),
+            'ruleCount' => count($regles),
         ]);
+    }
+
+    #[Route('/alertes/recalculate', name: 'app_alertes_recalculate', methods: ['POST'])]
+    public function recalculate(
+        AlerteService $alerteService,
+        ConjonctureJourRepository $conjonctureRepository
+    ): Response {
+        $latestConjoncture = $conjonctureRepository->findLatest();
+        
+        if ($latestConjoncture) {
+            $alerteService->calculateAlerts($latestConjoncture);
+            $this->addFlash('success', 'Alertes recalculées avec succès.');
+        } else {
+            $this->addFlash('warning', 'Aucune conjoncture trouvée.');
+        }
+        
+        return $this->redirectToRoute('app_alertes');
     }
 }

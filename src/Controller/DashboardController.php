@@ -2,9 +2,15 @@
 
 namespace App\Controller;
 
+use App\Repository\ConjonctureJourRepository;
 use App\Repository\FinancesPubliquesRepository;
 use App\Repository\KPIJournalierRepository;
 use App\Repository\MarcheChangesRepository;
+use App\Repository\ReservesFinancieresRepository;
+use App\Repository\VolumeUSDRepository;
+use App\Repository\PaieEtatRepository;
+use App\Service\AlerteService;
+use App\Service\IndiceTensionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,9 +22,12 @@ class DashboardController extends AbstractController
         KPIJournalierRepository $kpiRepository,
         MarcheChangesRepository $marcheRepository,
         FinancesPubliquesRepository $financesRepository,
-        \App\Repository\ReservesFinancieresRepository $reservesRepository,
-        \App\Repository\VolumeUSDRepository $volumeRepository,
-        \App\Repository\PaieEtatRepository $paieRepository
+        ReservesFinancieresRepository $reservesRepository,
+        VolumeUSDRepository $volumeRepository,
+        PaieEtatRepository $paieRepository,
+        ConjonctureJourRepository $conjonctureRepository,
+        AlerteService $alerteService,
+        IndiceTensionService $itmService
     ): Response {
         $latestKPI = $kpiRepository->getLatestKPI();
         $previousKPI = $kpiRepository->getPreviousKPI();
@@ -41,24 +50,39 @@ class DashboardController extends AbstractController
             $varSolde = $latestKPI->getSolde() - $previousKPI->getSolde();
         }
 
-        // Fetch other data
-        $latestMarche = $marcheRepository->findOneBy([], ['id' => 'DESC']); // Assuming ID order is chronological, or join conjoncture
-        // Better to use a custom method or join, but for now let's try to get the one matching latestKPI
+        // Fetch related data
+        $latestMarche = null;
+        $latestReserves = null;
+        $latestFinances = null;
+        $latestConjoncture = null;
+
         if ($latestKPI) {
             $latestMarche = $marcheRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
             $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
             $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
-        } else {
-            $latestMarche = null;
-            $latestReserves = null;
-            $latestFinances = null;
+            $latestConjoncture = $conjonctureRepository->find($latestKPI->getConjonctureId());
         }
 
+        // Calculate ITM (Indice de Tension du Marché)
+        $itm = $itmService->calculateITM($latestConjoncture);
+        $itmColor = $itmService->getClassificationColor($itm['classification']);
+        $itmClass = $itmService->getClassificationClass($itm['classification']);
+
+        // Get active alerts
+        $activeAlerts = $alerteService->getFormattedAlerts();
+
+        // Other data
         $evolutionMarche = $marcheRepository->getEvolutionData(7);
         $volumes = $volumeRepository->getLatestVolumes();
         $paie = $paieRepository->getLatestPaie();
         $reservesHistory = $reservesRepository->getReservesHistory(7);
         $financesHistory = $financesRepository->getEvolutionData(7);
+
+        // Calculate total volume USD for KPI card
+        $totalVolumeUSD = 0;
+        foreach ($volumes as $vol) {
+            $totalVolumeUSD += $vol->getVolumeTotalUsd() ?? 0;
+        }
 
         return $this->render('dashboard/index.html.twig', [
             'latestKPI' => $latestKPI,
@@ -75,6 +99,14 @@ class DashboardController extends AbstractController
             'paie' => $paie,
             'reservesHistory' => $reservesHistory,
             'financesHistory' => $financesHistory,
+            // New ITM data
+            'itm' => $itm,
+            'itmColor' => $itmColor,
+            'itmClass' => $itmClass,
+            // Active alerts
+            'activeAlerts' => $activeAlerts,
+            // Volume total for KPI
+            'totalVolumeUSD' => $totalVolumeUSD,
         ]);
     }
 }

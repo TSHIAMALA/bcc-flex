@@ -5,74 +5,118 @@
 {% block header_subtitle %}Indicateurs de Conjoncture Économique{% endblock %}
 
 {% block body %}
-    <!-- Header Stats Row - Style Power BI -->
-    <div class="stats-header mb-30">
-        <div class="stats-row">
-            <div class="stat-box">
-                <div class="stat-icon"><i class="fas fa-university"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">COURS INDICATIF</span>
-                    <span class="stat-value">{{ latestKPI.coursIndicatif|default(0)|number_format(2, ',', ' ') }}</span>
-                    <span class="stat-change {{ varCoursIndicatif > 0 ? 'negative' : 'positive' }}">
-                        <i class="fas fa-{{ varCoursIndicatif > 0 ? 'caret-up' : 'caret-down' }}"></i>
-                        {{ varCoursIndicatif|abs|number_format(2, ',', ' ') }}%
-                    </span>
+    <!-- ITM Gauge + Stats Header -->
+    <div class="dashboard-top mb-30">
+        <!-- ITM Gauge Section -->
+        <div class="itm-section">
+            <div class="itm-gauge-wrapper">
+                <div class="itm-gauge" data-score="{{ itm.score }}">
+                    <svg class="itm-gauge-svg" viewBox="0 0 200 120">
+                        <defs>
+                            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#10b981"/>
+                                <stop offset="50%" style="stop-color:#f59e0b"/>
+                                <stop offset="100%" style="stop-color:#ef4444"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Background arc -->
+                        <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round"/>
+                        <!-- Value arc -->
+                        <path class="gauge-value" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 - (itm.score / 100 * 251.2) }}"/>
+                        <!-- Needle -->
+                        <line class="gauge-needle" x1="100" y1="100" x2="100" y2="30" stroke="{{ itmColor }}" stroke-width="3" stroke-linecap="round" transform="rotate({{ -90 + (itm.score * 1.8) }}, 100, 100)"/>
+                        <circle cx="100" cy="100" r="8" fill="{{ itmColor }}"/>
+                    </svg>
+                    <div class="itm-score-display">
+                        <span class="itm-score-value" style="color: {{ itmColor }}">{{ itm.score }}</span>
+                        <span class="itm-score-label">/ 100</span>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon warning"><i class="fas fa-exchange-alt"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">COURS PARALLÈLE</span>
-                    <span class="stat-value">{{ latestKPI.paralleleVente|default(0)|number_format(2, ',', ' ') }}</span>
-                    <span class="stat-change neutral">Vente</span>
+                <div class="itm-classification {{ itmClass }}">
+                    <i class="fas fa-{{ itmClass == 'danger' ? 'exclamation-triangle' : (itmClass == 'warning' ? 'exclamation-circle' : 'check-circle') }}"></i>
+                    {{ itm.label }}
                 </div>
+                <div class="itm-title">Indice de Tension du Marché</div>
             </div>
-            <div class="stat-box">
-                <div class="stat-icon success"><i class="fas fa-piggy-bank"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">RÉSERVES INT.</span>
-                    <span class="stat-value">{{ latestKPI.reservesInternationalesUsd|default(0)|number_format(0, ',', ' ') }}M</span>
-                    <span class="stat-change {{ varReserves >= 0 ? 'positive' : 'negative' }}">
-                        <i class="fas fa-{{ varReserves >= 0 ? 'caret-up' : 'caret-down' }}"></i>
-                        {{ varReserves|abs|number_format(2, ',', ' ') }}%
-                    </span>
+        </div>
+
+        <!-- KPI Stats Row -->
+        <div class="stats-header">
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-icon"><i class="fas fa-university"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">COURS INDICATIF</span>
+                        <span class="stat-value">{{ latestKPI.coursIndicatif|default(0)|number_format(2, ',', ' ') }}</span>
+                        <span class="stat-change {{ varCoursIndicatif > 0 ? 'negative' : 'positive' }}">
+                            <i class="fas fa-{{ varCoursIndicatif > 0 ? 'caret-up' : 'caret-down' }}"></i>
+                            {{ varCoursIndicatif|abs|number_format(2, ',', ' ') }}%
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon {{ latestKPI.solde|default(0) >= 0 ? 'success' : 'danger' }}"><i class="fas fa-balance-scale"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">SOLDE BUDGET</span>
-                    <span class="stat-value">{{ latestKPI.solde|default(0)|number_format(2, ',', ' ') }}</span>
-                    <span class="stat-change {{ latestKPI.solde|default(0) >= 0 ? 'positive' : 'negative' }}">
-                        {{ latestKPI.solde|default(0) >= 0 ? 'Excédent' : 'Déficit' }}
-                    </span>
+                <div class="stat-box">
+                    <div class="stat-icon warning"><i class="fas fa-exchange-alt"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">ÉCART INDICATIF/PARALLÈLE</span>
+                        <span class="stat-value">{{ latestMarche.ecartIndicParallele|default(0)|number_format(0, ',', ' ') }}</span>
+                        <span class="stat-change {{ latestMarche.ecartIndicParallele|default(0) > 100 ? 'negative' : 'positive' }}">CDF</span>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-icon info"><i class="fas fa-chart-area"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">ÉCART CHANGE</span>
-                    <span class="stat-value">{{ latestMarche.ecartIndicParallele|default(0)|number_format(0, ',', ' ') }}</span>
-                    <span class="stat-change {{ latestMarche.ecartIndicParallele|default(0) > 100 ? 'negative' : 'positive' }}">CDF</span>
+                <div class="stat-box">
+                    <div class="stat-icon success"><i class="fas fa-piggy-bank"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">RÉSERVES INT.</span>
+                        <span class="stat-value">{{ latestKPI.reservesInternationalesUsd|default(0)|number_format(0, ',', ' ') }}M</span>
+                        <span class="stat-change {{ varReserves >= 0 ? 'positive' : 'negative' }}">
+                            <i class="fas fa-{{ varReserves >= 0 ? 'caret-up' : 'caret-down' }}"></i>
+                            {{ varReserves|abs|number_format(2, ',', ' ') }}%
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon {{ latestKPI.solde|default(0) >= 0 ? 'success' : 'danger' }}"><i class="fas fa-balance-scale"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">SOLDE BUDGET</span>
+                        <span class="stat-value">{{ latestKPI.solde|default(0)|number_format(2, ',', ' ') }}</span>
+                        <span class="stat-change {{ latestKPI.solde|default(0) >= 0 ? 'positive' : 'negative' }}">
+                            {{ latestKPI.solde|default(0) >= 0 ? 'Excédent' : 'Déficit' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon info"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">VOLUME USD</span>
+                        <span class="stat-value">{{ (totalVolumeUSD / 1000000)|number_format(1, ',', ' ') }}M</span>
+                        <span class="stat-change neutral">Marché</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon"><i class="fas fa-landmark"></i></div>
+                    <div class="stat-content">
+                        <span class="stat-label">AVOIRS EXTERNES</span>
+                        <span class="stat-value">{{ latestKPI.avoirsExternesUsd|default(0)|number_format(0, ',', ' ') }}M</span>
+                        <span class="stat-change neutral">BCC</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Alertes -->
-    {% if latestMarche and latestMarche.ecartIndicParallele > 100 %}
-    <div class="alert-box alert-warning">
+    <!-- Active Alerts Section -->
+    {% if activeAlerts|length > 0 %}
+    <div class="alert-box alert-{{ activeAlerts[0].type }} mb-30">
         <i class="fas fa-exclamation-triangle alert-icon"></i>
         <div class="alert-content">
-            <h4>⚠️ Alerte : Écart de change élevé ({{ latestMarche.ecartIndicParallele|number_format(0, ',', ' ') }} CDF)</h4>
-            <p>L'écart entre le cours indicatif et le cours parallèle dépasse le seuil d'alerte.</p>
+            <h4>⚠️ {{ activeAlerts|length }} alerte(s) active(s) requérant attention</h4>
+            <p>Des indicateurs ont dépassé les seuils configurés. Consultez le tableau ci-dessous.</p>
         </div>
     </div>
     {% endif %}
 
-    <!-- Row 1: Evolution Chart + Pie Chart -->
+    <!-- Row 1: Evolution Chart + Active Alerts Table -->
     <div class="grid-2 mb-30">
-        <!-- Graphique Évolution des Cours (Multi-ligne) -->
+        <!-- Graphique Évolution des Cours -->
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
@@ -88,6 +132,56 @@
             </div>
         </div>
         
+        <!-- Tableau des Alertes Actives -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-bell"></i>
+                    Alertes Actives
+                </h3>
+                <div class="card-actions">
+                    <a href="{{ path('app_alertes') }}" class="card-badge badge-info">Voir tout</a>
+                </div>
+            </div>
+            <div class="table-container">
+                {% if activeAlerts|length > 0 %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Indicateur</th>
+                            <th>Valeur</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alerte in activeAlerts|slice(0, 5) %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-10">
+                                    <i class="fas fa-{{ alerte.icon }} text-{{ alerte.type }}"></i>
+                                    <strong>{{ alerte.titre }}</strong>
+                                </div>
+                            </td>
+                            <td>{{ alerte.valeur|number_format(2, ',', ' ') }}</td>
+                            <td>
+                                <span class="inline-badge {{ alerte.type }}">{{ alerte.statut }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center p-20 text-muted">
+                    <i class="fas fa-check-circle fa-3x mb-10" style="color: var(--success);"></i>
+                    <p>Aucune alerte active</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Barres horizontales + Waterfall -->
+    <div class="grid-2 mb-30">
         <!-- Camembert Répartition Recettes -->
         <div class="card">
             <div class="card-header">
@@ -116,22 +210,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Row 2: Barres horizontales + Waterfall -->
-    <div class="grid-2 mb-30">
-        <!-- Barres Horizontales - Volumes par Banque -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-university"></i>
-                    Volumes USD par Banque
-                </h3>
-            </div>
-            <div class="chart-container" style="height: 280px;">
-                <canvas id="chartVolumesBar"></canvas>
             </div>
         </div>
         
@@ -196,7 +274,7 @@
         {% endif %}
     </div>
 
-    <!-- Row 4: Table + Polar Area -->
+    <!-- Row 4: Table + Radar -->
     <div class="grid-2">
         <!-- Tableau des données -->
         <div class="card">
@@ -253,8 +331,104 @@
     </div>
 
     <style>
-    /* Stats Header Row - Power BI Style */
+    /* Dashboard Top Layout */
+    .dashboard-top {
+        display: flex;
+        gap: 25px;
+        align-items: stretch;
+    }
+
+    /* ITM Gauge Section */
+    .itm-section {
+        flex-shrink: 0;
+        width: 220px;
+    }
+
+    .itm-gauge-wrapper {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px 20px;
+        box-shadow: var(--shadow);
+        text-align: center;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-left: 4px solid var(--bcc-primary);
+    }
+
+    .itm-gauge {
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+    .itm-gauge-svg {
+        width: 100%;
+        max-width: 180px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .gauge-needle {
+        transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .itm-score-display {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+    }
+
+    .itm-score-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .itm-score-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .itm-classification {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .itm-classification.success {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .itm-classification.warning {
+        background: var(--warning-light);
+        color: #b45309;
+    }
+
+    .itm-classification.danger {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .itm-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Stats Header - flex to fill remaining space */
     .stats-header {
+        flex: 1;
         background: linear-gradient(135deg, #2D5A8E 0%, #3B6FAB 100%);
         border-radius: var(--border-radius);
         padding: 25px;
@@ -262,15 +436,13 @@
     }
 
     .stats-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
         gap: 12px;
-        flex-wrap: nowrap;
-        align-items: stretch;
+        height: 100%;
     }
 
     .stat-box {
-        flex: 1;
-        min-width: 0;
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         border-radius: 12px;
@@ -288,15 +460,16 @@
     }
 
     .stat-icon {
-        width: 50px;
-        height: 50px;
+        width: 44px;
+        height: 44px;
         background: rgba(59, 111, 171, 0.3);
-        border-radius: 12px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         color: #5A8BC4;
+        flex-shrink: 0;
     }
 
     .stat-icon.success { background: rgba(16, 185, 129, 0.3); color: #34d399; }
@@ -307,25 +480,29 @@
     .stat-content {
         display: flex;
         flex-direction: column;
+        min-width: 0;
     }
 
     .stat-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.6);
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-value {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 800;
         color: white;
         line-height: 1.2;
     }
 
     .stat-change {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         display: flex;
         align-items: center;
@@ -422,11 +599,56 @@
 
     .inline-badge.success { background: var(--success-light); color: var(--success); }
     .inline-badge.danger { background: var(--danger-light); color: var(--danger); }
+    .inline-badge.warning { background: var(--warning-light); color: #b45309; }
 
     /* Card Actions */
     .card-actions {
         display: flex;
         gap: 10px;
+    }
+
+    .card-actions a {
+        text-decoration: none;
+    }
+
+    /* Helper classes */
+    .d-flex { display: flex; }
+    .align-items-center { align-items: center; }
+    .gap-10 { gap: 10px; }
+    .text-danger { color: var(--danger); }
+    .text-warning { color: var(--warning); }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+        .stats-row {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .dashboard-top {
+            flex-direction: column;
+        }
+        .itm-section {
+            width: 100%;
+        }
+        .itm-gauge-wrapper {
+            flex-direction: row;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
     }
     </style>
 {% endblock %}
@@ -459,7 +681,7 @@ const reservesData = [
 Chart.defaults.font.family = "'Inter', sans-serif";
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 
-// 1. Graphique Évolution des Cours (Ligne multi-séries)
+// 1. Graphique Évolution des Cours
 new Chart(document.getElementById('chartCoursEvolution'), {
     type: 'line',
     data: {
@@ -534,39 +756,7 @@ new Chart(document.getElementById('chartRecettesPie'), {
     }
 });
 
-// 3. Barres Horizontales - Volumes
-{% set volumeLabels = [] %}
-{% set volumeValues = [] %}
-{% for v in volumes %}
-    {% set volumeLabels = volumeLabels|merge([v.banque ~ ' (' ~ v.typeTransaction ~ ')']) %}
-    {% set volumeValues = volumeValues|merge([v.volumeTotalUsd]) %}
-{% endfor %}
-
-new Chart(document.getElementById('chartVolumesBar'), {
-    type: 'bar',
-    data: {
-        labels: {{ volumeLabels|json_encode|raw }},
-        datasets: [{
-            label: 'Volume USD',
-            data: {{ volumeValues|json_encode|raw }},
-            backgroundColor: ['#3B6FAB', '#2D5A8E', '#10b981', '#059669', '#f59e0b'],
-            borderRadius: 8,
-            barThickness: 25
-        }]
-    },
-    options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => (v/1000000).toFixed(1) + 'M' } },
-            y: { grid: { display: false } }
-        }
-    }
-});
-
-// 4. Waterfall Chart (Cascade)
+// 3. Waterfall Chart
 new Chart(document.getElementById('chartWaterfall'), {
     type: 'bar',
     data: {
@@ -598,7 +788,7 @@ new Chart(document.getElementById('chartWaterfall'), {
     }
 });
 
-// 5. Area Chart - Réserves
+// 4. Area Chart - Réserves
 new Chart(document.getElementById('chartReservesArea'), {
     type: 'line',
     data: {
@@ -633,7 +823,7 @@ new Chart(document.getElementById('chartReservesArea'), {
     }
 });
 
-// 6. Doughnut Paie
+// 5. Doughnut Paie
 {% if paie %}
 new Chart(document.getElementById('chartPaieDoughnut'), {
     type: 'doughnut',
@@ -654,7 +844,7 @@ new Chart(document.getElementById('chartPaieDoughnut'), {
 });
 {% endif %}
 
-// 7. Radar Chart - Indicateurs
+// 6. Radar Chart - Indicateurs
 new Chart(document.getElementById('chartRadar'), {
     type: 'radar',
     data: {

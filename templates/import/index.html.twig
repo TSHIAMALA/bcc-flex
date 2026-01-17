@@ -1,0 +1,259 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import de Données{% endblock %}
+{% block header_title %}Import de Données{% endblock %}
+{% block header_subtitle %}Importation des données de conjoncture{% endblock %}
+
+{% block body %}
+<!-- Info Cards -->
+<div class="kpi-header-grid mb-30">
+    <div class="kpi-header-card">
+        <div class="kpi-header-icon info">
+            <i class="fas fa-file-upload"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">FORMATS ACCEPTÉS</span>
+            <span class="kpi-header-value">CSV / Excel</span>
+            <span class="kpi-header-sublabel">.csv, .xlsx, .xls</span>
+        </div>
+    </div>
+
+    <div class="kpi-header-card">
+        <div class="kpi-header-icon success">
+            <i class="fas fa-database"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">DERNIÈRE IMPORT</span>
+            <span class="kpi-header-value">{{ recentImports|length > 0 ? recentImports[0].dateSituation|date('d/m/Y') : 'Aucun' }}</span>
+            <span class="kpi-header-sublabel">Date de situation</span>
+        </div>
+    </div>
+
+    <div class="kpi-header-card">
+        <div class="kpi-header-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">TOTAL ENTRÉES</span>
+            <span class="kpi-header-value">{{ recentImports|length }}</span>
+            <span class="kpi-header-sublabel">Conjonctures récentes</span>
+        </div>
+    </div>
+
+    <div class="kpi-header-card highlight">
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">STATUS</span>
+            <span class="kpi-header-value">Prêt</span>
+        </div>
+        <div class="kpi-header-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Flash Messages -->
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert-box alert-{{ label == 'error' ? 'danger' : (label == 'warning' ? 'warning' : 'success') }} mb-30">
+            <i class="fas fa-{{ label == 'error' ? 'exclamation-circle' : (label == 'warning' ? 'exclamation-triangle' : 'check-circle') }} alert-icon"></i>
+            <div class="alert-content">
+                <p>{{ message }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<!-- Main Grid -->
+<div class="grid-2">
+    <!-- Upload Form -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-cloud-upload-alt"></i>
+                Importer des Données
+            </h3>
+        </div>
+        <form action="{{ path('app_import_upload') }}" method="post" enctype="multipart/form-data" class="import-form">
+            <div class="form-group">
+                <label for="date_situation">Date de Situation</label>
+                <input type="date" id="date_situation" name="date_situation" class="form-control" required value="{{ 'now'|date('Y-m-d') }}">
+            </div>
+
+            <div class="form-group">
+                <label>Fichier de Données</label>
+                <div class="file-upload-zone" id="dropZone">
+                    <input type="file" id="import_file" name="import_file" accept=".csv,.xlsx,.xls" required class="file-input">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Glissez-déposez votre fichier ici</p>
+                        <span>ou cliquez pour sélectionner</span>
+                        <div class="file-name" id="fileName"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload"></i>
+                    Importer les Données
+                </button>
+            </div>
+        </form>
+
+        <!-- Format Guide -->
+        <div class="format-guide">
+            <h4><i class="fas fa-info-circle"></i> Format attendu</h4>
+            <p>Le fichier doit contenir les colonnes suivantes selon le type de données:</p>
+            <ul>
+                <li><strong>Marché des changes:</strong> type, cours_indicatif, parallele_achat, parallele_vente, ecart</li>
+                <li><strong>Réserves:</strong> type, reserves_internationales_usd, avoirs_externes_usd</li>
+                <li><strong>Finances:</strong> type, recettes_fiscales, autres_recettes, depenses_totales, solde</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Recent Imports -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-history"></i>
+                Historique des Imports
+            </h3>
+        </div>
+        <div class="table-container">
+            {% if recentImports|length > 0 %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date Situation</th>
+                        <th>Date Applicable</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for import in recentImports %}
+                    <tr>
+                        <td>
+                            <strong>{{ import.dateSituation|date('d/m/Y') }}</strong>
+                        </td>
+                        <td>{{ import.dateApplicable|date('d/m/Y') }}</td>
+                        <td>
+                            <span class="taux-badge success">Importé</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center p-20 text-muted">
+                <i class="fas fa-inbox fa-3x mb-10" style="color: var(--text-secondary);"></i>
+                <p>Aucun import récent</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* KPI Header Grid */
+.kpi-header-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.kpi-header-card { background: white; border-radius: var(--border-radius); padding: 20px 25px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); border-left: 4px solid var(--bcc-primary); transition: var(--transition); }
+.kpi-header-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.kpi-header-card.highlight { background: linear-gradient(135deg, #10b981, #059669); color: white; border-left: none; }
+.kpi-header-card.highlight .kpi-header-label, .kpi-header-card.highlight .kpi-header-sublabel { color: rgba(255,255,255,0.8); }
+.kpi-header-card.highlight .kpi-header-value { color: white; }
+.kpi-header-card.highlight .kpi-header-icon { color: white; background: rgba(255,255,255,0.2); }
+
+.kpi-header-icon { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, rgba(0,127,255,0.15), rgba(0,127,255,0.05)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--bcc-primary); }
+.kpi-header-icon.success { background: rgba(16,185,129,0.15); color: var(--success); }
+.kpi-header-icon.info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+.kpi-header-content { display: flex; flex-direction: column; }
+.kpi-header-label { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.kpi-header-value { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
+.kpi-header-sublabel { font-size: 0.75rem; color: var(--text-secondary); }
+
+/* Import Form */
+.import-form { padding: 25px; }
+
+.form-group { margin-bottom: 25px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary); }
+
+.form-control { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 1rem; transition: var(--transition); }
+.form-control:focus { outline: none; border-color: var(--bcc-primary); box-shadow: 0 0 0 3px rgba(59, 111, 171, 0.1); }
+
+/* File Upload Zone */
+.file-upload-zone { position: relative; border: 2px dashed #e2e8f0; border-radius: 12px; padding: 40px 20px; text-align: center; transition: var(--transition); cursor: pointer; background: #f8fafc; }
+.file-upload-zone:hover, .file-upload-zone.dragover { border-color: var(--bcc-primary); background: rgba(59, 111, 171, 0.05); }
+
+.file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+.upload-content i { font-size: 3rem; color: var(--bcc-primary); margin-bottom: 15px; }
+.upload-content p { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin: 0 0 5px 0; }
+.upload-content span { font-size: 0.9rem; color: var(--text-secondary); }
+
+.file-name { margin-top: 15px; padding: 10px 15px; background: var(--success-light); color: var(--success); border-radius: 8px; font-weight: 600; display: none; }
+.file-name.show { display: inline-block; }
+
+/* Form Actions */
+.form-actions { padding-top: 10px; }
+
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; border: none; transition: var(--transition); }
+.btn-primary { background: var(--bcc-gradient); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,127,255,0.35); }
+.btn-lg { padding: 16px 32px; font-size: 1.05rem; }
+
+/* Format Guide */
+.format-guide { margin: 25px; padding: 20px; background: #f8fafc; border-radius: 10px; border-left: 4px solid var(--info); }
+.format-guide h4 { display: flex; align-items: center; gap: 10px; margin: 0 0 15px 0; color: var(--info); font-size: 1rem; }
+.format-guide p { margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.9rem; }
+.format-guide ul { margin: 0; padding-left: 20px; }
+.format-guide li { margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; }
+.format-guide li strong { color: var(--text-primary); }
+
+.taux-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+.taux-badge.success { background: var(--success-light); color: var(--success); }
+
+@media (max-width: 1200px) { .kpi-header-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .kpi-header-grid, .grid-2 { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('import_file');
+    const fileName = document.getElementById('fileName');
+
+    // File selection display
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            fileName.textContent = this.files[0].name;
+            fileName.classList.add('show');
+        } else {
+            fileName.classList.remove('show');
+        }
+    });
+
+    // Drag and drop
+    dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            fileName.textContent = e.dataTransfer.files[0].name;
+            fileName.classList.add('show');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -15,4 +15,13 @@ class ConjonctureJourRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ConjonctureJour::class);
     }
+
+    public function findLatest(): ?ConjonctureJour
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

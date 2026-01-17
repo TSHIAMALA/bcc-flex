@@ -218,139 +218,48 @@ Cette formule est identique à celle du Dashboard mais appliquée spécifiquemen
 - Cours indicatif BCC: 2850 CDF
 - Écart = 2950 - 2850 = **100 CDF**
 
-### 3. Analyse (AnalyseController)
+### 3. Analyse (Indice de Tension du Marché - ITM)
 
-#### Pression sur le Change
-```
-Pression (%) = min(100, (Écart Indicatif-Parallèle / 150) × 100)
-```
+L'ITM est un indicateur composite dynamique calculé sur une échelle de 0 à 100, conçu pour mesurer l'intensité des tensions sur le marché économique.
 
-**Interprétation**:
-- Écart de référence: 150 CDF
-- Plus l'écart est élevé, plus la pression est forte
-- Plafonné à 100%
-
-**Exemple**:
-- Écart = 120 CDF
-- Pression = min(100, (120 / 150) × 100) = **80%**
-
-#### Niveau des Réserves
-```
-Niveau (%) = min(100, (Réserves Internationales USD / 10000) × 100)
-```
-
-**Interprétation**:
-- Objectif de référence: 10 000 millions USD
-- Indique le niveau de couverture des réserves
-- Plafonné à 100%
-
-**Exemple**:
-- Réserves = 5200 millions USD
-- Niveau = min(100, (5200 / 10000) × 100) = **52%**
-
-#### Ratio Recettes/Dépenses
-```
-Ratio (%) = (Recettes Totales / Dépenses Totales) × 100
-```
-
-**Exemple**:
-- Recettes totales: 1200 milliards CDF
-- Dépenses totales: 1100 milliards CDF
-- Ratio = (1200 / 1100) × 100 = **109.09%**
-
-#### Équilibre Budgétaire
-```
-Équilibre (%) = min(100, max(0, Ratio Recettes/Dépenses))
-```
-
-**Interprétation**:
-- 100% = équilibre parfait ou excédent
-- < 100% = déficit
-- Borné entre 0% et 100%
-
-**Exemple**:
-- Ratio R/D = 109.09%
-- Équilibre = min(100, max(0, 109.09)) = **100%**
-
-#### Score de Liquidité du Marché
-```
-Score Liquidité = min(100, (Encours Total / 2000) × 50) + min(50, (Avoirs Libres / 500) × 50)
-```
-
-**Composantes**:
-1. **Encours BCC** (50 points max):
-   - Référence: 2000 milliards CDF
-   - Mesure la capacité d'intervention de la BCC
-
-2. **Avoirs Libres** (50 points max):
-   - Référence: 500 milliards CDF
-   - Mesure la liquidité disponible
-
-**Exemple**:
-- Encours total = 1500 milliards CDF
-- Avoirs libres = 400 milliards CDF
-- Score = min(100, (1500/2000) × 50) + min(50, (400/500) × 50)
-- Score = 37.5 + 40 = **77.5%**
-
-#### Croissance Économique (Proxy)
-```
-Variation Recettes (%) = ((Recettes Fin - Recettes Début) / Recettes Début) × 100
-
-Croissance (%) = max(0, min(100, 50 + (Variation Recettes × 5)))
-```
-
-**Interprétation**:
-- Basée sur l'évolution des recettes sur 7 jours
-- Point neutre: 50%
-- Chaque 1% de variation des recettes = 5 points de croissance
-- Borné entre 0% et 100%
-
-**Exemple**:
-- Recettes début: 1000 milliards CDF
-- Recettes fin: 1050 milliards CDF
-- Variation = ((1050 - 1000) / 1000) × 100 = 5%
-- Croissance = max(0, min(100, 50 + (5 × 5))) = **75%**
-
-#### Score de Vigilance (Composite)
-```
-Score Vigilance = (100 - Pression Change) × 0.25 +
-                  Niveau Réserves × 0.25 +
-                  Équilibre Budget × 0.20 +
-                  Liquidité Marché × 0.15 +
-                  Croissance Économique × 0.15
-```
-
-**Pondérations**:
-- Stabilité du Change: 25%
-- Niveau des Réserves: 25%
-- Équilibre Budgétaire: 20%
-- Liquidité du Marché: 15%
-- Croissance Économique: 15%
-
-**Exemple complet**:
-- Pression Change = 80% → Stabilité = 100 - 80 = 20%
-- Niveau Réserves = 52%
-- Équilibre Budget = 100%
-- Liquidité Marché = 77.5%
-- Croissance Économique = 75%
+#### Principe de Calcul
+Le score global est une **moyenne pondérée** des scores individuels de chaque indicateur configuré en base de données.
 
 ```
-Score = 20 × 0.25 + 52 × 0.25 + 100 × 0.20 + 77.5 × 0.15 + 75 × 0.15
-Score = 5 + 13 + 20 + 11.625 + 11.25
-Score = 60.875%
+ITM = (Σ (Score_Indicateur × Poids_Indicateur)) / Σ Poids_Total
 ```
 
-#### Niveau de Vigilance
-```
-Si Score > 70%  → Niveau = "Favorable"
-Si 40% < Score ≤ 70% → Niveau = "Modéré"
-Si Score ≤ 40% → Niveau = "Critique"
-```
+#### Calcul du Score par Indicateur (0-100)
+Chaque indicateur est évalué par rapport à deux seuils définis dans la table `regle_intervention` :
+1. **Seuil de Vigilance** (correspond à un score de 30)
+2. **Seuil d'Intervention** (correspond à un score de 60)
 
-**Couleurs associées**:
-- Favorable: Vert (success)
-- Modéré: Orange (warning)
-- Critique: Rouge (danger)
+Le calcul dépend du sens de variation défavorable ("hausse" ou "baisse").
+
+**Cas 1 : Sens "Hausse" (ex: Taux de change)**
+- Si Valeur ≤ Seuil Vigilance : Score entre 0 et 30 (Zone Normale)
+- Si Vigilance < Valeur ≤ Intervention : Score entre 30 et 60 (Zone Vigilance)
+- Si Valeur > Intervention : Score entre 60 et 100 (Zone Intervention)
+
+**Cas 2 : Sens "Baisse" (ex: Réserves de change)**
+- Si Valeur ≥ Seuil Vigilance : Score entre 0 et 30 (Zone Normale)
+- Si Intervention ≤ Valeur < Vigilance : Score entre 30 et 60 (Zone Vigilance)
+- Si Valeur < Intervention : Score entre 60 et 100 (Zone Intervention)
+
+#### Classification de l'ITM
+- **0 - 30** : 🟢 **NORMAL** (Situation stable)
+- **30 - 60** : 🟡 **VIGILANCE** (Surveillance requise)
+- **60 - 100** : 🔴 **INTERVENTION** (Action corrective nécessaire)
+
+### 4. Système d'Alertes (AlerteService)
+
+Le système d'alertes surveille quotidiennement chaque indicateur et génère des notifications basées sur les mêmes seuils que l'ITM.
+
+- **Statut NORMAL** : Valeur dans les limites acceptables.
+- **Statut VIGILANCE** : Seuil de vigilance franchi.
+- **Statut ALERTE** : Seuil d'intervention franchi.
+
+Les alertes sont historisées dans la table `alerte_change` pour permettre un suivi dans le temps.
 
 ### 4. Finances (FinancesController)
 
@@ -426,6 +335,13 @@ Taux d'Exécution (%) = (Montant Payé / Montant Total) × 100
 - Trésorerie de l'État
 - Titres publics
 - État de la paie
+
+#### 5. Import de Données (/import)
+**Module d'administration** permettant de:
+- Télécharger des fichiers CSV ou Excel contenant les données de conjoncture
+- Prévisualiser les données avant import
+- Valider la cohérence des formats
+- Mettre à jour automatiquement les indicateurs et recalculer l'ITM
 
 ### Interprétation des Indicateurs
 
