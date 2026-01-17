@@ -16,39 +16,29 @@ class AlerteChangeRepository extends ServiceEntityRepository
         parent::__construct($registry, AlerteChange::class);
     }
 
-    public function findActiveAlerts(): array
+    /**
+     * Find active (non-normal) alerts ordered by date
+     */
+    public function findActiveAlerts(int $limit = 20): array
     {
         return $this->createQueryBuilder('a')
-            ->join('a.indicateur', 'i')
-            ->join('a.conjoncture', 'c')
-            ->addSelect('i', 'c')
             ->where('a.statut != :normal')
             ->setParameter('normal', 'NORMAL')
             ->orderBy('a.createdAt', 'DESC')
-            ->setMaxResults(20)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findLatestByConjoncture(int $conjonctureId): array
-    {
-        return $this->createQueryBuilder('a')
-            ->join('a.indicateur', 'i')
-            ->addSelect('i')
-            ->where('a.conjoncture = :cid')
-            ->setParameter('cid', $conjonctureId)
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findAlertHistory(int $limit = 50): array
-    {
-        return $this->createQueryBuilder('a')
-            ->join('a.indicateur', 'i')
-            ->join('a.conjoncture', 'c')
-            ->addSelect('i', 'c')
-            ->orderBy('a.createdAt', 'DESC')
             ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Find alerts for a specific date
+     */
+    public function findByDate(\DateTimeInterface $date): array
+    {
+        return $this->createQueryBuilder('a')
+            ->join('a.conjoncture', 'c')
+            ->where('c.date_situation = :date')
+            ->setParameter('date', $date)
             ->getQuery()
             ->getResult();
     }

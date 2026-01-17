@@ -3,10 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\RegleInterventionRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RegleInterventionRepository::class)]
-#[ORM\Table(name: 'regles_intervention')]
 class RegleIntervention
 {
     #[ORM\Id]
@@ -15,23 +15,23 @@ class RegleIntervention
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Indicateur::class, inversedBy: 'regles')]
-    #[ORM\JoinColumn(name: 'indicateur_id', nullable: false)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Indicateur $indicateur = null;
 
-    #[ORM\Column(length: 10)]
-    private ?string $baseCalcul = null;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 4, nullable: true)]
     private ?string $seuilAlerte = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 4, nullable: true)]
     private ?string $seuilIntervention = null;
 
-    #[ORM\Column(length: 10)]
-    private ?string $sens = null;
+    #[ORM\Column(length: 20)]
+    private ?string $sens = 'hausse';
 
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $poids = null;
+    #[ORM\Column]
+    private ?int $poids = 10;
+
+    #[ORM\Column]
+    private ?bool $actif = true;
 
     public function getId(): ?int
     {
@@ -49,20 +49,9 @@ class RegleIntervention
         return $this;
     }
 
-    public function getBaseCalcul(): ?string
+    public function getSeuilAlerte(): ?string
     {
-        return $this->baseCalcul;
-    }
-
-    public function setBaseCalcul(string $baseCalcul): static
-    {
-        $this->baseCalcul = $baseCalcul;
-        return $this;
-    }
-
-    public function getSeuilAlerte(): ?float
-    {
-        return $this->seuilAlerte !== null ? (float)$this->seuilAlerte : null;
+        return $this->seuilAlerte;
     }
 
     public function setSeuilAlerte(?string $seuilAlerte): static
@@ -71,9 +60,9 @@ class RegleIntervention
         return $this;
     }
 
-    public function getSeuilIntervention(): ?float
+    public function getSeuilIntervention(): ?string
     {
-        return $this->seuilIntervention !== null ? (float)$this->seuilIntervention : null;
+        return $this->seuilIntervention;
     }
 
     public function setSeuilIntervention(?string $seuilIntervention): static
@@ -98,9 +87,20 @@ class RegleIntervention
         return $this->poids;
     }
 
-    public function setPoids(?int $poids): static
+    public function setPoids(int $poids): static
     {
         $this->poids = $poids;
+        return $this;
+    }
+
+    public function isActif(): ?bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): static
+    {
+        $this->actif = $actif;
         return $this;
     }
 }

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - BCC Flex</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(45, 109, 166, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(45, 109, 166, 0.6); }
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .bg-animated-gradient {
+            background: linear-gradient(-45deg, #1e4b7a, #2d6da6, #1a365d, #2563eb);
+            background-size: 400% 400%;
+            animation: gradient-shift 15s ease infinite;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-modern {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .input-modern:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #2d6da6;
+            box-shadow: 0 0 0 3px rgba(45, 109, 166, 0.3);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #2d6da6 0%, #1e4b7a 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 109, 166, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#0f1419]">
+    <div class="min-h-screen flex">
+        <!-- Left Side - Animated Branding with BCC Logo -->
+        <div class="hidden lg:flex lg:w-1/2 bg-animated-gradient items-center justify-center relative overflow-hidden">
+            <!-- Decorative circles -->
+            <div class="absolute top-10 left-10 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+            <div class="absolute bottom-20 right-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+            <div class="absolute top-1/4 right-1/4 w-24 h-24 bg-yellow-400/10 rounded-full blur-lg"></div>
+            
+            <div class="text-center z-10 p-8">
+                <div class="glass-card p-10 rounded-2xl shadow-2xl animate-float">
+                    <!-- BCC Logo -->
+                    <div class="mb-6">
+                        <img src="/images/bcc-logo.png" alt="Logo BCC" class="w-40 h-auto mx-auto drop-shadow-lg">
+                    </div>
+                    
+                    <h1 class="text-5xl font-black text-white mb-2 tracking-tight">BCC</h1>
+                    <h2 class="text-3xl font-bold text-yellow-400 mb-4">FLEX</h2>
+                    
+                    <div class="w-16 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600 mx-auto mb-6 rounded-full"></div>
+                    
+                    <p class="text-blue-100 text-lg font-medium mb-2">Banque Centrale du Congo</p>
+                    <p class="text-blue-200/60 text-sm">Système de Monitoring Économique</p>
+                </div>
+                
+                <div class="mt-12 space-y-3">
+                    <div class="flex items-center justify-center gap-3 text-blue-100/80">
+                        <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-sm"></i>
+                        </div>
+                        <span class="text-sm">Analyse en temps réel</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-3 text-blue-100/80">
+                        <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-bell text-sm"></i>
+                        </div>
+                        <span class="text-sm">Alertes intelligentes</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-3 text-blue-100/80">
+                        <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-sm"></i>
+                        </div>
+                        <span class="text-sm">Sécurisé et fiable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Login Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
+            <div class="max-w-md w-full">
+                <!-- Mobile Logo -->
+                <div class="lg:hidden text-center mb-8">
+                    <img src="{{ asset('images/bcc-logo.png') }}" alt="Logo BCC" class="w-20 h-auto mx-auto mb-4" onerror="this.style.display='none';">
+                    <h1 class="text-2xl font-bold text-white">BCC <span class="text-[#2d6da6]">Flex</span></h1>
+                </div>
+
+                <div class="glass-card rounded-2xl p-8 lg:p-10 animate-pulse-glow">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-white mb-2">Bienvenue</h2>
+                        <p class="text-gray-400">Connectez-vous à votre espace</p>
+                    </div>
+
+                    <form class="space-y-6" method="post">
+                        {% if error %}
+                            <div class="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl text-sm text-center flex items-center justify-center gap-2" role="alert">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ error.messageKey|trans(error.messageData, 'security') }}
+                            </div>
+                        {% endif %}
+
+                        {% if app.user %}
+                            <div class="bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-3 rounded-xl text-sm text-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                Connecté: <strong>{{ app.user.userIdentifier }}</strong>
+                                <a href="{{ path('app_logout') }}" class="ml-2 underline hover:text-green-300">Déconnexion</a>
+                            </div>
+                        {% endif %}
+
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        <div class="space-y-5">
+                            <div>
+                                <label for="inputEmail" class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-envelope mr-2 text-[#2d6da6]"></i>Adresse email
+                                </label>
+                                <input type="email" value="{{ last_username }}" name="email" id="inputEmail" 
+                                    class="input-modern w-full px-4 py-3.5 rounded-xl text-white placeholder-gray-500 focus:outline-none text-sm" 
+                                    placeholder="votre.email@bcc.cd" required autofocus>
+                            </div>
+                            <div>
+                                <label for="inputPassword" class="block text-sm font-medium text-gray-300 mb-2">
+                                    <i class="fas fa-lock mr-2 text-[#2d6da6]"></i>Mot de passe
+                                </label>
+                                <input type="password" name="password" id="inputPassword" 
+                                    class="input-modern w-full px-4 py-3.5 rounded-xl text-white placeholder-gray-500 focus:outline-none text-sm" 
+                                    placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center cursor-pointer group">
+                                <input id="remember_me" name="_remember_me" type="checkbox" 
+                                    class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-[#2d6da6] focus:ring-[#2d6da6] focus:ring-offset-0">
+                                <span class="ml-2 text-sm text-gray-400 group-hover:text-gray-300 transition-colors">Se souvenir de moi</span>
+                            </label>
+                            <a href="#" class="text-sm text-[#2d6da6] hover:text-blue-400 transition-colors">
+                                Mot de passe oublié?
+                            </a>
+                        </div>
+
+                        <button type="submit" class="btn-gradient w-full py-4 rounded-xl text-white font-semibold text-sm shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Se connecter
+                        </button>
+                    </form>
+                </div>
+
+                <p class="text-center text-gray-600 text-xs mt-8">
+                    &copy; {{ 'now'|date('Y') }} Banque Centrale du Congo. Tous droits réservés.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

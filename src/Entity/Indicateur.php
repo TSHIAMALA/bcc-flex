@@ -3,12 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\IndicateurRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: IndicateurRepository::class)]
-#[ORM\Table(name: 'indicateurs')]
 class Indicateur
 {
     #[ORM\Id]
@@ -20,21 +19,23 @@ class Indicateur
     private ?string $code = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private ?string $nom = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $unite = null;
 
-    #[ORM\OneToMany(mappedBy: 'indicateur', targetEntity: RegleIntervention::class)]
-    private Collection $regles;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
-    #[ORM\OneToMany(mappedBy: 'indicateur', targetEntity: AlerteChange::class)]
-    private Collection $alertes;
+    #[ORM\Column(length: 50)]
+    private ?string $type = 'PREMIER_RANG';
+
+    #[ORM\OneToMany(targetEntity: RegleIntervention::class, mappedBy: 'indicateur')]
+    private Collection $regles;
 
     public function __construct()
     {
         $this->regles = new ArrayCollection();
-        $this->alertes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -53,15 +54,20 @@ class Indicateur
         return $this;
     }
 
-    public function getLibelle(): ?string
+    public function getNom(): ?string
     {
-        return $this->libelle;
+        return $this->nom;
     }
 
-    public function setLibelle(string $libelle): static
+    public function setNom(string $nom): static
     {
-        $this->libelle = $libelle;
+        $this->nom = $nom;
         return $this;
+    }
+
+    public function getLibelle(): ?string
+    {
+        return $this->nom;
     }
 
     public function getUnite(): ?string
@@ -75,13 +81,38 @@ class Indicateur
         return $this;
     }
 
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getCategorie(): ?string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return Collection<int, RegleIntervention>
+     */
     public function getRegles(): Collection
     {
         return $this->regles;
-    }
-
-    public function getAlertes(): Collection
-    {
-        return $this->alertes;
     }
 }

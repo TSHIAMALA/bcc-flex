@@ -3,10 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\AlerteChangeRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AlerteChangeRepository::class)]
-#[ORM\Table(name: 'alertes_change')]
 class AlerteChange
 {
     #[ORM\Id]
@@ -15,20 +15,20 @@ class AlerteChange
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: ConjonctureJour::class)]
-    #[ORM\JoinColumn(name: 'conjoncture_id', nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?ConjonctureJour $conjoncture = null;
 
-    #[ORM\ManyToOne(targetEntity: Indicateur::class, inversedBy: 'alertes')]
-    #[ORM\JoinColumn(name: 'indicateur_id', nullable: true)]
+    #[ORM\ManyToOne(targetEntity: Indicateur::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Indicateur $indicateur = null;
 
-    #[ORM\Column(type: 'decimal', precision: 18, scale: 4, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 4)]
     private ?string $valeur = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $statut = null;
+    private ?string $statut = 'NORMAL';
 
-    #[ORM\Column(type: 'datetime', options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
     public function __construct()
@@ -63,12 +63,12 @@ class AlerteChange
         return $this;
     }
 
-    public function getValeur(): ?float
+    public function getValeur(): ?string
     {
-        return $this->valeur !== null ? (float)$this->valeur : null;
+        return $this->valeur;
     }
 
-    public function setValeur(?string $valeur): static
+    public function setValeur(string $valeur): static
     {
         $this->valeur = $valeur;
         return $this;
@@ -94,23 +94,5 @@ class AlerteChange
     {
         $this->createdAt = $createdAt;
         return $this;
-    }
-
-    public function getStatusClass(): string
-    {
-        return match($this->statut) {
-            'ALERTE' => 'danger',
-            'VIGILANCE' => 'warning',
-            default => 'success',
-        };
-    }
-
-    public function getStatusIcon(): string
-    {
-        return match($this->statut) {
-            'ALERTE' => 'exclamation-triangle',
-            'VIGILANCE' => 'exclamation-circle',
-            default => 'check-circle',
-        };
     }
 }

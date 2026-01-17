@@ -16,11 +16,14 @@ class RegleInterventionRepository extends ServiceEntityRepository
         parent::__construct($registry, RegleIntervention::class);
     }
 
-    public function findAllWithIndicateurs(): array
+    /**
+     * Find active rules
+     */
+    public function findActiveRules(): array
     {
         return $this->createQueryBuilder('r')
-            ->join('r.indicateur', 'i')
-            ->addSelect('i')
+            ->where('r.actif = :actif')
+            ->setParameter('actif', true)
             ->getQuery()
             ->getResult();
     }

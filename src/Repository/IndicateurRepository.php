@@ -16,16 +16,16 @@ class IndicateurRepository extends ServiceEntityRepository
         parent::__construct($registry, Indicateur::class);
     }
 
-    public function findByCode(string $code): ?Indicateur
-    {
-        return $this->findOneBy(['code' => $code]);
-    }
-
+    /**
+     * Find all indicators with their intervention rules loaded
+     */
     public function findAllWithRules(): array
     {
         return $this->createQueryBuilder('i')
             ->leftJoin('i.regles', 'r')
             ->addSelect('r')
+            ->where('r.actif = :actif')
+            ->setParameter('actif', true)
             ->getQuery()
             ->getResult();
     }
