@@ -33,17 +33,25 @@
                 <i class="fas fa-brain"></i>
                 <span>Analyse & Décision</span>
             </a>
+            <a href="{{ path('app_alertes') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_alertes' ? 'active' : '' }}">
+                <i class="fas fa-bell"></i>
+                <span>Alertes & Surveillance</span>
+            </a>
         </div>
         
         <div class="nav-section">
-            <div class="nav-section-title">Paramètres</div>
-            <a href="{{ path('app_alertes') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_alertes' ? 'active' : '' }}">
-                <i class="fas fa-bell"></i>
-                <span>Alertes</span>
+            <div class="nav-section-title">Administration</div>
+            <a href="{{ path('app_admin_rules') }}" class="nav-item {{ app.request.attributes.get('_route') starts with 'app_admin_rules' ? 'active' : '' }}">
+                <i class="fas fa-sliders-h"></i>
+                <span>Règles de Gestion</span>
             </a>
             <a href="{{ path('app_import') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_import' ? 'active' : '' }}">
                 <i class="fas fa-file-import"></i>
                 <span>Import</span>
+            </a>
+            <a href="{{ path('app_saisie') }}" class="nav-item {{ app.request.attributes.get('_route') starts with 'app_saisie' ? 'active' : '' }}">
+                <i class="fas fa-keyboard"></i>
+                <span>Saisie Manuelle</span>
             </a>
         </div>
     </nav>

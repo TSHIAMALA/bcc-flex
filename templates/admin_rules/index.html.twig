@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Règles - BCC-Flex{% endblock %}
+
+{% block header_title %}Administration{% endblock %}
+{% block header_subtitle %}Configuration des Règles de Gestion{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex justify-between items-center">
+        <h3 class="text-xl font-bold text-gray-800">Règles d'Intervention</h3>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="table-container">
+            <table class="data-table w-full">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indicateur</th>
+                        <th class="px-6 py-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil Vigilance</th>
+                        <th class="px-6 py-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seuil Intervention</th>
+                        <th class="px-6 py-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sens</th>
+                        <th class="px-6 py-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Poids</th>
+                        <th class="px-6 py-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actif</th>
+                        <th class="px-6 py-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for regle in regles %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-medium text-gray-900">{{ regle.indicateur.nom }}</span>
+                                <div class="text-xs text-gray-500">{{ regle.indicateur.code }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <span class="bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full font-medium shadow-sm border border-yellow-200">
+                                    {{ regle.seuilAlerte|number_format(2, ',', ' ') }} {{ regle.indicateur.unite }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <span class="bg-red-100 text-red-800 py-1 px-2 rounded-full font-medium shadow-sm border border-red-200">
+                                    {{ regle.seuilIntervention|number_format(2, ',', ' ') }} {{ regle.indicateur.unite }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if regle.sens == 'hausse' %}
+                                    <span class="text-red-500 flex items-center gap-1"><i class="fas fa-arrow-up"></i> Hausse défav.</span>
+                                {% else %}
+                                    <span class="text-blue-500 flex items-center gap-1"><i class="fas fa-arrow-down"></i> Baisse défav.</span>
+                                {% endif %}
+                            </td>
+                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
+                                {{ regle.poids }}%
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                {% if regle.actif %}
+                                    <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                                {% else %}
+                                    <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                <a href="{{ path('app_admin_rules_edit', {'id': regle.id}) }}" class="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1.5 rounded-md transition-colors border border-blue-200 hover:border-blue-400">
+                                    <i class="fas fa-cog mr-1"></i> Configurer
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-10 text-center text-gray-500 bg-gray-50">
+                                Aucune règle configurée. Lancez la commande <code>php bin/console app:seed-market-data</code>.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

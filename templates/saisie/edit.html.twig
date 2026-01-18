@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Édition - {{ conjoncture.dateSituation|date('d/m/Y') }}{% endblock %}
+
+{% block header_title %}Édition des Données{% endblock %}
+{% block header_subtitle %}{{ conjoncture.dateSituation|date('d F Y')|format_date('long', 'fr') }}{% endblock %}
+
+{% block body %}
+    {% set tab = app.request.query.get('tab', 'marche') %}
+
+    <div class="flex flex-col md:flex-row gap-6">
+        <!-- Sidebar Navigation (Tabs) -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            <div class="card p-4 sticky top-24">
+                <nav class="space-y-1">
+                    <a href="?tab=marche" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {{ tab == 'marche' ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm border border-blue-100' : 'text-gray-600 hover:bg-gray-50' }}">
+                        <span class="w-8 h-8 rounded-full flex items-center justify-center {{ tab == 'marche' ? 'bg-blue-200 text-blue-700' : 'bg-gray-100 text-gray-500' }}">
+                            <i class="fas fa-exchange-alt text-sm"></i>
+                        </span>
+                        Marché des Changes
+                    </a>
+                    <a href="?tab=reserves" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {{ tab == 'reserves' ? 'bg-green-50 text-green-700 font-semibold shadow-sm border border-green-100' : 'text-gray-600 hover:bg-gray-50' }}">
+                        <span class="w-8 h-8 rounded-full flex items-center justify-center {{ tab == 'reserves' ? 'bg-green-200 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                            <i class="fas fa-university text-sm"></i>
+                        </span>
+                        Réserves Fin.
+                    </a>
+                    <a href="?tab=finances" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {{ tab == 'finances' ? 'bg-amber-50 text-amber-700 font-semibold shadow-sm border border-amber-100' : 'text-gray-600 hover:bg-gray-50' }}">
+                        <span class="w-8 h-8 rounded-full flex items-center justify-center {{ tab == 'finances' ? 'bg-amber-200 text-amber-700' : 'bg-gray-100 text-gray-500' }}">
+                            <i class="fas fa-balance-scale text-sm"></i>
+                        </span>
+                        Finances Pub.
+                    </a>
+                    <a href="?tab=tresorerie" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {{ tab == 'tresorerie' ? 'bg-purple-50 text-purple-700 font-semibold shadow-sm border border-purple-100' : 'text-gray-600 hover:bg-gray-50' }}">
+                         <span class="w-8 h-8 rounded-full flex items-center justify-center {{ tab == 'tresorerie' ? 'bg-purple-200 text-purple-700' : 'bg-gray-100 text-gray-500' }}">
+                            <i class="fas fa-wallet text-sm"></i>
+                        </span>
+                        Trésorerie
+                    </a>
+                </nav>
+                
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <a href="{{ path('app_saisie') }}" class="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors px-4 text-sm font-medium">
+                        <i class="fas fa-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Content -->
+        <div class="flex-1">
+             {% for message in app.flashes('success') %}
+                <div class="alert-box alert-success mb-6">
+                    <i class="fas fa-check-circle alert-icon"></i>
+                    <div class="alert-content">
+                        <h4>Succès</h4>
+                        <p>{{ message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- TABS CONTENT -->
+            {% if tab == 'marche' %}
+                <div class="card p-6 border-t-4 border-blue-500 scale-in-center">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Marché des Changes</h3>
+                        <p class="text-gray-500 text-sm">Saisie des cours indicatifs et parallèles.</p>
+                    </div>
+                    {{ form_start(formMarche, {'attr': {'class': 'space-y-6'}}) }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {{ form_row(formMarche.cours_indicatif, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_row(formMarche.ecart_indic_parallele, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_row(formMarche.parallele_achat, {'attr': {'class': 'form-input'}}) }}
+                        {{ form_row(formMarche.parallele_vente, {'attr': {'class': 'form-input'}}) }}
+                    </div>
+                     <div class="pt-4 flex justify-end">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-lg">Enregistrer</button>
+                    </div>
+                    {{ form_end(formMarche) }}
+                </div>
+            {% elseif tab == 'reserves' %}
+                <div class="card p-6 border-t-4 border-green-500 scale-in-center">
+                    <div class="mb-6">
+                         <h3 class="text-xl font-bold text-gray-800">Réserves Financières</h3>
+                         <p class="text-gray-500 text-sm">Suivi des réserves internationales et avoirs.</p>
+                    </div>
+                    {{ form_start(formReserves, {'attr': {'class': 'space-y-6'}}) }}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {{ form_rest(formReserves) }} 
+                             {# Note: form_rest outputs all remaining fields. Customize individual rows for better layout if needed #}
+                        </div>
+                         <div class="pt-4 flex justify-end">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg shadow-lg">Enregistrer</button>
+                        </div>
+                    {{ form_end(formReserves) }}
+                </div>
+            {% elseif tab == 'finances' %}
+                  <div class="card p-6 border-t-4 border-amber-500 scale-in-center">
+                    <div class="mb-6">
+                         <h3 class="text-xl font-bold text-gray-800">Finances Publiques</h3>
+                    </div>
+                    {{ form_start(formFinances, {'attr': {'class': 'space-y-6'}}) }}
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {{ form_rest(formFinances) }}
+                        </div>
+                         <div class="pt-4 flex justify-end">
+                            <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-lg shadow-lg">Enregistrer</button>
+                        </div>
+                    {{ form_end(formFinances) }}
+                </div>
+            {% elseif tab == 'tresorerie' %}
+                <div class="card p-6 border-t-4 border-purple-500 scale-in-center">
+                    <div class="mb-6">
+                         <h3 class="text-xl font-bold text-gray-800">Trésorerie de l'État</h3>
+                    </div>
+                    {{ form_start(formTresorerie, {'attr': {'class': 'space-y-6'}}) }}
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {{ form_rest(formTresorerie) }}
+                        </div>
+                         <div class="pt-4 flex justify-end">
+                            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg shadow-lg">Enregistrer</button>
+                        </div>
+                    {{ form_end(formTresorerie) }}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <style>
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            transition: all 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        /* Overwrite Symfony default form rendering slightly for Tailwind */
+        .form-group { margin-bottom: 0; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+    </style>
+{% endblock %}

@@ -1,0 +1,136 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\ConjonctureJour;
+use App\Entity\MarcheChanges;
+use App\Entity\ReservesFinancieres;
+use App\Entity\FinancesPubliques;
+use App\Entity\TresorerieEtat;
+use App\Form\ConjonctureType;
+use App\Form\MarcheChangesType;
+use App\Form\ReservesFinancieresType;
+use App\Form\FinancesPubliquesType;
+use App\Form\TresorerieEtatType;
+use App\Repository\ConjonctureJourRepository;
+use App\Repository\MarcheChangesRepository;
+use App\Repository\ReservesFinancieresRepository;
+use App\Repository\FinancesPubliquesRepository;
+use App\Repository\TresorerieEtatRepository;
+use App\Service\AlerteService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+final class SaisieController extends AbstractController
+{
+    #[Route('/saisie', name: 'app_saisie')]
+    public function index(ConjonctureJourRepository $conjonctureRepository): Response
+    {
+        $conjonctures = $conjonctureRepository->findBy([], ['date_situation' => 'DESC']);
+
+        return $this->render('saisie/index.html.twig', [
+            'conjonctures' => $conjonctures,
+        ]);
+    }
+
+    #[Route('/saisie/new', name: 'app_saisie_new')]
+    public function new(Request $request, EntityManagerInterface $em): Response
+    {
+        $conjoncture = new ConjonctureJour();
+        $form = $this->createForm(ConjonctureType::class, $conjoncture);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($conjoncture);
+            $em->flush();
+
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId()]);
+        }
+
+        return $this->render('saisie/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/saisie/{id}/edit', name: 'app_saisie_edit')]
+    public function edit(
+        Request $request, 
+        ConjonctureJour $conjoncture, 
+        EntityManagerInterface $em,
+        MarcheChangesRepository $marcheRepo,
+        ReservesFinancieresRepository $reservesRepo,
+        FinancesPubliquesRepository $financesRepo,
+        TresorerieEtatRepository $tresorerieRepo,
+        AlerteService $alerteService
+    ): Response
+    {
+        // 1. Marche des Changes
+        $marche = $marcheRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new MarcheChanges();
+        $marche->setConjoncture($conjoncture);
+        $formMarche = $this->createForm(MarcheChangesType::class, $marche);
+        
+        // 2. Reserves
+        $reserves = $reservesRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new ReservesFinancieres();
+        $reserves->setConjoncture($conjoncture);
+        $formReserves = $this->createForm(ReservesFinancieresType::class, $reserves);
+
+        // 3. Finances
+        $finances = $financesRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new FinancesPubliques();
+        $finances->setConjoncture($conjoncture);
+        $formFinances = $this->createForm(FinancesPubliquesType::class, $finances);
+
+        // 4. Tresorerie
+        $tresorerie = $tresorerieRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new TresorerieEtat();
+        $tresorerie->setConjoncture($conjoncture);
+        $formTresorerie = $this->createForm(TresorerieEtatType::class, $tresorerie);
+
+        // Handle Requests
+        $formMarche->handleRequest($request);
+        $formReserves->handleRequest($request);
+        $formFinances->handleRequest($request);
+        $formTresorerie->handleRequest($request);
+
+        if ($formMarche->isSubmitted() && $formMarche->isValid()) {
+            $em->persist($marche);
+            $em->flush();
+            $this->addFlash('success', 'Marché des changes enregistré.');
+             // Recalculate alerts
+            $alerteService->calculateAlerts($conjoncture);
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'marche']);
+        }
+
+        if ($formReserves->isSubmitted() && $formReserves->isValid()) {
+            $em->persist($reserves);
+            $em->flush();
+            $this->addFlash('success', 'Réserves enregistrées.');
+             // Recalculate alerts
+            $alerteService->calculateAlerts($conjoncture);
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'reserves']);
+        }
+
+        if ($formFinances->isSubmitted() && $formFinances->isValid()) {
+            $em->persist($finances);
+            $em->flush();
+            $this->addFlash('success', 'Finances publiques enregistrées.');
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'finances']);
+        }
+
+        if ($formTresorerie->isSubmitted() && $formTresorerie->isValid()) {
+            $em->persist($tresorerie);
+            $em->flush();
+            $this->addFlash('success', 'Trésorerie enregistrée.');
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'tresorerie']);
+        }
+
+        return $this->render('saisie/edit.html.twig', [
+            'conjoncture' => $conjoncture,
+            'formMarche' => $formMarche->createView(),
+            'formReserves' => $formReserves->createView(),
+            'formFinances' => $formFinances->createView(),
+            'formTresorerie' => $formTresorerie->createView(),
+        ]);
+    }
+}

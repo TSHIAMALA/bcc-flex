@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Règle - BCC-Flex{% endblock %}
+
+{% block header_title %}Configuration{% endblock %}
+{% block header_subtitle %}{{ regle.indicateur.nom }}{% endblock %}
+
+{% block body %}
+    <div class="max-w-2xl mx-auto">
+        <div class="card p-8 bg-white/95 backdrop-blur-md">
+            <div class="mb-6 pb-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                     <h3 class="text-xl font-bold text-gray-800 mb-1">Paramètres de Surveillance</h3>
+                     <p class="text-gray-500 text-sm">Ajustez les seuils pour {{ regle.indicateur.nom }} (Unité: {{ regle.indicateur.unite }})</p>
+                </div>
+                <div class="text-3xl text-blue-100"><i class="fas fa-sliders-h"></i></div>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
+                        {{ form_label(form.seuilAlerte, 'Seuil de Vigilance', {'label_attr': {'class': 'block text-sm font-bold text-yellow-800 mb-2'}}) }}
+                        <div class="relative">
+                            {{ form_widget(form.seuilAlerte, {'attr': {'class': 'w-full px-4 py-3 rounded-lg border border-yellow-300 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-yellow-900 bg-white shadow-sm transition-all'}}) }}
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-yellow-600 mt-2">Déclenche le statut "Vigilance".</p>
+                    </div>
+
+                    <div class="form-group bg-red-50/50 p-4 rounded-lg border border-red-100">
+                         {{ form_label(form.seuilIntervention, 'Seuil d\'Intervention', {'label_attr': {'class': 'block text-sm font-bold text-red-800 mb-2'}}) }}
+                        <div class="relative">
+                             {{ form_widget(form.seuilIntervention, {'attr': {'class': 'w-full px-4 py-3 rounded-lg border border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 text-red-900 bg-white shadow-sm transition-all'}}) }}
+                             <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-radiation text-red-400"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-red-600 mt-2">Déclenche le statut "Alerte/Intervention".</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                    <div class="form-group">
+                        {{ form_label(form.poids, 'Poids dans l\'ITM (%)', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+                        {{ form_widget(form.poids, {'attr': {'class': 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500'}}) }}
+                    </div>
+                     <div class="form-group">
+                        {{ form_label(form.sens, 'Sens défavorable', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+                        {{ form_widget(form.sens, {'attr': {'class': 'w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 bg-white'}}) }}
+                    </div>
+                     <div class="form-group flex items-end pb-3">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                             {{ form_widget(form.actif, {'attr': {'class': 'form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500'}}) }}
+                             <span class="text-gray-900 font-medium">Règle Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex items-center justify-between border-t border-gray-100 mt-6">
+                    <a href="{{ path('app_admin_rules') }}" class="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all font-bold flex items-center gap-2">
+                        <i class="fas fa-save"></i> Enregistrer les Modifications
+                    </button>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

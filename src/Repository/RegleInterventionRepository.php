@@ -27,4 +27,16 @@ class RegleInterventionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find all rules with their associated indicators
+     */
+    public function findAllWithIndicateurs(): array
+    {
+        return $this->createQueryBuilder('r')
+            ->leftJoin('r.indicateur', 'i')
+            ->addSelect('i')
+            ->getQuery()
+            ->getResult();
+    }
 }
