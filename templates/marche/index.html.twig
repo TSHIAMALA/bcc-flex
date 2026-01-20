@@ -82,8 +82,17 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-building"></i> Volumes USD par Banque</h3>
         </div>
-        <div class="chart-container" style="height: 280px;">
-            <canvas id="chartVolumes"></canvas>
+        <div class="card-body">
+            {% if volumes|length > 0 %}
+            <div class="chart-container" style="height: 280px;">
+                <canvas id="chartVolumes"></canvas>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Aucune donnée de volume disponible</p>
+            </div>
+            {% endif %}
         </div>
     </div>
     
@@ -91,21 +100,27 @@
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-file-invoice-dollar"></i> Encours BCC</h3>
         </div>
-        <div style="display: flex; gap: 20px; align-items: center; padding: 20px;">
-            <div class="chart-container" style="height: 200px; flex: 1;">
-                <canvas id="chartEncours"></canvas>
-            </div>
-            <div class="encours-legend">
-                {% if encours %}
-                <div class="encours-item">
-                    <div class="encours-value">{{ encours.encoursOtBcc|number_format(0, ',', ' ') }}</div>
-                    <div class="encours-label">OT-BCC (Mds)</div>
+        <div class="card-body">
+            <div class="encours-container">
+                <div class="encours-chart">
+                    <canvas id="chartEncours"></canvas>
                 </div>
-                <div class="encours-item">
-                    <div class="encours-value">{{ encours.encoursBBcc|number_format(0, ',', ' ') }}</div>
-                    <div class="encours-label">B-BCC (Mds)</div>
+                <div class="encours-legend">
+                    {% if encours %}
+                    <div class="encours-item ot-bcc">
+                        <div class="encours-value">{{ encours.encoursOtBcc|number_format(0, ',', ' ') }}</div>
+                        <div class="encours-label">OT-BCC (Mds)</div>
+                    </div>
+                    <div class="encours-item b-bcc">
+                        <div class="encours-value">{{ encours.encoursBBcc|number_format(0, ',', ' ') }}</div>
+                        <div class="encours-label">B-BCC (Mds)</div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state-small">
+                        <p>Aucune donnée</p>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -165,10 +180,19 @@
 .stat-change { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 .stat-change.positive { color: #34d399; }
 .stat-change.negative { color: #f87171; }
-.encours-legend { display: flex; flex-direction: column; gap: 20px; }
-.encours-item { text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(0,127,255,0.1), rgba(0,127,255,0.05)); border-radius: 12px; min-width: 140px; }
-.encours-value { font-size: 1.8rem; font-weight: 800; color: var(--bcc-primary); }
-.encours-label { font-size: 0.85rem; color: var(--text-secondary); margin-top: 5px; }
+.encours-legend { display: flex; flex-direction: column; gap: 15px; }
+.encours-item { text-align: center; padding: 15px 20px; background: linear-gradient(135deg, rgba(0,127,255,0.1), rgba(0,127,255,0.05)); border-radius: 12px; min-width: 120px; }
+.encours-item.ot-bcc { border-left: 4px solid #007FFF; }
+.encours-item.b-bcc { border-left: 4px solid #0056b3; }
+.encours-value { font-size: 1.6rem; font-weight: 800; color: var(--bcc-primary); }
+.encours-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
+.encours-container { display: flex; gap: 25px; align-items: center; padding: 10px 0; }
+.encours-chart { flex: 1; height: 180px; min-width: 180px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; color: var(--text-secondary); }
+.empty-state i { font-size: 2.5rem; margin-bottom: 15px; opacity: 0.5; }
+.empty-state p { font-size: 0.9rem; }
+.empty-state-small { padding: 20px; text-align: center; color: var(--text-secondary); }
+.card-body { padding: 20px; }
 .inline-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
 .inline-badge.success { background: var(--success-light); color: var(--success); }
 .inline-badge.danger { background: var(--danger-light); color: var(--danger); }

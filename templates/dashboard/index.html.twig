@@ -10,33 +10,83 @@
         <!-- ITM Gauge Section -->
         <div class="itm-section">
             <div class="itm-gauge-wrapper">
-                <div class="itm-gauge" data-score="{{ itm.score }}">
-                    <svg class="itm-gauge-svg" viewBox="0 0 200 120">
-                        <defs>
-                            <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#10b981"/>
-                                <stop offset="50%" style="stop-color:#f59e0b"/>
-                                <stop offset="100%" style="stop-color:#ef4444"/>
-                            </linearGradient>
-                        </defs>
-                        <!-- Background arc -->
-                        <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e2e8f0" stroke-width="12" stroke-linecap="round"/>
-                        <!-- Value arc -->
-                        <path class="gauge-value" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="{{ 251.2 - (itm.score / 100 * 251.2) }}"/>
-                        <!-- Needle -->
-                        <line class="gauge-needle" x1="100" y1="100" x2="100" y2="30" stroke="{{ itmColor }}" stroke-width="3" stroke-linecap="round" transform="rotate({{ -90 + (itm.score * 1.8) }}, 100, 100)"/>
-                        <circle cx="100" cy="100" r="8" fill="{{ itmColor }}"/>
-                    </svg>
-                    <div class="itm-score-display">
-                        <span class="itm-score-value" style="color: {{ itmColor }}">{{ itm.score }}</span>
-                        <span class="itm-score-label">/ 100</span>
+                <div class="itm-header">
+                    <span class="itm-header-title">Indice de Tension du Marché</span>
+                </div>
+                <div class="itm-content">
+                    <div class="itm-gauge-container">
+                        <svg class="itm-gauge-svg" viewBox="0 0 200 130">
+                            <defs>
+                                <!-- Colored segments -->
+                                <linearGradient id="gaugeGreen" x1="0%" y1="0%" x2="100%">
+                                    <stop offset="0%" stop-color="#10b981"/>
+                                    <stop offset="100%" stop-color="#34d399"/>
+                                </linearGradient>
+                                <linearGradient id="gaugeYellow" x1="0%" y1="0%" x2="100%">
+                                    <stop offset="0%" stop-color="#84cc16"/>
+                                    <stop offset="100%" stop-color="#f59e0b"/>
+                                </linearGradient>
+                                <linearGradient id="gaugeOrange" x1="0%" y1="0%" x2="100%">
+                                    <stop offset="0%" stop-color="#f59e0b"/>
+                                    <stop offset="100%" stop-color="#f97316"/>
+                                </linearGradient>
+                                <linearGradient id="gaugeRed" x1="0%" y1="0%" x2="100%">
+                                    <stop offset="0%" stop-color="#f97316"/>
+                                    <stop offset="100%" stop-color="#ef4444"/>
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Background segments -->
+                            <path d="M 20 105 A 80 80 0 0 1 50 45" fill="none" stroke="#10b981" stroke-width="18" stroke-linecap="butt"/>
+                            <path d="M 52 43 A 80 80 0 0 1 100 25" fill="none" stroke="#84cc16" stroke-width="18" stroke-linecap="butt"/>
+                            <path d="M 102 25 A 80 80 0 0 1 148 43" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="butt"/>
+                            <path d="M 150 45 A 80 80 0 0 1 180 105" fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="butt"/>
+                            
+                            <!-- Tick marks -->
+                            <line x1="20" y1="105" x2="28" y2="105" stroke="#1f2937" stroke-width="2"/>
+                            <line x1="50" y1="45" x2="56" y2="50" stroke="#1f2937" stroke-width="2"/>
+                            <line x1="100" y1="25" x2="100" y2="33" stroke="#1f2937" stroke-width="2"/>
+                            <line x1="150" y1="45" x2="144" y2="50" stroke="#1f2937" stroke-width="2"/>
+                            <line x1="180" y1="105" x2="172" y2="105" stroke="#1f2937" stroke-width="2"/>
+                            
+                            <!-- Needle -->
+                            <g transform="rotate({{ -90 + (itm.score * 1.8) }}, 100, 105)">
+                                <polygon points="100,40 96,105 104,105" fill="#1f2937"/>
+                                <circle cx="100" cy="105" r="10" fill="#1f2937"/>
+                                <circle cx="100" cy="105" r="6" fill="#fff"/>
+                            </g>
+                        </svg>
+                        <div class="itm-score-below">
+                            <span class="itm-score-big" style="color: {{ itmColor }}">{{ itm.score|number_format(1, ',', ' ') }}%</span>
+                        </div>
+                    </div>
+                    <div class="itm-legend">
+                        <div class="itm-legend-item success">
+                            <span class="itm-legend-color" style="background: #10b981;"></span>
+                            <span class="itm-legend-text">Calme</span>
+                            <span class="itm-legend-range">0 - 30</span>
+                        </div>
+                        <div class="itm-legend-item moderate">
+                            <span class="itm-legend-color" style="background: #84cc16;"></span>
+                            <span class="itm-legend-text">Vigilance</span>
+                            <span class="itm-legend-range">30 - 50</span>
+                        </div>
+                        <div class="itm-legend-item warning">
+                            <span class="itm-legend-color" style="background: #f59e0b;"></span>
+                            <span class="itm-legend-text">Tension</span>
+                            <span class="itm-legend-range">50 - 70</span>
+                        </div>
+                        <div class="itm-legend-item danger">
+                            <span class="itm-legend-color" style="background: #ef4444;"></span>
+                            <span class="itm-legend-text">Critique</span>
+                            <span class="itm-legend-range">70 - 100</span>
+                        </div>
                     </div>
                 </div>
-                <div class="itm-classification {{ itmClass }}">
+                <div class="itm-status {{ itmClass }}">
                     <i class="fas fa-{{ itmClass == 'danger' ? 'exclamation-triangle' : (itmClass == 'warning' ? 'exclamation-circle' : 'check-circle') }}"></i>
                     {{ itm.label }}
                 </div>
-                <div class="itm-title">Indice de Tension du Marché</div>
             </div>
         </div>
 
@@ -338,28 +388,49 @@
         align-items: stretch;
     }
 
-    /* ITM Gauge Section */
+    /* ITM Gauge Section - New Design */
     .itm-section {
         flex-shrink: 0;
-        width: 220px;
+        width: 380px;
     }
 
     .itm-gauge-wrapper {
         background: white;
         border-radius: var(--border-radius);
-        padding: 25px 20px;
+        padding: 20px;
         box-shadow: var(--shadow);
-        text-align: center;
         height: 100%;
         display: flex;
         flex-direction: column;
-        justify-content: center;
         border-left: 4px solid var(--bcc-primary);
     }
 
-    .itm-gauge {
+    .itm-header {
+        text-align: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .itm-header-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .itm-content {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex: 1;
+    }
+
+    .itm-gauge-container {
         position: relative;
-        margin-bottom: 10px;
+        flex: 1;
+        min-width: 160px;
     }
 
     .itm-gauge-svg {
@@ -369,61 +440,78 @@
         display: block;
     }
 
-    .gauge-needle {
-        transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .itm-score-display {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
+    .itm-score-below {
         text-align: center;
+        margin-top: 5px;
     }
 
-    .itm-score-value {
-        font-size: 2.2rem;
+    .itm-score-big {
+        font-size: 1.8rem;
         font-weight: 800;
         line-height: 1;
     }
 
-    .itm-score-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
+    .itm-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 120px;
     }
 
-    .itm-classification {
-        display: inline-flex;
+    .itm-legend-item {
+        display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 16px;
-        border-radius: 25px;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 8px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: #f8fafc;
+        font-size: 0.75rem;
     }
 
-    .itm-classification.success {
+    .itm-legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    .itm-legend-text {
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    .itm-legend-range {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .itm-status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-top: 15px;
+    }
+
+    .itm-status.success {
         background: var(--success-light);
         color: var(--success);
     }
 
-    .itm-classification.warning {
+    .itm-status.warning {
         background: var(--warning-light);
         color: #b45309;
     }
 
-    .itm-classification.danger {
+    .itm-status.danger {
         background: var(--danger-light);
         color: var(--danger);
-    }
-
-    .itm-title {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 1px;
     }
 
     /* Stats Header - flex to fill remaining space */
@@ -445,29 +533,30 @@
     .stat-box {
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
-        border-radius: 12px;
-        padding: 15px 12px;
+        border-radius: 8px;
+        padding: 8px 6px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         transition: var(--transition);
+        min-height: 50px;
     }
 
     .stat-box:hover {
         background: rgba(255, 255, 255, 0.15);
-        transform: translateY(-3px);
+        transform: translateY(-2px);
     }
 
     .stat-icon {
-        width: 44px;
-        height: 44px;
+        width: 28px;
+        height: 28px;
         background: rgba(59, 111, 171, 0.3);
-        border-radius: 10px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 0.8rem;
         color: #5A8BC4;
         flex-shrink: 0;
     }
@@ -481,24 +570,27 @@
         display: flex;
         flex-direction: column;
         min-width: 0;
+        justify-content: center;
     }
 
     .stat-label {
-        font-size: 0.65rem;
+        font-size: 0.5rem;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.6);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.3px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1;
+        margin-bottom: 2px;
     }
 
     .stat-value {
-        font-size: 1.3rem;
+        font-size: 0.9rem;
         font-weight: 800;
         color: white;
-        line-height: 1.2;
+        line-height: 1;
     }
 
     .stat-change {

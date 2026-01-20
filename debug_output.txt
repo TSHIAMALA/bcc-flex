@@ -1,0 +1,254 @@
+
+Testing KPI Repository
+----------------------
+
+ [OK] Latest KPI       
+      fetched: Found   
+
+Testing Conjoncture
+-------------------
+
+ [OK] Latest           
+      Conjoncture      
+      fetched: Found   
+
+Testing ITM Service
+-------------------
+
+ [OK] ITM Calculated:  
+      {"score":0,"class
+      ification":"NORMA
+      L","label":"Situa
+      tion             
+      normale","details
+      ":[]}            
+
+Testing Alerte Service
+----------------------
+
+ [OK] Alerts fetched: 0
+
+Testing Other Repositories
+--------------------------
+
+ [OK] Marche Evolution 
+      fetched          
+
+ [ERROR] Repository    
+         Error: An     
+         exception     
+         occurred while
+         executing a   
+         query:        
+         SQLSTATE[HY000
+         ]: General    
+         error: 1356   
+         View          
+         'bcc_conjonctu
+         re.v_volumes_u
+         sd_par_banque'
+         references    
+         invalid       
+         table(s) or   
+         column(s) or  
+         function(s) or
+         definer/invoke
+         r of view lack
+         rights to use 
+         them          
+
+ [ERROR] #0            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/dbal/src
+         /Connection.ph
+         p(1976):      
+         Doctrine\DBAL</>
+         Driver\API\MyS
+         QL\ExceptionCo
+         nverter->conv 
+         ert()         
+         #1            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/dbal/src
+         /Connection.ph
+         p(1918):      
+         Doctrine\DBAL</>
+         Connection->h 
+         andleDriverExc
+         eption()      
+         #2            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/dbal/src
+         /Connection.ph
+         p(1111):      
+         Doctrine\DBAL</>
+         Connection->c 
+         onvertExceptio
+         nDuringQuery()
+         #3            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/orm/src/
+         Query/Exec/Fin
+         alizedSelectEx
+         ecutor.php(27)
+         :             
+         Doctrine\DBAL</>
+         Connection->e 
+         xecuteQuery() 
+         #4            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/orm/src/
+         Query.php(296)
+         :             
+         Doctrine\ORM\Q
+         uery\Exec\Fina
+         lizedSelectExe
+         cutor->execut 
+         e()           
+         #5            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/orm/src/
+         AbstractQuery.
+         php(930):     
+         Doctrine\ORM\Q
+         uery->_doExec 
+         ute()         
+         #6            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/orm/src/
+         AbstractQuery.
+         php(886):     
+         Doctrine\ORM\A
+         bstractQuery-</>
+         >executeIgnore
+         QueryCache()  
+         #7            
+         /var/www/bcc-f
+         lex/vendor/doc
+         trine/orm/src/
+         AbstractQuery.
+         php(688):     
+         Doctrine\ORM\A
+         bstractQuery-</>
+         >execute()    
+         #8            
+         /var/www/bcc-f
+         lex/src/Reposi
+         tory/VolumeUSD
+         Repository.php
+         (24):         
+         Doctrine\ORM\A
+         bstractQuery-</>
+         >getResult()  
+         #9            
+         /var/www/bcc-f
+         lex/src/Comman
+         d/DebugDashboa
+         rdCommand.php(
+         91):          
+         App\Repository
+         \VolumeUSDRepo
+         sitory->getLa 
+         testVolumes() 
+         #10           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/console/C
+         ommand/Command
+         .php(341):    
+         App\Command\De
+         bugDashboardCo
+         mmand->execut 
+         e()           
+         #11           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/console/A
+         pplication.php
+         (1102):       
+         Symfony\Compon
+         ent\Console\Co
+         mmand\Command-
+         >run()        
+         #12           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/framework
+         -bundle/Consol
+         e/Application.
+         php(123):     
+         Symfony\Compon
+         ent\Console\Ap
+         plication->do 
+         RunCommand()  
+         #13           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/console/A
+         pplication.php
+         (356):        
+         Symfony\Bundle
+         \FrameworkBund
+         le\Console\App
+         lication->doR 
+         unCommand()   
+         #14           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/framework
+         -bundle/Consol
+         e/Application.
+         php(77):      
+         Symfony\Compon
+         ent\Console\Ap
+         plication->do 
+         Run()         
+         #15           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/console/A
+         pplication.php
+         (195):        
+         Symfony\Bundle
+         \FrameworkBund
+         le\Console\App
+         lication->doR 
+         un()          
+         #16           
+         /var/www/bcc-f
+         lex/vendor/sym
+         fony/runtime/R
+         unner/Symfony/
+         ConsoleApplica
+         tionRunner.php
+         (49):         
+         Symfony\Compon
+         ent\Console\Ap
+         plication->ru 
+         n()           
+         #17           
+         /var/www/bcc-f
+         lex/vendor/aut
+         oload_runtime.
+         php(32):      
+         Symfony\Compon
+         ent\Runtime\Ru
+         nner\Symfony\C
+         onsoleApplicat
+         ionRunner->ru 
+         n()           
+         #18           
+         /var/www/bcc-f
+         lex/bin/consol
+         e(15):        
+         require_once('
+         ...')         
+         #19 {main}    
+

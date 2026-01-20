@@ -57,10 +57,15 @@ class DashboardController extends AbstractController
         $latestConjoncture = null;
 
         if ($latestKPI) {
-            $latestMarche = $marcheRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
-            $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
-            $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestKPI->getConjonctureId()]);
-            $latestConjoncture = $conjonctureRepository->find($latestKPI->getConjonctureId());
+            // Use date_situation to find related data since conjoncture_id is no longer available
+            // Convert string date to DateTime for lookup
+            $dateSituation = $latestKPI->getDateSituation() ? new \DateTime($latestKPI->getDateSituation()) : null;
+            $latestConjoncture = $dateSituation ? $conjonctureRepository->findOneBy(['date_situation' => $dateSituation]) : null;
+            if ($latestConjoncture) {
+                $latestMarche = $marcheRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+                $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+                $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+            }
         }
 
         // Calculate ITM (Indice de Tension du Marché)
