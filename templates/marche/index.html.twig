@@ -55,8 +55,36 @@
 </div>
 {% endif %}
 
-<!-- Row 1: Candlestick-style + Polar -->
+<!-- Row 1: Historique des Cours + Évolution des Cours (30j) -->
 <div class="grid-2 mb-30">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-table"></i> Historique des Cours</h3>
+        </div>
+        <div class="table-container" style="max-height: 320px; overflow-y: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr><th>Date</th><th>Indicatif</th><th>Achat</th><th>Vente</th><th>Écart</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in marcheTableData %}
+                    <tr>
+                        <td>{{ m.conjoncture.dateSituation|date('d/m/Y') }}</td>
+                        <td class="font-bold">{{ m.coursIndicatif|number_format(2, ',', ' ') }}</td>
+                        <td class="text-success">{{ m.paralleleAchat|number_format(2, ',', ' ') }}</td>
+                        <td class="text-danger">{{ m.paralleleVente|number_format(2, ',', ' ') }}</td>
+                        <td>
+                            <span class="inline-badge {{ m.ecartIndicParallele > 100 ? 'danger' : 'success' }}">
+                                {{ m.ecartIndicParallele|number_format(0, ',', ' ') }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-chart-candlestick"></i> Évolution des Cours (30j)</h3>
@@ -65,19 +93,31 @@
             <canvas id="chartCandlestick"></canvas>
         </div>
     </div>
-    
+</div>
+
+<!-- Row 2: Répartition des Réserves + Évolution des Réserves -->
+<div class="grid-2 mb-30">
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-compass"></i> Répartition des Réserves</h3>
         </div>
-        <div class="chart-container" style="height: 320px;">
+        <div class="chart-container" style="height: 280px;">
             <canvas id="chartPolarReserves"></canvas>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-mountain"></i> Évolution des Réserves</h3>
+        </div>
+        <div class="chart-container" style="height: 280px;">
+            <canvas id="chartReservesEvol"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Row 2: Volumes + Encours -->
-<div class="grid-2 mb-30">
+<!-- Row 3: Volumes USD par Banque + Encours BCC -->
+<div class="grid-2">
     <div class="card">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-building"></i> Volumes USD par Banque</h3>
@@ -122,46 +162,6 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Row 3: Area + Table -->
-<div class="grid-2">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-mountain"></i> Évolution des Réserves</h3>
-        </div>
-        <div class="chart-container" style="height: 280px;">
-            <canvas id="chartReservesEvol"></canvas>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-table"></i> Historique des Cours</h3>
-        </div>
-        <div class="table-container" style="max-height: 300px; overflow-y: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr><th>Date</th><th>Indicatif</th><th>Achat</th><th>Vente</th><th>Écart</th></tr>
-                </thead>
-                <tbody>
-                    {% for m in marcheTableData %}
-                    <tr>
-                        <td>{{ m.conjoncture.dateSituation|date('d/m/Y') }}</td>
-                        <td class="font-bold">{{ m.coursIndicatif|number_format(2, ',', ' ') }}</td>
-                        <td class="text-success">{{ m.paralleleAchat|number_format(2, ',', ' ') }}</td>
-                        <td class="text-danger">{{ m.paralleleVente|number_format(2, ',', ' ') }}</td>
-                        <td>
-                            <span class="inline-badge {{ m.ecartIndicParallele > 100 ? 'danger' : 'success' }}">
-                                {{ m.ecartIndicParallele|number_format(0, ',', ' ') }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
