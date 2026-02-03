@@ -13,9 +13,9 @@ Chart.defaults.plugins.tooltip.cornerRadius = 8;
 // Mise à jour de l'heure
 function updateDateTime() {
     const now = new Date();
-    const options = { 
-        day: '2-digit', 
-        month: '2-digit', 
+    const options = {
+        day: '2-digit',
+        month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
@@ -34,11 +34,11 @@ let touchEndX = 0;
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.mobile-overlay');
-    
+
     if (sidebar && overlay) {
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
-        
+
         // Empêcher le scroll du body quand la sidebar est ouverte
         if (sidebar.classList.contains('active')) {
             document.body.style.overflow = 'hidden';
@@ -52,7 +52,7 @@ function toggleSidebar() {
 function closeSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.mobile-overlay');
-    
+
     if (sidebar && overlay) {
         sidebar.classList.remove('active');
         overlay.classList.remove('active');
@@ -64,7 +64,7 @@ function closeSidebar() {
 function handleSwipe() {
     const swipeDistance = touchEndX - touchStartX;
     const sidebar = document.querySelector('.sidebar');
-    
+
     // Swipe vers la gauche pour fermer (distance > 50px)
     if (swipeDistance < -50 && sidebar && sidebar.classList.contains('active')) {
         closeSidebar();
@@ -87,13 +87,13 @@ function optimizeChartsForMobile() {
 }
 
 // Exécuter au chargement
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     updateDateTime();
     setInterval(updateDateTime, 60000); // Mise à jour chaque minute
-    
+
     // Optimiser les graphiques selon la taille d'écran
     optimizeChartsForMobile();
-    
+
     // Animation des KPI cards
     const kpiCards = document.querySelectorAll('.kpi-card');
     kpiCards.forEach((card, index) => {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, index * 100);
     });
-    
+
     // Animation des progress bars
     const progressBars = document.querySelectorAll('.progress-fill');
     progressBars.forEach(bar => {
@@ -115,19 +115,19 @@ document.addEventListener('DOMContentLoaded', function() {
             bar.style.width = width;
         }, 500);
     });
-    
+
     // Configuration du menu toggle
     const menuToggle = document.getElementById('menuToggle');
     if (menuToggle) {
         menuToggle.addEventListener('click', toggleSidebar);
     }
-    
+
     // Configuration de l'overlay
     const overlay = document.querySelector('.mobile-overlay');
     if (overlay) {
         overlay.addEventListener('click', closeSidebar);
     }
-    
+
     // Fermer la sidebar quand on clique sur un lien de navigation
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
@@ -137,38 +137,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // Gestion des swipe gestures
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
         sidebar.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
         }, { passive: true });
-        
+
         sidebar.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
             handleSwipe();
         }, { passive: true });
     }
-    
+
     // Réoptimiser les graphiques lors du redimensionnement
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             optimizeChartsForMobile();
-            
+
             // Fermer la sidebar si on passe en mode desktop
             if (window.innerWidth > 992) {
                 closeSidebar();
             }
         }, 250);
     });
-    
+
     // Indicateur de scroll pour les tableaux sur mobile
     const tableContainers = document.querySelectorAll('.table-container');
     tableContainers.forEach(container => {
-        container.addEventListener('scroll', function() {
+        container.addEventListener('scroll', function () {
             const scrollIndicator = container.querySelector('::after');
             if (this.scrollLeft > 0) {
                 container.style.setProperty('--scroll-opacity', '0');
@@ -207,7 +207,7 @@ function showNotification(message, type = 'info') {
         </div>
     `;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.animation = 'slideIn 0.3s ease reverse';
         setTimeout(() => notification.remove(), 300);
@@ -219,19 +219,60 @@ function exportData(format) {
     showNotification(`Export ${format.toUpperCase()} en cours de développement`, 'info');
 }
 
-// Gestion du mode sombre (pour future implémentation)
+// Gestion du mode sombre (Dark Mode)
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark);
+
+    // Mettre à jour l'icône du bouton
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) {
+        toggleBtn.setAttribute('title', isDark ? 'Passer en mode clair' : 'Passer en mode sombre');
+    }
+
+    // Notification de changement de thème
     showNotification(`Mode ${isDark ? 'sombre' : 'clair'} activé`, 'success');
+
+    // Mettre à jour les graphiques Chart.js si présents
+    updateChartsForTheme(isDark);
 }
 
-// Restaurer le mode sombre au chargement
-if (localStorage.getItem('darkMode') === 'true') {
-    document.body.classList.add('dark-mode');
+// Mettre à jour les couleurs des graphiques selon le thème
+function updateChartsForTheme(isDark) {
+    const textColor = isDark ? '#f1f5f9' : '#666';
+    const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+    Chart.defaults.color = textColor;
+
+    // Mettre à jour tous les graphiques existants
+    Chart.helpers.each(Chart.instances, function (chart) {
+        if (chart.options.scales) {
+            if (chart.options.scales.x) {
+                chart.options.scales.x.ticks = chart.options.scales.x.ticks || {};
+                chart.options.scales.x.ticks.color = textColor;
+                chart.options.scales.x.grid = chart.options.scales.x.grid || {};
+                chart.options.scales.x.grid.color = gridColor;
+            }
+            if (chart.options.scales.y) {
+                chart.options.scales.y.ticks = chart.options.scales.y.ticks || {};
+                chart.options.scales.y.ticks.color = textColor;
+                chart.options.scales.y.grid = chart.options.scales.y.grid || {};
+                chart.options.scales.y.grid.color = gridColor;
+            }
+        }
+        chart.update();
+    });
 }
+
+// Restaurer le mode sombre au chargement (avant le rendu)
+(function () {
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+})();
 
 console.log('🏦 BCC-Flex - Tableau de Bord de Conjoncture chargé');
 console.log('📱 Navigation mobile optimisée avec swipe gestures');
+console.log('🌙 Mode sombre/clair disponible');
 
