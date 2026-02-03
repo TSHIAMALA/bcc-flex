@@ -1639,17 +1639,39 @@ a {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
 /* Added Utilities */
-.font-weight-bold { font-weight: 700; }
-.pl-20 { padding-left: 20px !important; }
-.pr-20 { padding-right: 20px !important; }
-.p-0 { padding: 0 !important; }
-.mb-0 { margin-bottom: 0 !important; }
+.font-weight-bold {
+    font-weight: 700;
+}
 
-.mr-10 { margin-right: 10px !important; }
+.pl-20 {
+    padding-left: 20px !important;
+}
 
-.pl-10 { padding-left: 10px !important; }
-.pr-10 { padding-right: 10px !important; }
+.pr-20 {
+    padding-right: 20px !important;
+}
+
+.p-0 {
+    padding: 0 !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.mr-10 {
+    margin-right: 10px !important;
+}
+
+.pl-10 {
+    padding-left: 10px !important;
+}
+
+.pr-10 {
+    padding-right: 10px !important;
+}
 
 /* ==================== DARK MODE ==================== */
 /* Theme Toggle Button */
@@ -1882,10 +1904,10 @@ body,
 body *,
 body::before,
 body::after {
-    transition: background-color 0.3s ease, 
-                border-color 0.3s ease, 
-                color 0.3s ease,
-                box-shadow 0.3s ease;
+    transition: background-color 0.3s ease,
+        border-color 0.3s ease,
+        color 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
 /* Theme toggle responsive */
@@ -1903,4 +1925,115 @@ body::after {
         height: 36px;
         font-size: 0.9rem;
     }
+}
+
+/* ==================== DARK MODE - TAILWIND CLASSES OVERRIDES ==================== */
+/* For templates using Tailwind classes (Saisie Manuel, Règles de Gestion) */
+
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-900 {
+    color: var(--text-primary) !important;
+}
+
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600 {
+    color: var(--text-secondary) !important;
+}
+
+body.dark-mode .text-gray-300,
+body.dark-mode .text-gray-400 {
+    color: #64748b !important;
+}
+
+body.dark-mode .bg-gray-50 {
+    background-color: #334155 !important;
+}
+
+body.dark-mode .bg-white {
+    background-color: var(--bg-card) !important;
+}
+
+body.dark-mode .divide-gray-200> :not([hidden])~ :not([hidden]) {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .hover\:bg-gray-50:hover {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+body.dark-mode .border-gray-200 {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Blue buttons in dark mode */
+body.dark-mode .bg-blue-600 {
+    background-color: #3b82f6 !important;
+}
+
+body.dark-mode .hover\:bg-blue-700:hover {
+    background-color: #2563eb !important;
+}
+
+body.dark-mode .text-blue-600 {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .hover\:text-blue-900:hover {
+    color: #93c5fd !important;
+}
+
+body.dark-mode .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+body.dark-mode .border-blue-200 {
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+body.dark-mode .hover\:border-blue-400:hover {
+    border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Yellow/Warning badges in dark mode */
+body.dark-mode .bg-yellow-100 {
+    background-color: rgba(251, 191, 36, 0.2) !important;
+}
+
+body.dark-mode .text-yellow-800 {
+    color: #fbbf24 !important;
+}
+
+body.dark-mode .border-yellow-200 {
+    border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* Red/Danger badges in dark mode */
+body.dark-mode .bg-red-100 {
+    background-color: rgba(248, 113, 113, 0.2) !important;
+}
+
+body.dark-mode .text-red-800 {
+    color: #f87171 !important;
+}
+
+body.dark-mode .border-red-200 {
+    border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+body.dark-mode .text-red-500 {
+    color: #f87171 !important;
+}
+
+/* Green/Success indicators in dark mode */
+body.dark-mode .text-green-600 {
+    color: #34d399 !important;
+}
+
+/* Font styling fixes */
+body.dark-mode .font-medium {
+    color: var(--text-primary);
+}
+
+body.dark-mode .font-bold {
+    color: var(--text-primary);
 }

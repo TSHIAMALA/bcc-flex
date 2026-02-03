@@ -358,8 +358,8 @@
 .score-badge.danger { background: var(--danger-light); color: var(--danger); }
 .chart-legend-inline { display: flex; align-items: center; gap: 15px; font-size: 0.85rem; color: var(--text-secondary); }
 .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; }
-.legend-dot.success { background: #10b981; }
-.legend-dot.danger { background: #ef4444; }
+.legend-dot.success { background: #7CB5A0; }
+.legend-dot.danger { background: #D88A8A; }
 
 /* Donut */
 .donut-wrapper { padding: 20px; display: flex; flex-direction: column; align-items: center; }
@@ -392,6 +392,72 @@
 .paie-detail.success { background: var(--success-light); color: var(--success); }
 .paie-detail.danger { background: var(--danger-light); color: var(--danger); }
 
+/* Dark Mode - Finances */
+body.dark-mode .kpi-header-card {
+    background: var(--bg-card);
+    border-left-color: #60a5fa;
+}
+
+body.dark-mode .kpi-header-card .kpi-header-value {
+    color: var(--text-primary);
+}
+
+body.dark-mode .kpi-header-card .kpi-header-label,
+body.dark-mode .kpi-header-card .kpi-header-sublabel {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .kpi-header-card.highlight {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+body.dark-mode .kpi-header-card.highlight .kpi-header-value {
+    color: white;
+}
+
+body.dark-mode .kpi-header-card.deficit {
+    border-left-color: #f87171;
+}
+
+body.dark-mode .kpi-header-icon {
+    background: rgba(96, 165, 250, 0.2);
+    color: #60a5fa;
+}
+
+body.dark-mode .kpi-header-icon.success {
+    background: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+}
+
+body.dark-mode .kpi-header-icon.danger {
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+}
+
+body.dark-mode .table-progress {
+    background: #334155;
+}
+
+body.dark-mode .table-search {
+    background: #334155;
+}
+
+body.dark-mode .table-search input {
+    color: var(--text-primary);
+}
+
+body.dark-mode .taux-badge {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .donut-legend-horizontal .donut-legend-item {
+    background: #334155;
+}
+
+body.dark-mode .paie-progress-circle path:first-child {
+    stroke: #334155;
+}
+
 @media (max-width: 1200px) { .kpi-header-grid, .grid-3 { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) { .kpi-header-grid, .grid-3, .grid-2 { grid-template-columns: 1fr; } }
 </style>
@@ -414,8 +480,8 @@ new Chart(document.getElementById('chartBudget'), {
     data: {
         labels: evoData.map(d => new Date(d.date_situation).toLocaleDateString('fr-FR', {day:'2-digit',month:'2-digit'})),
         datasets: [
-            { label: 'Recettes', data: evoData.map(d => d.recettes_totales), backgroundColor: '#10b981', borderRadius: 6 },
-            { label: 'Dépenses', data: evoData.map(d => d.depenses_totales), backgroundColor: '#ef4444', borderRadius: 6 }
+            { label: 'Recettes', data: evoData.map(d => d.recettes_totales), backgroundColor: '#7CB5A0', borderRadius: 6 },
+            { label: 'Dépenses', data: evoData.map(d => d.depenses_totales), backgroundColor: '#D88A8A', borderRadius: 6 }
         ]
     },
     options: {
