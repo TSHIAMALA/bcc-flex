@@ -133,14 +133,6 @@
                         </span>
                     </div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-icon info"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="stat-content">
-                        <span class="stat-label">VOLUME USD</span>
-                        <span class="stat-value">{{ (totalVolumeUSD / 1000000)|number_format(1, ',', ' ') }}M</span>
-                        <span class="stat-change neutral">Marché</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -517,7 +509,7 @@
 
     .stats-row {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 12px;
         height: 100%;
     }
