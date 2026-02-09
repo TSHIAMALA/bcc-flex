@@ -26,6 +26,9 @@ class KPIJournalier
     #[ORM\Column(type: Types::DECIMAL, precision: 18, scale: 2, nullable: true)]
     private ?string $solde = null;
 
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 4, nullable: true)]
+    private ?string $parallele_vente = null;
+
     public function getDateSituation(): ?string
     {
         return $this->date_situation;
@@ -49,5 +52,10 @@ class KPIJournalier
     public function getSolde(): ?string
     {
         return $this->solde;
+    }
+
+    public function getParalleleVente(): ?string
+    {
+        return $this->parallele_vente;
     }
 }

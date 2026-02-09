@@ -25,4 +25,30 @@ class FinancesPubliquesRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Get finances data filtered by date range
+     */
+    public function getEvolutionDataByPeriod(?string $dateDebut = null, ?string $dateFin = null, ?int $limit = null): array
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->join('f.conjoncture', 'c')
+            ->orderBy('c.date_situation', 'ASC');
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+
+        if ($dateFin) {
+            $qb->andWhere('c.date_situation <= :dateFin')
+               ->setParameter('dateFin', $dateFin);
+        }
+
+        if ($dateDebut) {
+            $qb->andWhere('c.date_situation >= :dateDebut')
+               ->setParameter('dateDebut', $dateDebut);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

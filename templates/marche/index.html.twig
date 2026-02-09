@@ -5,6 +5,32 @@
 {% block header_subtitle %}Analyse approfondie des taux et volumes{% endblock %}
 
 {% block body %}
+<!-- Date Filter Bar -->
+<div class="filter-bar mb-20">
+    <div class="filter-bar-content">
+        <div class="filter-section filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Période</span>
+        </div>
+        <div class="filter-section filter-buttons">
+            <a href="{{ path('app_marche', {periode: '7jours'}) }}" class="filter-btn {{ periode == '7jours' ? 'active' : '' }}">7 jours</a>
+            <a href="{{ path('app_marche', {periode: '30jours'}) }}" class="filter-btn {{ periode == '30jours' ? 'active' : '' }}">30 jours</a>
+            <a href="{{ path('app_marche', {periode: '3mois'}) }}" class="filter-btn {{ periode == '3mois' ? 'active' : '' }}">3 mois</a>
+        </div>
+        <div class="filter-divider"></div>
+        <form method="GET" action="{{ path('app_marche') }}" class="filter-section filter-custom">
+            <label>Du</label>
+            <input type="date" name="dateDebut" value="{{ dateDebut }}" class="filter-date">
+            <label>Au</label>
+            <input type="date" name="dateFin" value="{{ dateFin }}" class="filter-date">
+            <input type="hidden" name="periode" value="personnalise">
+            <button type="submit" class="filter-apply-btn">
+                <i class="fas fa-check"></i> Appliquer
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- Header Stats -->
 <div class="stats-header mb-30">
     <div class="stats-row">
@@ -167,6 +193,138 @@
 </div>
 
 <style>
+/* Filter Bar Styles */
+.filter-bar {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 15px 20px;
+}
+
+.filter-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-title {
+    font-weight: 600;
+    color: var(--bcc-primary);
+}
+
+.filter-title i {
+    font-size: 1rem;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #e2e8f0;
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    background: var(--bcc-primary);
+    color: white;
+    border-color: var(--bcc-primary);
+}
+
+.filter-divider {
+    width: 1px;
+    height: 30px;
+    background: #e2e8f0;
+}
+
+.filter-custom label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.filter-date {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: #f8fafc;
+}
+
+.filter-apply-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--bcc-primary), #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 127, 255, 0.3);
+}
+
+/* Dark mode filter bar */
+[data-theme="dark"] .filter-bar,
+body.dark-mode .filter-bar {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .filter-btn,
+body.dark-mode .filter-btn {
+    background: #334155;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .filter-btn:hover,
+body.dark-mode .filter-btn:hover {
+    background: #475569;
+    color: white;
+}
+
+[data-theme="dark"] .filter-btn.active,
+body.dark-mode .filter-btn.active {
+    background: var(--bcc-primary);
+    color: white;
+}
+
+[data-theme="dark"] .filter-date,
+body.dark-mode .filter-date {
+    background: #334155;
+    border-color: #475569;
+    color: white;
+}
+
+[data-theme="dark"] .filter-divider,
+body.dark-mode .filter-divider {
+    background: #475569;
+}
+
+/* Marche specific styles */
 .stats-header { background: var(--bg-sidebar); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow-lg); }
 .stats-row { display: flex; gap: 15px; flex-wrap: wrap; }
 .stat-box { flex: 1; min-width: 200px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 18px 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.1); }

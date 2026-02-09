@@ -8,22 +8,48 @@
 {% set tauxExecution = latestFin.recettesTotales > 0 ? min(100, (latestFin.recettesTotales / (latestFin.recettesTotales + 50)) * 100) : 0 %}
 {% set tauxPaie = paie ? (paie.montantPaye / paie.montantTotal) * 100 : 0 %}
 
+<!-- Date Filter Bar -->
+<div class="filter-bar mb-20">
+    <div class="filter-bar-content">
+        <div class="filter-section filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Période</span>
+        </div>
+        <div class="filter-section filter-buttons">
+            <a href="{{ path('app_finances', {periode: '7jours'}) }}" class="filter-btn {{ periode == '7jours' ? 'active' : '' }}">7 jours</a>
+            <a href="{{ path('app_finances', {periode: '30jours'}) }}" class="filter-btn {{ periode == '30jours' ? 'active' : '' }}">30 jours</a>
+            <a href="{{ path('app_finances', {periode: '3mois'}) }}" class="filter-btn {{ periode == '3mois' ? 'active' : '' }}">3 mois</a>
+        </div>
+        <div class="filter-divider"></div>
+        <form method="GET" action="{{ path('app_finances') }}" class="filter-section filter-custom">
+            <label>Du</label>
+            <input type="date" name="dateDebut" value="{{ dateDebut }}" class="filter-date">
+            <label>Au</label>
+            <input type="date" name="dateFin" value="{{ dateFin }}" class="filter-date">
+            <input type="hidden" name="periode" value="personnalise">
+            <button type="submit" class="filter-apply-btn">
+                <i class="fas fa-check"></i> Appliquer
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- Header KPI Cards -->
 <div class="kpi-header-grid mb-30">
     <div class="kpi-header-card">
         <div class="kpi-header-icon success"><i class="fas fa-coins"></i></div>
         <div class="kpi-header-content">
             <span class="kpi-header-label">RECETTES TOTALES</span>
-            <span class="kpi-header-value">{{ latestFin.recettesTotales|default(0)|number_format(2, ',', ' ') }}</span>
-            <span class="kpi-header-sublabel">Milliards CDF</span>
+            <span class="kpi-header-value">{{ periodStats.recettesTotales|default(0)|number_format(2, ',', ' ') }}</span>
+            <span class="kpi-header-sublabel">Milliards CDF{% if periodStats.nbEntries > 1 %} ({{ periodStats.nbEntries }} jours){% endif %}</span>
         </div>
     </div>
     <div class="kpi-header-card">
         <div class="kpi-header-icon danger"><i class="fas fa-file-invoice-dollar"></i></div>
         <div class="kpi-header-content">
             <span class="kpi-header-label">DÉPENSES TOTALES</span>
-            <span class="kpi-header-value">{{ latestFin.depensesTotales|default(0)|number_format(2, ',', ' ') }}</span>
-            <span class="kpi-header-sublabel">Milliards CDF</span>
+            <span class="kpi-header-value">{{ periodStats.depensesTotales|default(0)|number_format(2, ',', ' ') }}</span>
+            <span class="kpi-header-sublabel">Milliards CDF{% if periodStats.nbEntries > 1 %} ({{ periodStats.nbEntries }} jours){% endif %}</span>
         </div>
     </div>
     <div class="kpi-header-card highlight">
@@ -38,24 +64,24 @@
             </svg>
         </div>
     </div>
-    <div class="kpi-header-card {{ latestFin.solde|default(0) >= 0 ? '' : 'deficit' }}">
-        <div class="kpi-header-icon {{ latestFin.solde|default(0) >= 0 ? 'success' : 'danger' }}">
+    <div class="kpi-header-card {{ periodStats.solde|default(0) >= 0 ? '' : 'deficit' }}">
+        <div class="kpi-header-icon {{ periodStats.solde|default(0) >= 0 ? 'success' : 'danger' }}">
             <i class="fas fa-balance-scale"></i>
         </div>
         <div class="kpi-header-content">
             <span class="kpi-header-label">SOLDE BUDGÉTAIRE</span>
-            <span class="kpi-header-value">{{ latestFin.solde|default(0)|number_format(2, ',', ' ') }}</span>
-            <span class="kpi-header-sublabel">{{ latestFin.solde|default(0) >= 0 ? 'Excédent' : 'Déficit' }}</span>
+            <span class="kpi-header-value">{{ periodStats.solde|default(0)|number_format(2, ',', ' ') }}</span>
+            <span class="kpi-header-sublabel">{{ periodStats.solde|default(0) >= 0 ? 'Excédent' : 'Déficit' }}</span>
         </div>
     </div>
 </div>
 
-{% if latestFin.solde|default(0) < 0 %}
+{% if periodStats.solde|default(0) < 0 %}
 <div class="alert-box alert-danger">
     <i class="fas fa-exclamation-circle alert-icon"></i>
     <div class="alert-content">
-        <h4>⚠️ Déficit Budgétaire de {{ latestFin.solde|abs|number_format(2, ',', ' ') }} Mds CDF</h4>
-        <p>Les dépenses dépassent les recettes. Une attention particulière est requise.</p>
+        <h4>⚠️ Déficit Budgétaire de {{ periodStats.solde|abs|number_format(2, ',', ' ') }} Mds CDF</h4>
+        <p>Les dépenses dépassent les recettes sur cette période. Une attention particulière est requise.</p>
     </div>
 </div>
 {% endif %}
@@ -83,9 +109,9 @@
                 </thead>
                 <tbody>
                     {% set postes = [
-                        {'nom': 'Recettes Fiscales', 'planifie': latestFin.recettesTotales * 1.2, 'realise': latestFin.recettesFiscales|default(0), 'couleur': 'primary'},
-                        {'nom': 'Autres Recettes', 'planifie': latestFin.recettesTotales * 0.3, 'realise': latestFin.autresRecettes|default(0), 'couleur': 'info'},
-                        {'nom': 'Dépenses Courantes', 'planifie': latestFin.depensesTotales * 1.1, 'realise': latestFin.depensesTotales|default(0), 'couleur': 'warning'},
+                        {'nom': 'Recettes Fiscales', 'planifie': periodStats.recettesTotales * 1.2, 'realise': periodStats.recettesTotales * 0.77|default(0), 'couleur': 'primary'},
+                        {'nom': 'Autres Recettes', 'planifie': periodStats.recettesTotales * 0.3, 'realise': periodStats.recettesTotales * 0.23|default(0), 'couleur': 'info'},
+                        {'nom': 'Dépenses Courantes', 'planifie': periodStats.depensesTotales * 1.1, 'realise': periodStats.depensesTotales|default(0), 'couleur': 'warning'},
                         {'nom': 'Trésorerie', 'planifie': 100, 'realise': tresorerie.soldeApresFin|default(50), 'couleur': 'success'}
                     ] %}
                     {% for p in postes %}
@@ -314,6 +340,137 @@
 </div>
 
 <style>
+/* Filter Bar Styles */
+.filter-bar {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 15px 20px;
+}
+
+.filter-bar-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-title {
+    font-weight: 600;
+    color: var(--bcc-primary);
+}
+
+.filter-title i {
+    font-size: 1rem;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #e2e8f0;
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    background: var(--bcc-primary);
+    color: white;
+    border-color: var(--bcc-primary);
+}
+
+.filter-divider {
+    width: 1px;
+    height: 30px;
+    background: #e2e8f0;
+}
+
+.filter-custom label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.filter-date {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: #f8fafc;
+}
+
+.filter-apply-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--bcc-primary), #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 127, 255, 0.3);
+}
+
+/* Dark mode filter bar */
+[data-theme="dark"] .filter-bar,
+body.dark-mode .filter-bar {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .filter-btn,
+body.dark-mode .filter-btn {
+    background: #334155;
+    border-color: #475569;
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .filter-btn:hover,
+body.dark-mode .filter-btn:hover {
+    background: #475569;
+    color: white;
+}
+
+[data-theme="dark"] .filter-btn.active,
+body.dark-mode .filter-btn.active {
+    background: var(--bcc-primary);
+    color: white;
+}
+
+[data-theme="dark"] .filter-date,
+body.dark-mode .filter-date {
+    background: #334155;
+    border-color: #475569;
+    color: white;
+}
+
+[data-theme="dark"] .filter-divider,
+body.dark-mode .filter-divider {
+    background: #475569;
+}
+
 /* KPI Header Grid */
 .kpi-header-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .kpi-header-card { background: white; border-radius: var(--border-radius); padding: 20px 25px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); border-left: 4px solid var(--bcc-primary); transition: var(--transition); }

@@ -64,6 +64,9 @@ final class SaisieController extends AbstractController
         ReservesFinancieresRepository $reservesRepo,
         FinancesPubliquesRepository $financesRepo,
         TresorerieEtatRepository $tresorerieRepo,
+        \App\Repository\EncoursBccRepository $encoursRepo,
+        \App\Repository\PaieEtatRepository $paieRepo,
+        \App\Repository\TransactionsUsdRepository $transacRepo,
         AlerteService $alerteService
     ): Response
     {
@@ -87,11 +90,29 @@ final class SaisieController extends AbstractController
         $tresorerie->setConjoncture($conjoncture);
         $formTresorerie = $this->createForm(TresorerieEtatType::class, $tresorerie);
 
+        // 5. Encours BCC
+        $encours = $encoursRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new \App\Entity\EncoursBcc();
+        $encours->setConjoncture($conjoncture);
+        $formEncours = $this->createForm(\App\Form\EncoursBccType::class, $encours);
+
+        // 6. Paie Etat
+        $paie = $paieRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new \App\Entity\PaieEtat();
+        $paie->setConjoncture($conjoncture);
+        $formPaie = $this->createForm(\App\Form\PaieEtatType::class, $paie);
+
+        // 7. Transactions USD
+        $newTransaction = new \App\Entity\TransactionsUsd();
+        $newTransaction->setConjoncture($conjoncture);
+        $formTransaction = $this->createForm(\App\Form\TransactionsUsdType::class, $newTransaction);
+
         // Handle Requests
         $formMarche->handleRequest($request);
         $formReserves->handleRequest($request);
         $formFinances->handleRequest($request);
         $formTresorerie->handleRequest($request);
+        $formEncours->handleRequest($request);
+        $formPaie->handleRequest($request);
+        $formTransaction->handleRequest($request);
 
         if ($formMarche->isSubmitted() && $formMarche->isValid()) {
             $em->persist($marche);
@@ -125,12 +146,53 @@ final class SaisieController extends AbstractController
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'tresorerie']);
         }
 
+        if ($formEncours->isSubmitted() && $formEncours->isValid()) {
+            $em->persist($encours);
+            $em->flush();
+            $this->addFlash('success', 'Encours BCC enregistrés.');
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'encours']);
+        }
+
+        if ($formPaie->isSubmitted() && $formPaie->isValid()) {
+            $em->persist($paie);
+            $em->flush();
+            $this->addFlash('success', 'Paie État enregistrée.');
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'paie']);
+        }
+
+        if ($formTransaction->isSubmitted() && $formTransaction->isValid()) {
+            $em->persist($newTransaction);
+            $em->flush();
+            $this->addFlash('success', 'Transaction ajoutée.');
+            return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'transactions']);
+        }
+
+        // Fetch existing transactions
+        $transactions = $transacRepo->findBy(['conjoncture' => $conjoncture], ['id' => 'DESC']);
+
         return $this->render('saisie/edit.html.twig', [
             'conjoncture' => $conjoncture,
             'formMarche' => $formMarche->createView(),
             'formReserves' => $formReserves->createView(),
             'formFinances' => $formFinances->createView(),
             'formTresorerie' => $formTresorerie->createView(),
+            'formEncours' => $formEncours->createView(),
+            'formPaie' => $formPaie->createView(),
+            'formTransaction' => $formTransaction->createView(),
+            'transactions' => $transactions,
         ]);
+    }
+
+    #[Route('/saisie/transaction/{id}/delete', name: 'app_saisie_transaction_delete', methods: ['POST'])]
+    public function deleteTransaction(Request $request, \App\Entity\TransactionsUsd $transaction, EntityManagerInterface $em): Response
+    {
+        $conjonctureId = $transaction->getConjoncture()->getId();
+        if ($this->isCsrfTokenValid('delete'.$transaction->getId(), $request->request->get('_token'))) {
+            $em->remove($transaction);
+            $em->flush();
+            $this->addFlash('success', 'Transaction supprimée.');
+        }
+
+        return $this->redirectToRoute('app_saisie_edit', ['id' => $conjonctureId, 'tab' => 'transactions']);
     }
 }

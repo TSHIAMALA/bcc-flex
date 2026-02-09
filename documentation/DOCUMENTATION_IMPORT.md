@@ -36,12 +36,36 @@ Le fichier doit contenir une ligne d'en-tête définissant les noms des colonnes
 | `avoirs_externes_usd` | Avoirs externes | Numérique |
 | `avoirs_libres_cdf` | Avoirs libres en CDF | Numérique |
 
+
 #### Finances Publiques
 | En-tête (Colonne) | Description | Format Attendu |
 | :--- | :--- | :--- |
 | `recettes_totales` | Total des recettes | Numérique |
 | `depenses_totales` | Total des dépenses | Numérique |
 | `solde` | Solde budgétaire | Numérique |
+
+#### Encours BCC
+| En-tête (Colonne) | Description | Format Attendu |
+| :--- | :--- | :--- |
+| `encours_ot_bcc` | Encours OT BCC | Numérique |
+| `encours_b_bcc` | Encours B BCC | Numérique |
+
+#### Paie de l'État
+| En-tête (Colonne) | Description | Format Attendu |
+| :--- | :--- | :--- |
+| `montant_total` | Montant Total à payer | Numérique |
+| `montant_paye` | Montant déjà payé | Numérique |
+| `montant_restant` | Reste à payer | Numérique |
+
+#### Transactions USD
+*Pour les transactions, le système tente de faire correspondre la banque par son nom. Une ligne par transaction.*
+
+| En-tête (Colonne) | Description | Format Attendu |
+| :--- | :--- | :--- |
+| `banque` | Nom de la banque (ex: "Equity", "Rawbank") | Texte |
+| `type_transaction` | Type ("ACHAT" ou "VENTE") | Texte |
+| `cours` | Taux de la transaction | Numérique (4 décimales) |
+| `volume_usd` | Volume en USD | Numérique |
 
 > **Note sur le format numérique** : Le système gère automatiquement les espaces (séparateurs de milliers) et remplace les virgules par des points décimaux.
 

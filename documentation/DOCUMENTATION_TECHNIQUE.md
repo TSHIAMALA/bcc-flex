@@ -129,6 +129,16 @@ Volumes de transactions en USD par banque.
 - `montant_restant`: Montant restant à payer
 - `conjoncture`: Relation vers ConjonctureJour
 
+#### 9. TransactionsUsd
+Détail des transactions en USD (table source pour VolumeUSD).
+
+**Attributs**:
+- `banque`: Relation vers l'entité Banques
+- `type_transaction`: Type (ACHAT/VENTE)
+- `cours`: Taux de change de la transaction
+- `volume_usd`: Volume en USD
+- `conjoncture`: Relation vers ConjonctureJour
+
 ### Contrôleurs
 
 #### DashboardController

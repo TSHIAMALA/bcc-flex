@@ -8,6 +8,7 @@ use App\Repository\MarcheChangesRepository;
 use App\Repository\EncoursBccRepository;
 use App\Repository\ReservesFinancieresRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -15,18 +16,44 @@ class AnalyseController extends AbstractController
 {
     #[Route('/analyse', name: 'app_analyse')]
     public function index(
+        Request $request,
         KPIJournalierRepository $kpiRepository,
         FinancesPubliquesRepository $financesRepository,
         MarcheChangesRepository $marcheRepository,
         EncoursBccRepository $encoursRepository,
         ReservesFinancieresRepository $reservesRepository
     ): Response {
-        $kpiData = $kpiRepository->getKPIHistory(10);
-        $latestKPI = $kpiRepository->getLatestKPI();
-        $latestFinances = $financesRepository->findOneBy([], ['id' => 'DESC']);
-        $latestReserves = $reservesRepository->findOneBy([], ['id' => 'DESC']);
+        // Date filter parameters
+        $periode = $request->query->get('periode', '30jours');
+        $dateDebut = $request->query->get('dateDebut');
+        $dateFin = $request->query->get('dateFin');
+
+        // Calculate date range based on period
+        if ($periode !== 'personnalise' || !$dateDebut || !$dateFin) {
+            $dateFin = date('Y-m-d');
+            switch ($periode) {
+                case '7jours':
+                    $dateDebut = date('Y-m-d', strtotime('-7 days'));
+                    break;
+                case '3mois':
+                    $dateDebut = date('Y-m-d', strtotime('-3 months'));
+                    break;
+                default: // 30jours
+                    $dateDebut = date('Y-m-d', strtotime('-30 days'));
+            }
+        }
+
+        // Filtered data
+        $kpiData = $kpiRepository->getKPIByPeriod($dateDebut, $dateFin);
+        $latestKPI = !empty($kpiData) ? $kpiData[0] : $kpiRepository->getLatestKPI();
+        
+        $evolutionFinances = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
+        $latestFinances = !empty($evolutionFinances) ? end($evolutionFinances) : $financesRepository->findOneBy([], ['id' => 'DESC']);
+        
+        $reservesData = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
+        $latestReserves = !empty($reservesData) ? $reservesData[0] : $reservesRepository->findOneBy([], ['id' => 'DESC']);
+        
         $latestEncours = $encoursRepository->getLatestEncours();
-        $evolutionFinances = $financesRepository->getEvolutionData(7);
 
         // Calculations
         $ecartChange = $latestKPI ? $latestKPI->getEcartIndicParallele() : 0;
@@ -75,7 +102,7 @@ class AnalyseController extends AbstractController
             ['nom' => 'Liquidité Marché', 'planifie' => 100, 'realise' => round($liquiditeMarche, 1), 'couleur' => 'warning',
              'source' => 'Encours BCC: ' . number_format($encoursTotal, 0, ',', ' ') . ' Mds'],
             ['nom' => 'Croissance Économique', 'planifie' => 100, 'realise' => round($croissanceEconomique, 1), 'couleur' => 'purple',
-             'source' => 'Évolution recettes 7j: ' . ($variationRecettes >= 0 ? '+' : '') . number_format($variationRecettes, 1, ',', ' ') . '%'],
+             'source' => 'Évolution recettes: ' . ($variationRecettes >= 0 ? '+' : '') . number_format($variationRecettes, 1, ',', ' ') . '%'],
         ];
 
         return $this->render('analyse/index.html.twig', [
@@ -87,6 +114,10 @@ class AnalyseController extends AbstractController
             'pressionChange' => $pressionChange,
             'niveauReserves' => $niveauReserves,
             'equilibreBudget' => $equilibreBudget,
+            // Date filter parameters
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin,
+            'periode' => $periode,
         ]);
     }
 }

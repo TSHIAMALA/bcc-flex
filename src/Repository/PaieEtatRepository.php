@@ -25,4 +25,27 @@ class PaieEtatRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * Get paie data for a specific date range
+     */
+    public function getPaieByDate(?string $dateDebut = null, ?string $dateFin = null): ?\App\Entity\PaieEtat
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->join('p.conjoncture', 'c')
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1);
+
+        if ($dateFin) {
+            $qb->andWhere('c.date_situation <= :dateFin')
+               ->setParameter('dateFin', $dateFin);
+        }
+
+        if ($dateDebut) {
+            $qb->andWhere('c.date_situation >= :dateDebut')
+               ->setParameter('dateDebut', $dateDebut);
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 }

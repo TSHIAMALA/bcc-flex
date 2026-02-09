@@ -5,6 +5,37 @@
 {% block header_subtitle %}Indicateurs de Conjoncture Économique{% endblock %}
 
 {% block body %}
+    <!-- Date Filter Bar -->
+    <div class="filter-bar mb-20">
+        <div class="filter-bar-content">
+            <div class="filter-label">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Période :</span>
+            </div>
+            <div class="filter-buttons">
+                <a href="{{ path('app_dashboard', {periode: '7jours'}) }}" class="filter-btn {{ periode == '7jours' ? 'active' : '' }}">7 jours</a>
+                <a href="{{ path('app_dashboard', {periode: '30jours'}) }}" class="filter-btn {{ periode == '30jours' ? 'active' : '' }}">30 jours</a>
+                <a href="{{ path('app_dashboard', {periode: '3mois'}) }}" class="filter-btn {{ periode == '3mois' ? 'active' : '' }}">3 mois</a>
+            </div>
+            <div class="filter-divider"></div>
+            <form class="filter-custom" method="get" action="{{ path('app_dashboard') }}">
+                <input type="hidden" name="periode" value="personnalise">
+                <div class="filter-date-group">
+                    <label>Du</label>
+                    <input type="date" name="dateDebut" value="{{ dateDebut }}" class="filter-date-input">
+                </div>
+                <div class="filter-date-group">
+                    <label>Au</label>
+                    <input type="date" name="dateFin" value="{{ dateFin }}" class="filter-date-input">
+                </div>
+                <button type="submit" class="filter-apply-btn">
+                    <i class="fas fa-search"></i>
+                    Appliquer
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- ITM Gauge + Stats Header -->
     <div class="dashboard-top mb-30">
         <!-- ITM Gauge Section -->
@@ -12,7 +43,54 @@
             <div class="itm-gauge-wrapper">
                 <div class="itm-header">
                     <span class="itm-header-title">Indice de Tension du Marché</span>
+                    <button class="info-toggle" onclick="toggleItmInfo()" title="Comprendre l'ITM">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
                 </div>
+                
+                <!-- Panneau d'explication ITM -->
+                <div id="itmInfoPanel" class="itm-info-panel" style="display: none;">
+                    <div class="itm-info-content">
+                        <p class="itm-info-intro">
+                            <strong>L'ITM</strong> (Indice de Tension du Marché) est un indicateur composite qui mesure la stabilité du marché des changes.
+                        </p>
+                        <div class="itm-info-calc">
+                            <div class="itm-info-title"><i class="fas fa-calculator"></i> Comment est-il calculé ?</div>
+                            <ul class="itm-info-list">
+                                <li><strong>Écart de change</strong> - Différence entre cours officiel et parallèle</li>
+                                <li><strong>Niveau des réserves</strong> - Réserves internationales en USD</li>
+                                <li><strong>Solde budgétaire</strong> - Équilibre recettes/dépenses</li>
+                                <li><strong>Volume des transactions</strong> - Activité du marché USD</li>
+                            </ul>
+                        </div>
+                        <div class="itm-info-levels">
+                            <div class="itm-info-title"><i class="fas fa-thermometer-half"></i> Niveaux d'interprétation</div>
+                            <div class="itm-level-grid">
+                                <div class="itm-level-item level-calm">
+                                    <span class="level-range">0-30%</span>
+                                    <span class="level-name">Calme</span>
+                                    <span class="level-desc">Marché stable, conditions normales</span>
+                                </div>
+                                <div class="itm-level-item level-vigilance">
+                                    <span class="level-range">30-50%</span>
+                                    <span class="level-name">Vigilance</span>
+                                    <span class="level-desc">Surveillance accrue recommandée</span>
+                                </div>
+                                <div class="itm-level-item level-tension">
+                                    <span class="level-range">50-70%</span>
+                                    <span class="level-name">Tension</span>
+                                    <span class="level-desc">Intervention probable nécessaire</span>
+                                </div>
+                                <div class="itm-level-item level-critical">
+                                    <span class="level-range">70-100%</span>
+                                    <span class="level-name">Critique</span>
+                                    <span class="level-desc">Action immédiate requise</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="itm-content">
                     <div class="itm-gauge-container">
                         <svg class="itm-gauge-svg" viewBox="0 0 200 130">
@@ -305,6 +383,21 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <!-- Affichage quand pas de données de paie pour la période -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-users"></i>
+                    Exécution de la Paie
+                </h3>
+            </div>
+            <div class="empty-data-message">
+                <i class="fas fa-calendar-times"></i>
+                <p>Aucune donnée de paie disponible pour cette période</p>
+                <span class="empty-data-hint">Essayez de sélectionner une autre plage de dates</span>
+            </div>
+        </div>
         {% endif %}
     </div>
 
@@ -354,17 +447,596 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-radar"></i>
+                    <i class="fas fa-chart-pie"></i>
                     Indicateurs de Vigilance
                 </h3>
+                <button class="info-toggle" onclick="toggleRadarInfo()" title="Comprendre les indicateurs">
+                    <i class="fas fa-question-circle"></i>
+                </button>
             </div>
+            
+            <!-- Panneau d'explication (caché par défaut) -->
+            <div id="radarInfoPanel" class="radar-info-panel" style="display: none;">
+                <div class="radar-info-header">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Comment lire ce graphique ?</span>
+                </div>
+                <div class="radar-info-content">
+                    <p class="radar-info-intro">Plus la zone est <strong>étendue vers l'extérieur</strong>, meilleure est la situation économique.</p>
+                    <div class="indicator-list">
+                        <div class="indicator-item">
+                            <span class="indicator-name"><i class="fas fa-exchange-alt"></i> Stabilité Change</span>
+                            <span class="indicator-desc">Écart entre le cours officiel et le taux parallèle. Un faible écart = marché stable.</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name"><i class="fas fa-coins"></i> Niveau Réserves</span>
+                            <span class="indicator-desc">Réserves internationales en USD. Score basé sur 5 milliards USD comme référence optimale.</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name"><i class="fas fa-balance-scale"></i> Équilibre Budget</span>
+                            <span class="indicator-desc">Solde budgétaire de l'État. Excédent = score élevé, déficit = score bas.</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name"><i class="fas fa-tint"></i> Liquidité</span>
+                            <span class="indicator-desc">Avoirs libres en CDF dans le système bancaire. Plus = meilleure liquidité.</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name"><i class="fas fa-chart-line"></i> Croissance</span>
+                            <span class="indicator-desc">Ratio recettes/dépenses publiques. Ratio > 1 = excédent budgétaire.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="chart-container" style="height: 280px;">
                 <canvas id="chartRadar"></canvas>
+            </div>
+            
+            <!-- Mini légende des scores actuels -->
+            <div class="radar-scores-legend">
+                <div class="score-item" title="Stabilité du marché des changes">
+                    <span class="score-label">Change</span>
+                    {% if radarScores.stabiliteChange is not null %}
+                        <span class="score-value {{ radarScores.stabiliteChange >= 60 ? 'good' : (radarScores.stabiliteChange >= 40 ? 'medium' : 'bad') }}">{{ radarScores.stabiliteChange }}%</span>
+                    {% else %}
+                        <span class="score-value na">N/A</span>
+                    {% endif %}
+                </div>
+                <div class="score-item" title="Niveau des réserves internationales">
+                    <span class="score-label">Réserves</span>
+                    {% if radarScores.niveauReserves is not null %}
+                        <span class="score-value {{ radarScores.niveauReserves >= 60 ? 'good' : (radarScores.niveauReserves >= 40 ? 'medium' : 'bad') }}">{{ radarScores.niveauReserves }}%</span>
+                    {% else %}
+                        <span class="score-value na">N/A</span>
+                    {% endif %}
+                </div>
+                <div class="score-item" title="Équilibre budgétaire">
+                    <span class="score-label">Budget</span>
+                    {% if radarScores.equilibreBudget is not null %}
+                        <span class="score-value {{ radarScores.equilibreBudget >= 60 ? 'good' : (radarScores.equilibreBudget >= 40 ? 'medium' : 'bad') }}">{{ radarScores.equilibreBudget }}%</span>
+                    {% else %}
+                        <span class="score-value na">N/A</span>
+                    {% endif %}
+                </div>
+                <div class="score-item" title="Liquidité du système">
+                    <span class="score-label">Liquidité</span>
+                    {% if radarScores.liquidite is not null %}
+                        <span class="score-value {{ radarScores.liquidite >= 60 ? 'good' : (radarScores.liquidite >= 40 ? 'medium' : 'bad') }}">{{ radarScores.liquidite }}%</span>
+                    {% else %}
+                        <span class="score-value na">N/A</span>
+                    {% endif %}
+                </div>
+                <div class="score-item" title="Performance budgétaire">
+                    <span class="score-label">Croissance</span>
+                    {% if radarScores.croissance is not null %}
+                        <span class="score-value {{ radarScores.croissance >= 60 ? 'good' : (radarScores.croissance >= 40 ? 'medium' : 'bad') }}">{{ radarScores.croissance }}%</span>
+                    {% else %}
+                        <span class="score-value na">N/A</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 
     <style>
+    /* Date Filter Bar */
+    .filter-bar {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 15px 20px;
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--bcc-primary);
+    }
+
+    .filter-bar-content {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .filter-label i {
+        color: var(--bcc-primary);
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #f8fafc;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+    .filter-btn:hover {
+        background: #e2e8f0;
+        border-color: #cbd5e1;
+    }
+
+    .filter-btn.active {
+        background: var(--bcc-primary);
+        color: white;
+        border-color: var(--bcc-primary);
+    }
+
+    .filter-divider {
+        width: 1px;
+        height: 30px;
+        background: #e2e8f0;
+    }
+
+    .filter-custom {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .filter-date-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-date-group label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .filter-date-input {
+        padding: 7px 10px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        background: #f8fafc;
+        color: var(--text-primary);
+        transition: var(--transition);
+    }
+
+    .filter-date-input:focus {
+        outline: none;
+        border-color: var(--bcc-primary);
+        box-shadow: 0 0 0 3px rgba(59, 111, 171, 0.1);
+    }
+
+    .filter-apply-btn {
+        padding: 8px 18px;
+        background: linear-gradient(135deg, #3b6fab 0%, #2d5a8f 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(59, 111, 171, 0.3);
+        white-space: nowrap;
+    }
+
+    .filter-apply-btn:hover {
+        background: linear-gradient(135deg, #2d5a8f 0%, #1e4a7a 100%);
+        box-shadow: 0 4px 8px rgba(59, 111, 171, 0.4);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+        .filter-bar-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .filter-divider {
+            width: 100%;
+            height: 1px;
+        }
+        .filter-custom {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Dark mode styles for filter bar */
+    [data-theme="dark"] .filter-bar,
+    body.dark-mode .filter-bar {
+        background: #1e293b;
+        border-left-color: var(--bcc-primary);
+    }
+
+    [data-theme="dark"] .filter-btn,
+    body.dark-mode .filter-btn {
+        background: #334155;
+        color: #94a3b8;
+        border-color: #475569;
+    }
+
+    [data-theme="dark"] .filter-btn:hover,
+    body.dark-mode .filter-btn:hover {
+        background: #475569;
+        color: white;
+        border-color: #64748b;
+    }
+
+    [data-theme="dark"] .filter-btn.active,
+    body.dark-mode .filter-btn.active {
+        background: var(--bcc-primary);
+        color: white;
+        border-color: var(--bcc-primary);
+    }
+
+    [data-theme="dark"] .filter-divider,
+    body.dark-mode .filter-divider {
+        background: #475569;
+    }
+
+    [data-theme="dark"] .filter-date-input,
+    body.dark-mode .filter-date-input,
+    [data-theme="dark"] .filter-date,
+    body.dark-mode .filter-date {
+        background: #334155;
+        color: white;
+        border-color: #475569;
+    }
+
+    [data-theme="dark"] .filter-date-input:focus,
+    body.dark-mode .filter-date-input:focus,
+    [data-theme="dark"] .filter-date:focus,
+    body.dark-mode .filter-date:focus {
+        border-color: var(--bcc-primary);
+        box-shadow: 0 0 0 3px rgba(59, 111, 171, 0.2);
+    }
+
+    [data-theme="dark"] .filter-date-group label,
+    body.dark-mode .filter-date-group label,
+    [data-theme="dark"] .filter-custom label,
+    body.dark-mode .filter-custom label {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .filter-label,
+    body.dark-mode .filter-label {
+        color: #94a3b8;
+    }
+
+    [data-theme="dark"] .filter-label i,
+    body.dark-mode .filter-label i {
+        color: var(--bcc-primary);
+    }
+
+    /* Empty Data Message */
+    .empty-data-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .empty-data-message i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 16px;
+    }
+
+    .empty-data-message p {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 8px 0;
+    }
+
+    .empty-data-hint {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    [data-theme="dark"] .empty-data-message i {
+        color: #475569;
+    }
+
+    /* Radar Info Panel Styles */
+    .info-toggle {
+        background: transparent;
+        border: none;
+        color: var(--bcc-primary);
+        cursor: pointer;
+        padding: 5px 10px;
+        font-size: 1.1rem;
+        transition: all 0.2s ease;
+        border-radius: 50%;
+    }
+
+    .info-toggle:hover {
+        background: rgba(59, 111, 171, 0.1);
+        transform: scale(1.1);
+    }
+
+    .radar-info-panel {
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+        border-radius: 8px;
+        margin: 0 15px 15px 15px;
+        padding: 15px;
+        border-left: 4px solid var(--bcc-primary);
+    }
+
+    .radar-info-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--bcc-primary);
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .radar-info-intro {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+    }
+
+    .indicator-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .indicator-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 10px;
+        background: white;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .indicator-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--bcc-primary);
+    }
+
+    .indicator-name i {
+        margin-right: 6px;
+        width: 16px;
+    }
+
+    .indicator-desc {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    /* Radar Scores Legend */
+    .radar-scores-legend {
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 15px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .score-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: help;
+    }
+
+    .score-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .score-value {
+        font-size: 0.9rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    .score-value.good {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .score-value.medium {
+        background: var(--warning-light);
+        color: #b45309;
+    }
+
+    .score-value.bad {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .score-value.na {
+        background: #f1f5f9;
+        color: #94a3b8;
+        font-style: italic;
+    }
+
+    [data-theme="dark"] .score-value.na {
+        background: var(--bg-tertiary);
+        color: #64748b;
+    }
+
+    /* ITM Info Panel Styles */
+    .itm-info-panel {
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+        border-radius: 8px;
+        margin: 10px 0;
+        padding: 15px;
+        border-left: 4px solid var(--bcc-primary);
+    }
+
+    .itm-info-intro {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+
+    .itm-info-calc,
+    .itm-info-levels {
+        margin-bottom: 15px;
+    }
+
+    .itm-info-title {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--bcc-primary);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .itm-info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .itm-info-list li {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        padding: 4px 0;
+        padding-left: 15px;
+        position: relative;
+    }
+
+    .itm-info-list li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--bcc-primary);
+    }
+
+    .itm-level-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .itm-level-item {
+        padding: 8px 10px;
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .itm-level-item.level-calm {
+        background: rgba(16, 185, 129, 0.1);
+        border-left: 3px solid #10b981;
+    }
+
+    .itm-level-item.level-vigilance {
+        background: rgba(132, 204, 22, 0.1);
+        border-left: 3px solid #84cc16;
+    }
+
+    .itm-level-item.level-tension {
+        background: rgba(245, 158, 11, 0.1);
+        border-left: 3px solid #f59e0b;
+    }
+
+    .itm-level-item.level-critical {
+        background: rgba(239, 68, 68, 0.1);
+        border-left: 3px solid #ef4444;
+    }
+
+    .level-range {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .level-name {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .level-calm .level-name { color: #10b981; }
+    .level-vigilance .level-name { color: #84cc16; }
+    .level-tension .level-name { color: #f59e0b; }
+    .level-critical .level-name { color: #ef4444; }
+
+    .level-desc {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+    }
+
+    /* Dark mode for ITM info */
+    [data-theme="dark"] .itm-info-panel {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    [data-theme="dark"] .itm-level-item {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Dark mode for radar info */
+    [data-theme="dark"] .radar-info-panel {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    [data-theme="dark"] .indicator-item {
+        background: var(--bg-tertiary);
+    }
+
+    [data-theme="dark"] .radar-scores-legend {
+        background: var(--bg-tertiary);
+        border-top-color: var(--border-color);
+    }
+
     /* Dashboard Top Layout */
     .dashboard-top {
         display: flex;
@@ -517,14 +1189,14 @@
     .stat-box {
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
-        border-radius: 8px;
-        padding: 8px 6px;
+        border-radius: 12px;
+        padding: 18px 20px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 15px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         transition: var(--transition);
-        min-height: 50px;
+        min-height: 80px;
     }
 
     .stat-box:hover {
@@ -533,15 +1205,15 @@
     }
 
     .stat-icon {
-        width: 28px;
-        height: 28px;
-        background: rgba(59, 111, 171, 0.3);
-        border-radius: 6px;
+        width: 50px;
+        height: 50px;
+        background: rgba(0, 127, 255, 0.3);
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
-        color: #5A8BC4;
+        font-size: 1.3rem;
+        color: #4da3ff;
         flex-shrink: 0;
     }
 
@@ -558,23 +1230,23 @@
     }
 
     .stat-label {
-        font-size: 0.5rem;
+        font-size: 0.7rem;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.6);
         text-transform: uppercase;
-        letter-spacing: 0.3px;
+        letter-spacing: 1px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        line-height: 1;
-        margin-bottom: 2px;
+        line-height: 1.2;
+        margin-bottom: 4px;
     }
 
     .stat-value {
-        font-size: 0.9rem;
+        font-size: 1.5rem;
         font-weight: 800;
         color: white;
-        line-height: 1;
+        line-height: 1.2;
     }
 
     .stat-change {
@@ -920,7 +1592,7 @@ new Chart(document.getElementById('chartPaieDoughnut'), {
 });
 {% endif %}
 
-// 6. Radar Chart - Indicateurs
+// 6. Radar Chart - Indicateurs de Vigilance (dynamiques)
 new Chart(document.getElementById('chartRadar'), {
     type: 'radar',
     data: {
@@ -928,11 +1600,11 @@ new Chart(document.getElementById('chartRadar'), {
         datasets: [{
             label: 'Situation Actuelle',
             data: [
-                Math.max(0, 100 - {{ latestMarche.ecartIndicParallele|default(0) }} / 2),
-                Math.min(100, {{ latestKPI.reservesInternationalesUsd|default(0) }} / 100),
-                {{ latestKPI.solde|default(0) >= 0 ? 80 : 40 }},
-                70,
-                65
+                {{ radarScores.stabiliteChange|default(50) }},
+                {{ radarScores.niveauReserves|default(50) }},
+                {{ radarScores.equilibreBudget|default(50) }},
+                {{ radarScores.liquidite|default(50) }},
+                {{ radarScores.croissance|default(50) }}
             ],
             borderColor: '#3B6FAB',
             backgroundColor: 'rgba(59, 111, 171, 0.2)',
@@ -954,5 +1626,25 @@ new Chart(document.getElementById('chartRadar'), {
         plugins: { legend: { position: 'top' } }
     }
 });
+
+// Toggle radar info panel
+function toggleRadarInfo() {
+    const panel = document.getElementById('radarInfoPanel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// Toggle ITM info panel
+function toggleItmInfo() {
+    const panel = document.getElementById('itmInfoPanel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+    }
+}
 </script>
 {% endblock %}

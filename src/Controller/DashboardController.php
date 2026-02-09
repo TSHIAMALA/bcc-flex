@@ -12,6 +12,7 @@ use App\Repository\PaieEtatRepository;
 use App\Service\AlerteService;
 use App\Service\IndiceTensionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -19,6 +20,7 @@ class DashboardController extends AbstractController
 {
     #[Route('/', name: 'app_dashboard')]
     public function index(
+        Request $request,
         KPIJournalierRepository $kpiRepository,
         MarcheChangesRepository $marcheRepository,
         FinancesPubliquesRepository $financesRepository,
@@ -29,9 +31,28 @@ class DashboardController extends AbstractController
         AlerteService $alerteService,
         IndiceTensionService $itmService
     ): Response {
-        $latestKPI = $kpiRepository->getLatestKPI();
-        $previousKPI = $kpiRepository->getPreviousKPI();
-        $kpiHistory = $kpiRepository->getKPIHistory(7);
+        // Get date filter parameters
+        $periode = $request->query->get('periode', '7jours'); // 7jours, 30jours, 3mois, personnalise
+        $dateDebut = $request->query->get('dateDebut');
+        $dateFin = $request->query->get('dateFin');
+
+        // Calculate date range based on period
+        if ($periode !== 'personnalise' || !$dateDebut || !$dateFin) {
+            $dateFin = (new \DateTime())->format('Y-m-d');
+            $days = match($periode) {
+                '30jours' => 30,
+                '3mois' => 90,
+                '90' => 90, // Backward compatibility
+                '30' => 30, // Backward compatibility
+                default => 7,
+            };
+            $dateDebut = (new \DateTime())->modify("-{$days} days")->format('Y-m-d');
+        }
+
+        // Fetch KPI data with date filter
+        $latestKPI = $kpiRepository->getKPIByDate($dateDebut, $dateFin);
+        $previousKPI = $kpiRepository->getPreviousKPIByDate($dateDebut);
+        $kpiHistory = $kpiRepository->getKPIByPeriod($dateDebut, $dateFin);
 
         // Calculate variations
         $varCoursIndicatif = 0;
@@ -76,18 +97,26 @@ class DashboardController extends AbstractController
         // Get active alerts
         $activeAlerts = $alerteService->getFormattedAlerts();
 
-        // Other data
-        $evolutionMarche = $marcheRepository->getEvolutionData(7);
+        // Other data with date filter
+        $evolutionMarche = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         $volumes = $volumeRepository->getLatestVolumes();
-        $paie = $paieRepository->getLatestPaie();
-        $reservesHistory = $reservesRepository->getReservesHistory(7);
-        $financesHistory = $financesRepository->getEvolutionData(7);
+        $paie = $paieRepository->getPaieByDate($dateDebut, $dateFin);
+        $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
+        $financesHistory = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
 
         // Calculate total volume USD for KPI card
         $totalVolumeUSD = 0;
         foreach ($volumes as $vol) {
             $totalVolumeUSD += $vol->getVolumeTotalUsd() ?? 0;
         }
+
+        // Calculate dynamic radar scores for Indicateurs de Vigilance (0-100 scale)
+        $radarScores = $this->calculateRadarScores(
+            $latestMarche,
+            $latestReserves,
+            $latestFinances,
+            $latestKPI
+        );
 
         return $this->render('dashboard/index.html.twig', [
             'latestKPI' => $latestKPI,
@@ -112,6 +141,97 @@ class DashboardController extends AbstractController
             'activeAlerts' => $activeAlerts,
             // Volume total for KPI
             'totalVolumeUSD' => $totalVolumeUSD,
+            // Date filter parameters
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin,
+            'periode' => $periode,
+            // Radar scores for Indicateurs de Vigilance
+            'radarScores' => $radarScores,
         ]);
+    }
+
+    /**
+     * Calculate radar scores for Indicateurs de Vigilance
+     * Each score is between 0 and 100 (higher = better)
+     * Returns null values when no data is available
+     */
+    private function calculateRadarScores(
+        ?\App\Entity\MarcheChanges $marche,
+        ?\App\Entity\ReservesFinancieres $reserves,
+        ?\App\Entity\FinancesPubliques $finances,
+        ?\App\Entity\KPIJournalier $kpi
+    ): array {
+        // Check if we have any data at all
+        $hasData = $marche || $reserves || $finances;
+        
+        if (!$hasData) {
+            // No data at all - return null for all indicators
+            return [
+                'stabiliteChange' => null,
+                'niveauReserves' => null,
+                'equilibreBudget' => null,
+                'liquidite' => null,
+                'croissance' => null,
+                'hasData' => false,
+            ];
+        }
+
+        // 1. Stabilité Change: based on ecart indicatif/parallele
+        // Lower ecart = more stability (100 - ecart/2, capped at 0-100)
+        // Only calculate if we have marche data with actual ecart value
+        $stabiliteChange = null;
+        if ($marche && $marche->getEcartIndicParallele() !== null) {
+            $ecart = (float)$marche->getEcartIndicParallele();
+            $stabiliteChange = max(0, min(100, 100 - ($ecart / 2)));
+        }
+
+        // 2. Niveau Réserves: reserves in USD normalized
+        // Using a reference of 5000 million USD as optimal (100%)
+        $niveauReserves = null;
+        if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
+            $reservesUsd = (float)$reserves->getReservesInternationalesUsd();
+            $niveauReserves = min(100, ($reservesUsd / 5000) * 100);
+        }
+
+        // 3. Équilibre Budget: based on solde budgetaire
+        // Positive solde = good, negative solde = bad
+        $equilibreBudget = null;
+        if ($finances && $finances->getSolde() !== null) {
+            $soldeBudget = (float)$finances->getSolde();
+            if ($soldeBudget >= 0) {
+                $equilibreBudget = min(100, 60 + ($soldeBudget / 100));
+            } else {
+                $equilibreBudget = max(0, 60 + ($soldeBudget / 50));
+            }
+        }
+
+        // 4. Liquidité: based on avoirs libres CDF
+        // Using a reference of 1000 billion CDF as optimal
+        $liquidite = null;
+        if ($reserves && $reserves->getAvoirsLibresCdf() !== null) {
+            $avoirsLibres = (float)$reserves->getAvoirsLibresCdf();
+            $liquidite = min(100, ($avoirsLibres / 1000) * 100);
+        }
+
+        // 5. Croissance / Performance: ratio recettes/depenses
+        // ratio > 1 = excédent, ratio < 1 = déficit
+        $croissance = null;
+        if ($finances && $finances->getRecettesTotales() !== null && $finances->getDepensesTotales() !== null) {
+            $recettes = (float)$finances->getRecettesTotales();
+            $depenses = (float)$finances->getDepensesTotales();
+            if ($depenses > 0 && $recettes > 0) {
+                $ratio = $recettes / $depenses;
+                $croissance = min(100, max(0, $ratio * 70));
+            }
+        }
+
+        return [
+            'stabiliteChange' => $stabiliteChange !== null ? round($stabiliteChange, 1) : null,
+            'niveauReserves' => $niveauReserves !== null ? round($niveauReserves, 1) : null,
+            'equilibreBudget' => $equilibreBudget !== null ? round($equilibreBudget, 1) : null,
+            'liquidite' => $liquidite !== null ? round($liquidite, 1) : null,
+            'croissance' => $croissance !== null ? round($croissance, 1) : null,
+            'hasData' => true,
+        ];
     }
 }
