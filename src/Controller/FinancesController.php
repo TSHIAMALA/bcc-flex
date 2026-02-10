@@ -47,17 +47,17 @@ class FinancesController extends AbstractController
             }
         }
 
-        // Non-filtered data (always latest)
-        $tresorerie = $tresorerieRepository->getLatestTresorerie();
-        $titres = $titresRepository->getLatestTitres();
+        // All data filtered by period
+        $tresorerie = $tresorerieRepository->getTresorerieByPeriod($dateDebut, $dateFin);
+        $titres = $titresRepository->getTitresByPeriod($dateDebut, $dateFin);
         $paie = $paieRepository->getPaieByDate($dateDebut, $dateFin);
         
         // Use filtered data
         $evolutionData = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         $finData = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         
-        // Get latest data from filtered period (instead of global latest)
-        $latestFin = !empty($evolutionData) ? end($evolutionData) : $financesRepository->findOneBy([], ['id' => 'DESC']);
+        // Get latest data from filtered period only
+        $latestFin = !empty($evolutionData) ? end($evolutionData) : null;
         
         // Calculate aggregated totals for the period (sum of all entries in period)
         $totalRecettes = 0;

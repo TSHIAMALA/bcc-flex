@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Repository\MarcheChangesRepository;
 use App\Repository\ReservesFinancieresRepository;
-use App\Repository\VolumeUSDRepository;
 use App\Repository\EncoursBccRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +17,7 @@ class MarcheController extends AbstractController
         Request $request,
         MarcheChangesRepository $marcheRepository,
         ReservesFinancieresRepository $reservesRepository,
-        VolumeUSDRepository $volumeRepository,
+        \App\Repository\TransactionsUsdRepository $transacRepository,
         EncoursBccRepository $encoursRepository
     ): Response {
         // Date filter parameters
@@ -47,18 +46,18 @@ class MarcheController extends AbstractController
             }
         }
 
-        // Non-filtered data (always latest)
-        $volumes = $volumeRepository->getLatestVolumes();
-        $latestEncours = $encoursRepository->getLatestEncours();
+        // Filtered data by period
+        $volumes = $transacRepository->getVolumesByBankForPeriod($dateDebut, $dateFin);
+        $latestEncours = $encoursRepository->getEncoursByPeriod($dateDebut, $dateFin);
         
         // Use filtered data
         $evolutionData = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
         $marcheHistory = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         
-        // Get latest data from filtered period (instead of global latest)
-        $latestMarche = !empty($evolutionData) ? end($evolutionData) : $marcheRepository->findOneBy([], ['id' => 'DESC']);
-        $latestReserves = !empty($reservesHistory) ? $reservesHistory[0] : $reservesRepository->findOneBy([], ['id' => 'DESC']);
+        // Get latest data from filtered period only
+        $latestMarche = !empty($evolutionData) ? end($evolutionData) : null;
+        $latestReserves = !empty($reservesHistory) ? $reservesHistory[0] : null;
 
         // Calculate variation
         $varIndicatif = 0;

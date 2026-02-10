@@ -25,7 +25,7 @@ class DashboardController extends AbstractController
         MarcheChangesRepository $marcheRepository,
         FinancesPubliquesRepository $financesRepository,
         ReservesFinancieresRepository $reservesRepository,
-        VolumeUSDRepository $volumeRepository,
+        \App\Repository\TransactionsUsdRepository $transacRepository,
         PaieEtatRepository $paieRepository,
         ConjonctureJourRepository $conjonctureRepository,
         AlerteService $alerteService,
@@ -99,7 +99,7 @@ class DashboardController extends AbstractController
 
         // Other data with date filter
         $evolutionMarche = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
-        $volumes = $volumeRepository->getLatestVolumes();
+        $volumes = $transacRepository->getLatestVolumesByBank();
         $paie = $paieRepository->getPaieByDate($dateDebut, $dateFin);
         $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
         $financesHistory = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
@@ -107,7 +107,7 @@ class DashboardController extends AbstractController
         // Calculate total volume USD for KPI card
         $totalVolumeUSD = 0;
         foreach ($volumes as $vol) {
-            $totalVolumeUSD += $vol->getVolumeTotalUsd() ?? 0;
+            $totalVolumeUSD += $vol['volumeTotalUsd'] ?? 0;
         }
 
         // Calculate dynamic radar scores for Indicateurs de Vigilance (0-100 scale)

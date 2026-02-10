@@ -5,7 +5,7 @@
 {% block header_subtitle %}Suivi de l'exécution budgétaire{% endblock %}
 
 {% block body %}
-{% set tauxExecution = latestFin.recettesTotales > 0 ? min(100, (latestFin.recettesTotales / (latestFin.recettesTotales + 50)) * 100) : 0 %}
+{% set tauxExecution = (latestFin is not null and latestFin.recettesTotales > 0) ? min(100, (latestFin.recettesTotales / (latestFin.recettesTotales + 50)) * 100) : 0 %}
 {% set tauxPaie = paie ? (paie.montantPaye / paie.montantTotal) * 100 : 0 %}
 
 <!-- Date Filter Bar -->
@@ -222,11 +222,11 @@
             <div class="donut-legend-horizontal">
                 <div class="donut-legend-item">
                     <span class="donut-legend-color" style="background: #007FFF;"></span>
-                    <span class="donut-legend-label">Fiscales: {{ latestFin.recettesFiscales|default(0)|number_format(2, ',', ' ') }} Mds</span>
+                    <span class="donut-legend-label">Fiscales: {{ latestFin ? latestFin.recettesFiscales|number_format(2, ',', ' ') : '0,00' }} Mds</span>
                 </div>
                 <div class="donut-legend-item">
                     <span class="donut-legend-color" style="background: #10b981;"></span>
-                    <span class="donut-legend-label">Autres: {{ latestFin.autresRecettes|default(0)|number_format(2, ',', ' ') }} Mds</span>
+                    <span class="donut-legend-label">Autres: {{ latestFin ? latestFin.autresRecettes|number_format(2, ',', ' ') : '0,00' }} Mds</span>
                 </div>
             </div>
         </div>
@@ -650,14 +650,16 @@ new Chart(document.getElementById('chartBudget'), {
 });
 
 // Donut Recettes
+{% if latestFin %}
 new Chart(document.getElementById('chartRecettes'), {
     type: 'doughnut',
     data: {
         labels: ['Recettes Fiscales', 'Autres Recettes'],
-        datasets: [{ data: [{{ latestFin.recettesFiscales|default(0) }}, {{ latestFin.autresRecettes|default(0) }}], backgroundColor: ['#007FFF', '#10b981'], borderWidth: 0, hoverOffset: 10 }]
+        datasets: [{ data: [{{ latestFin.recettesFiscales }}, {{ latestFin.autresRecettes }}], backgroundColor: ['#007FFF', '#10b981'], borderWidth: 0, hoverOffset: 10 }]
     },
     options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false } } }
 });
+{% endif %}
 
 // Search
 document.getElementById('searchFinances').addEventListener('input', function(e) {
