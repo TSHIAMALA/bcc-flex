@@ -31,13 +31,26 @@ class AlerteService
     ) {}
 
     /**
-     * Calculate and persist alerts for a given conjoncture
+     * Calculate and persist alerts for a given conjoncture.
+     * Uses raw DBAL queries instead of ORM persist/flush to avoid
+     * Doctrine ORM 3 identity map conflicts with IDENTITY strategy.
      */
     public function calculateAlerts(ConjonctureJour $conjoncture): array
     {
-        $alerts = [];
+        $conjonctureId = $conjoncture->getId();
+        $conn = $this->em->getConnection();
+
+        // 1. Remove existing alerts for this conjoncture via raw SQL
+        $conn->executeStatement(
+            'DELETE FROM alerte_change WHERE conjoncture_id = ?',
+            [$conjonctureId]
+        );
+
+        // 2. Fetch indicators with their rules (read-only, no identity map issue)
         $indicators = $this->indicateurRepository->findAllWithRules();
-        
+
+        // 3. Calculate and insert new alerts via raw SQL
+        $alerts = [];
         foreach ($indicators as $indicateur) {
             $value = $this->getIndicatorValue($indicateur, $conjoncture);
             
@@ -48,18 +61,22 @@ class AlerteService
             foreach ($indicateur->getRegles() as $rule) {
                 $status = $this->getAlertStatus($value, $rule);
                 
-                $alerte = new AlerteChange();
-                $alerte->setConjoncture($conjoncture);
-                $alerte->setIndicateur($indicateur);
-                $alerte->setValeur((string)$value);
-                $alerte->setStatut($status);
+                $conn->insert('alerte_change', [
+                    'conjoncture_id' => $conjonctureId,
+                    'indicateur_id' => $indicateur->getId(),
+                    'valeur' => (string)$value,
+                    'statut' => $status,
+                    'created_at' => (new \DateTime())->format('Y-m-d H:i:s'),
+                ]);
                 
-                $this->em->persist($alerte);
-                $alerts[] = $alerte;
+                $alerts[] = [
+                    'conjoncture_id' => $conjonctureId,
+                    'indicateur' => $indicateur->getLibelle(),
+                    'valeur' => $value,
+                    'statut' => $status,
+                ];
             }
         }
-        
-        $this->em->flush();
         
         return $alerts;
     }

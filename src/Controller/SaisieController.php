@@ -17,8 +17,9 @@ use App\Repository\MarcheChangesRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\FinancesPubliquesRepository;
 use App\Repository\TresorerieEtatRepository;
-use App\Service\AlerteService;
+use App\Event\ConjonctureDataUpdatedEvent;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -67,7 +68,7 @@ final class SaisieController extends AbstractController
         \App\Repository\EncoursBccRepository $encoursRepo,
         \App\Repository\PaieEtatRepository $paieRepo,
         \App\Repository\TransactionsUsdRepository $transacRepo,
-        AlerteService $alerteService
+        EventDispatcherInterface $eventDispatcher
     ): Response
     {
         // 1. Marche des Changes
@@ -118,8 +119,7 @@ final class SaisieController extends AbstractController
             $em->persist($marche);
             $em->flush();
             $this->addFlash('success', 'Marché des changes enregistré.');
-             // Recalculate alerts
-            $alerteService->calculateAlerts($conjoncture);
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_marche'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'marche']);
         }
 
@@ -127,8 +127,7 @@ final class SaisieController extends AbstractController
             $em->persist($reserves);
             $em->flush();
             $this->addFlash('success', 'Réserves enregistrées.');
-             // Recalculate alerts
-            $alerteService->calculateAlerts($conjoncture);
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_reserves'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'reserves']);
         }
 
@@ -136,6 +135,7 @@ final class SaisieController extends AbstractController
             $em->persist($finances);
             $em->flush();
             $this->addFlash('success', 'Finances publiques enregistrées.');
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_finances'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'finances']);
         }
 
@@ -143,6 +143,7 @@ final class SaisieController extends AbstractController
             $em->persist($tresorerie);
             $em->flush();
             $this->addFlash('success', 'Trésorerie enregistrée.');
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_tresorerie'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'tresorerie']);
         }
 
@@ -150,6 +151,7 @@ final class SaisieController extends AbstractController
             $em->persist($encours);
             $em->flush();
             $this->addFlash('success', 'Encours BCC enregistrés.');
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_encours'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'encours']);
         }
 
@@ -157,6 +159,7 @@ final class SaisieController extends AbstractController
             $em->persist($paie);
             $em->flush();
             $this->addFlash('success', 'Paie État enregistrée.');
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_paie'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'paie']);
         }
 
@@ -164,6 +167,7 @@ final class SaisieController extends AbstractController
             $em->persist($newTransaction);
             $em->flush();
             $this->addFlash('success', 'Transaction ajoutée.');
+            $eventDispatcher->dispatch(new ConjonctureDataUpdatedEvent($conjoncture, 'saisie_transaction'), ConjonctureDataUpdatedEvent::NAME);
             return $this->redirectToRoute('app_saisie_edit', ['id' => $conjoncture->getId(), 'tab' => 'transactions']);
         }
 

@@ -3,14 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\ConjonctureJour;
+use App\Event\ConjonctureDataUpdatedEvent;
 use App\Repository\ConjonctureJourRepository;
-use App\Service\AlerteService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportController extends AbstractController
@@ -43,7 +44,7 @@ class ImportController extends AbstractController
         \App\Repository\PaieEtatRepository $paieRepo,
         \App\Repository\TransactionsUsdRepository $transacRepo,
         \App\Repository\BanquesRepository $banqueRepo,
-        AlerteService $alerteService
+        EventDispatcherInterface $eventDispatcher
     ): Response {
         $file = $request->files->get('import_file');
         $dateStr = $request->request->get('date_situation');
@@ -100,8 +101,11 @@ class ImportController extends AbstractController
             $em->persist($conjoncture);
             $em->flush();
 
-            // Calculate alerts for the new data
-            $alerteService->calculateAlerts($conjoncture);
+            // Dispatch event for automatic alert recalculation
+            $eventDispatcher->dispatch(
+                new ConjonctureDataUpdatedEvent($conjoncture, 'import'),
+                ConjonctureDataUpdatedEvent::NAME
+            );
 
             $this->addFlash('success', sprintf(
                 'Import réussi! %d lignes traitées pour le %s.',
