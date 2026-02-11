@@ -174,6 +174,29 @@ class AlerteService
         return $formatted;
     }
 
+    /**
+     * Get formatted alerts filtered by period
+     */
+    public function getFormattedAlertsByPeriod(string $dateDebut, string $dateFin): array
+    {
+        $alerts = $this->alerteRepository->findActiveAlertsByPeriod($dateDebut, $dateFin);
+        $formatted = [];
+        
+        foreach ($alerts as $alerte) {
+            $formatted[] = [
+                'type' => $alerte->getStatut() === self::STATUS_ALERTE ? 'danger' : 'warning',
+                'icon' => $this->getAlertIcon($alerte),
+                'titre' => $alerte->getIndicateur()?->getLibelle() ?? 'Indicateur',
+                'message' => $this->formatAlertMessage($alerte),
+                'date' => $alerte->getConjoncture()?->getDateSituation() ?? $alerte->getCreatedAt(),
+                'statut' => $alerte->getStatut(),
+                'valeur' => $alerte->getValeur()
+            ];
+        }
+        
+        return $formatted;
+    }
+
     private function getAlertIcon(AlerteChange $alerte): string
     {
         $code = $alerte->getIndicateur()?->getCode();

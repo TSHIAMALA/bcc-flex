@@ -5,6 +5,32 @@
 {% block header_subtitle %}Centre de surveillance et configuration{% endblock %}
 
 {% block body %}
+<!-- Date Filter Bar -->
+<div class="filter-bar mb-20">
+    <div class="filter-bar-content">
+        <div class="filter-section filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Période</span>
+        </div>
+        <div class="filter-section filter-buttons">
+            <a href="{{ path('app_alertes', {periode: '7jours'}) }}" class="filter-btn {{ periode == '7jours' ? 'active' : '' }}">7 jours</a>
+            <a href="{{ path('app_alertes', {periode: '30jours'}) }}" class="filter-btn {{ periode == '30jours' ? 'active' : '' }}">30 jours</a>
+            <a href="{{ path('app_alertes', {periode: '3mois'}) }}" class="filter-btn {{ periode == '3mois' ? 'active' : '' }}">3 mois</a>
+        </div>
+        <div class="filter-divider"></div>
+        <form method="GET" action="{{ path('app_alertes') }}" class="filter-section filter-custom">
+            <label>Du</label>
+            <input type="date" name="dateDebut" value="{{ dateDebut }}" class="filter-date">
+            <label>Au</label>
+            <input type="date" name="dateFin" value="{{ dateFin }}" class="filter-date">
+            <input type="hidden" name="periode" value="personnalise">
+            <button type="submit" class="filter-apply-btn">
+                <i class="fas fa-check"></i> Appliquer
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- KPI Header Cards -->
 <div class="kpi-header-grid mb-30">
     <div class="kpi-header-card {{ alertCount > 0 ? 'deficit' : '' }}">
@@ -14,7 +40,7 @@
         <div class="kpi-header-content">
             <span class="kpi-header-label">ALERTES ACTIVES</span>
             <span class="kpi-header-value">{{ alertCount }}</span>
-            <span class="kpi-header-sublabel">Requérant attention</span>
+            <span class="kpi-header-sublabel">Sur la période</span>
         </div>
     </div>
 
@@ -42,12 +68,11 @@
 
     <div class="kpi-header-card highlight">
         <div class="kpi-header-content">
-            <span class="kpi-header-label">DERNIÈRE VÉRIF.</span>
-            <span class="kpi-header-value">{{ "now"|date('H:i') }}</span>
+            <span class="kpi-header-label">JOURS ANALYSÉS</span>
+            <span class="kpi-header-value">{{ joursAnalyses }}</span>
+            <span class="kpi-header-sublabel" style="color: rgba(255,255,255,0.7);">{{ dateDebut|date('d/m/Y') }} — {{ dateFin|date('d/m/Y') }}</span>
         </div>
-        <div class="kpi-header-icon">
-            <i class="fas fa-clock"></i>
-        </div>
+        <div class="kpi-header-icon"><i class="fas fa-calendar-alt"></i></div>
     </div>
 </div>
 
@@ -57,9 +82,12 @@
     <i class="fas fa-exclamation-triangle alert-icon"></i>
     <div class="alert-content">
         <h4>⚠️ Attention : {{ alertCount }} anomalie(s) détectée(s)</h4>
-        <p>Certains indicateurs ont dépassé les seuils critiques. Veuillez consulter les détails ci-dessous.</p>
+        <p>Certains indicateurs ont dépassé les seuils critiques sur la période sélectionnée.</p>
     </div>
     <form action="{{ path('app_alertes_recalculate') }}" method="post" class="ml-auto">
+        <input type="hidden" name="dateDebut" value="{{ dateDebut }}">
+        <input type="hidden" name="dateFin" value="{{ dateFin }}">
+        <input type="hidden" name="periode" value="{{ periode }}">
         <button type="submit" class="btn btn-primary">
             <i class="fas fa-sync-alt"></i> Recalculer
         </button>
@@ -70,8 +98,16 @@
     <i class="fas fa-check-circle alert-icon"></i>
     <div class="alert-content">
         <h4>✅ Tous les systèmes sont nominaux</h4>
-        <p>Aucune anomalie détectée sur les indicateurs surveillés.</p>
+        <p>Aucune anomalie détectée sur la période du {{ dateDebut|date('d/m/Y') }} au {{ dateFin|date('d/m/Y') }}.</p>
     </div>
+    <form action="{{ path('app_alertes_recalculate') }}" method="post" class="ml-auto">
+        <input type="hidden" name="dateDebut" value="{{ dateDebut }}">
+        <input type="hidden" name="dateFin" value="{{ dateFin }}">
+        <input type="hidden" name="periode" value="{{ periode }}">
+        <button type="submit" class="btn btn-outline">
+            <i class="fas fa-sync-alt"></i> Recalculer
+        </button>
+    </form>
 </div>
 {% endif %}
 
@@ -209,6 +245,33 @@
 {% endif %}
 
 <style>
+/* Filter Bar */
+.filter-bar { background: white; border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 12px 20px; border-left: 4px solid var(--bcc-primary); }
+.filter-bar-content { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+.filter-section { display: flex; align-items: center; gap: 8px; }
+.filter-title { font-weight: 700; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.filter-title i { color: var(--bcc-primary); }
+.filter-buttons { display: flex; gap: 6px; }
+.filter-btn { padding: 6px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-secondary); text-decoration: none; transition: var(--transition); border: 1px solid transparent; }
+.filter-btn:hover { background: rgba(0, 127, 255, 0.08); color: var(--bcc-primary); border-color: rgba(0, 127, 255, 0.2); }
+.filter-btn.active { background: var(--bcc-primary); color: white; }
+.filter-divider { width: 1px; height: 24px; background: #e2e8f0; }
+.filter-date { padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; }
+.filter-custom label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; }
+.filter-apply-btn { padding: 6px 14px; background: var(--bcc-primary); color: white; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: var(--transition); }
+.filter-apply-btn:hover { background: #0056b3; }
+
+.btn-outline { background: transparent; border: 2px solid var(--bcc-primary); color: var(--bcc-primary); }
+.btn-outline:hover { background: var(--bcc-primary); color: white; }
+
+/* Dark mode filter bar */
+body.dark-mode .filter-bar { background: var(--bg-card); }
+body.dark-mode .filter-btn { background: var(--bg-tertiary, #334155); color: var(--text-secondary); }
+body.dark-mode .filter-btn:hover { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+body.dark-mode .filter-btn.active { background: #3b82f6; color: white; }
+body.dark-mode .filter-divider { background: #475569; }
+body.dark-mode .filter-date { background: var(--bg-tertiary, #334155); border-color: #475569; color: var(--text-primary); }
+
 /* Reusing styles from Finances page for consistency */
 .kpi-header-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .kpi-header-card { background: white; border-radius: var(--border-radius); padding: 20px 25px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow); border-left: 4px solid var(--bcc-primary); transition: var(--transition); }

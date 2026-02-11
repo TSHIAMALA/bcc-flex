@@ -24,4 +24,35 @@ class ConjonctureJourRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * Find the latest conjoncture within a date range
+     */
+    public function findLatestByPeriod(string $dateDebut, string $dateFin): ?ConjonctureJour
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.date_situation >= :dateDebut')
+            ->andWhere('c.date_situation <= :dateFin')
+            ->setParameter('dateDebut', $dateDebut)
+            ->setParameter('dateFin', $dateFin)
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find all conjonctures within a date range
+     */
+    public function findByPeriod(string $dateDebut, string $dateFin): array
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.date_situation >= :dateDebut')
+            ->andWhere('c.date_situation <= :dateFin')
+            ->setParameter('dateDebut', $dateDebut)
+            ->setParameter('dateFin', $dateFin)
+            ->orderBy('c.date_situation', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

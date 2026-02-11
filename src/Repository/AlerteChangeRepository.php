@@ -42,4 +42,23 @@ class AlerteChangeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find active (non-normal) alerts within a date period
+     */
+    public function findActiveAlertsByPeriod(string $dateDebut, string $dateFin, int $limit = 50): array
+    {
+        return $this->createQueryBuilder('a')
+            ->join('a.conjoncture', 'c')
+            ->where('a.statut != :normal')
+            ->andWhere('c.date_situation >= :dateDebut')
+            ->andWhere('c.date_situation <= :dateFin')
+            ->setParameter('normal', 'NORMAL')
+            ->setParameter('dateDebut', $dateDebut)
+            ->setParameter('dateFin', $dateFin)
+            ->orderBy('a.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

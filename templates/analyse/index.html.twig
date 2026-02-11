@@ -91,7 +91,24 @@
             <h3 class="card-title">
                 <i class="fas fa-tasks"></i>
                 Taux de Performance par Indicateur
+                <button class="info-toggle" onclick="toggleInfo('perfInfo')"><i class="fas fa-question-circle"></i></button>
             </h3>
+        </div>
+        <div id="perfInfo" class="info-panel" style="margin: 0 20px 15px 20px; width: auto;">
+            <h5><i class="fas fa-info-circle"></i> Comment lire ce tableau ?</h5>
+            <p>Chaque indicateur est évalué sur un objectif de <strong>100%</strong>. Le <em>Réalisé</em> correspond au score obtenu à partir des données de la période sélectionnée.</p>
+            <ul>
+                <li><strong>Stabilité du Change</strong> — Basée sur l'écart entre taux indicatif et parallèle (faible écart = score élevé).</li>
+                <li><strong>Niveau des Réserves</strong> — Réserves internationales rapportées à l'objectif de 10 Mds USD.</li>
+                <li><strong>Équilibre Budgétaire</strong> — Ratio recettes/dépenses de l'État sur la période.</li>
+                <li><strong>Liquidité Marché</strong> — Combinaison des encours BCC et des avoirs libres en CDF.</li>
+                <li><strong>Croissance Économique</strong> — Évolution des recettes entre le début et la fin de la période.</li>
+            </ul>
+            <p style="margin-top: 8px; font-size: 0.8rem;"><i class="fas fa-palette"></i> <strong>Couleurs :</strong> 
+                <span style="color: #10b981;">■ &ge; 70% (Favorable)</span> · 
+                <span style="color: #f59e0b;">■ 40-70% (Modéré)</span> · 
+                <span style="color: #ef4444;">■ &lt; 40% (Critique)</span>
+            </p>
         </div>
         <div class="table-container">
             <table class="data-table progress-table">
