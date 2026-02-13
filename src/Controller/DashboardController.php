@@ -38,7 +38,14 @@ class DashboardController extends AbstractController
 
         // Calculate date range based on period
         if ($periode !== 'personnalise' || !$dateDebut || !$dateFin) {
-            $dateFin = (new \DateTime())->format('Y-m-d');
+            // Use the latest conjoncture date as end date instead of today
+            $latestConjonctureDateRef = $conjonctureRepository->findLatest();
+            if ($latestConjonctureDateRef) {
+                $endDate = clone $latestConjonctureDateRef->getDateSituation();
+            } else {
+                $endDate = new \DateTime();
+            }
+            $dateFin = $endDate->format('Y-m-d');
             $days = match($periode) {
                 '30jours' => 30,
                 '3mois' => 90,
@@ -46,7 +53,8 @@ class DashboardController extends AbstractController
                 '30' => 30, // Backward compatibility
                 default => 7,
             };
-            $dateDebut = (new \DateTime())->modify("-{$days} days")->format('Y-m-d');
+            $startDate = clone $endDate;
+            $dateDebut = $startDate->modify("-{$days} days")->format('Y-m-d');
         }
 
         // Fetch KPI data with date filter

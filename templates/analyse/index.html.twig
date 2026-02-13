@@ -63,15 +63,29 @@
             </ul>
         </div>
     </div>
-    <div class="kpi-header-card">
-        <div class="kpi-header-content">
-            <span class="kpi-header-label">NIVEAU DE VIGILANCE</span>
-            <span class="kpi-header-value">{{ niveauVigilance }}</span>
-        </div>
-        <div class="kpi-header-progress">
-            <div class="mini-progress">
-                <div class="mini-progress-fill {{ couleurVigilance }}" style="width: {{ scoreVigilance }}%"></div>
+    <div class="kpi-header-card" style="flex-direction: column; align-items: stretch; justify-content: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="kpi-header-content">
+                <span class="kpi-header-label">
+                    NIVEAU DE VIGILANCE
+                    <button class="info-toggle" onclick="toggleInfo('niveauInfo')"><i class="fas fa-question-circle"></i></button>
+                </span>
+                <span class="kpi-header-value">{{ niveauVigilance }}</span>
             </div>
+            <div class="kpi-header-progress">
+                <div class="mini-progress">
+                    <div class="mini-progress-fill {{ couleurVigilance }}" style="width: {{ scoreVigilance }}%"></div>
+                </div>
+            </div>
+        </div>
+        <div id="niveauInfo" class="info-panel" style="margin-top: 15px;">
+            <h5><i class="fas fa-info-circle"></i> Échelle de Risque</h5>
+            <p>Classification basée sur la performance globale des indicateurs :</p>
+            <ul style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 5px;">
+                <li><i class="fas fa-circle" style="color: var(--success); font-size: 8px;"></i> <strong>Favorable (> 70%)</strong> : Situation saine.</li>
+                <li><i class="fas fa-circle" style="color: var(--warning); font-size: 8px;"></i> <strong>Modéré (40-70%)</strong> : Points d'attention identifiés.</li>
+                <li><i class="fas fa-circle" style="color: var(--danger); font-size: 8px;"></i> <strong>Critique (< 40%)</strong> : Intervention recommandée.</li>
+            </ul>
         </div>
     </div>
     <div class="kpi-header-card">

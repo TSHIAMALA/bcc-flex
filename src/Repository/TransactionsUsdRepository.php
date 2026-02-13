@@ -67,4 +67,16 @@ class TransactionsUsdRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    /**
+     * Get total volume USD for a specific conjoncture
+     */
+    public function getTotalVolumeForConjoncture(\App\Entity\ConjonctureJour $conjoncture): ?float
+    {
+        return (float) $this->createQueryBuilder('t')
+            ->select('SUM(t.volume_usd)')
+            ->where('t.conjoncture = :conjoncture')
+            ->setParameter('conjoncture', $conjoncture)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

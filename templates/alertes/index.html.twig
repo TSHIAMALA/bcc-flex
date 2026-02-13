@@ -228,9 +228,38 @@
         {% for detail in itm.details %}
         <div class="itm-detail-card {{ detail.statut == 'ALERTE' ? 'danger' : (detail.statut == 'VIGILANCE' ? 'warning' : '') }}">
             <div class="itm-detail-header">
-                <span class="itm-detail-name">{{ detail.indicateur }}</span>
+                <span class="itm-detail-name">
+                    {{ detail.indicateur }}
+                    <button class="info-toggle" onclick="toggleInfo('info_{{ loop.index }}')"><i class="fas fa-question-circle"></i></button>
+                </span>
                 <span class="itm-detail-weight">Poids: {{ detail.poids }}</span>
             </div>
+            
+            <div id="info_{{ loop.index }}" class="info-panel" style="display: none; margin-bottom: 15px;">
+                {% if detail.code == 'ECART_CHANGE' %}
+                    <p>Différence entre le taux parallèle et indicatif. <br><strong>Objectif :</strong> écart < 2.5%.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique le niveau de divergence. <br>• 0/100 : Marché aligné.<br>• 100/100 : Rupture totale du marché.</p>
+                {% elseif detail.code == 'RESERVES_INT' %}
+                    <p>Stock de devises étrangères disponible. <br><strong>Seuil critique :</strong> < 3 mois d'importations.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique le risque de pénurie. <br>• 0/100 : Réserves confortables.<br>• 100/100 : Réserves épuisées.</p>
+                {% elseif detail.code == 'SOLDE_BUDGET' %}
+                    <p>Résultat des opérations financières de l'État. <br><strong>Impact :</strong> Un déficit excessif crée de l'inflation.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique le dérapage budgétaire. <br>• 0/100 : Budget équilibré.<br>• 100/100 : Déficit critique.</p>
+                {% elseif detail.code == 'COURS_INDICATIF' %}
+                    <p>Taux de change officiel du marché. <br><strong>Surveillance :</strong> Volatilité journalière.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique l'instabilité du taux. <br>• 0/100 : Franc stable.<br>• 100/100 : Dépréciation violente.</p>
+                {% elseif detail.code == 'VOLUME_USD' %}
+                    <p>Volume total des transactions en devises. <br><strong>Surveillance :</strong> Liquidité du marché.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique le risque d'assèchement. <br>• 0/100 : Liquidité abondante.<br>• 100/100 : Marché bloqué.</p>
+                {% elseif detail.code == 'AVOIRS_LIBRES_CDF' %}
+                    <p>Excédent de liquidités en francs congolais. <br><strong>Indicateur :</strong> Pression potentielle sur le change.</p>
+                    <p class="mt-2 text-xs"><i class="fas fa-exclamation-circle"></i> <strong>Score {{ detail.score|number_format(0) }}/100 :</strong> Indique la surliquidité bancaire. <br>• 0/100 : Liquidité normale.<br>• 100/100 : Surliquidité dangereuse (risque spéculatif).</p>
+                {% else %}
+                    <p>Indicateur clé pour le calcul de la tension du marché.</p>
+                    <p class="mt-2 text-xs">Plus le score approche de 100, plus la tension est élevée.</p>
+                {% endif %}
+            </div>
+
             <div class="itm-detail-value">{{ detail.valeur|number_format(2, ',', ' ') }}</div>
             <div class="itm-detail-score">
                 <div class="progress-bar">
@@ -454,5 +483,59 @@ body.dark-mode .sens-badge.baisse {
 
 @media (max-width: 1200px) { .kpi-header-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) { .kpi-header-grid, .grid-2 { grid-template-columns: 1fr; } }
+
+/* Styles Info Panel */
+.info-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0 5px;
+    transition: color 0.2s;
+    font-size: 0.85rem;
+    margin-left: 5px;
+}
+
+.info-toggle:hover {
+    color: var(--bcc-primary);
+}
+
+.info-panel {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid var(--bcc-primary);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    animation: fadeIn 0.3s ease;
+}
+
+.text-xs { font-size: 0.75rem; color: #64748b; }
+.mt-2 { margin-top: 8px; }
+
+body.dark-mode .info-panel {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-secondary);
+}
+
+body.dark-mode .text-xs {
+    color: #94a3b8;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
+
+<script>
+function toggleInfo(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === 'none' || el.style.display === '') {
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

@@ -22,7 +22,9 @@ class AlerteChangeRepository extends ServiceEntityRepository
     public function findActiveAlerts(int $limit = 20): array
     {
         return $this->createQueryBuilder('a')
+            ->join('a.conjoncture', 'c')
             ->where('a.statut != :normal')
+            ->andWhere('c.id > 0')
             ->setParameter('normal', 'NORMAL')
             ->orderBy('a.createdAt', 'DESC')
             ->setMaxResults($limit)

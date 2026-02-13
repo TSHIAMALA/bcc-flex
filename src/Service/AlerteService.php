@@ -12,7 +12,9 @@ use App\Repository\RegleInterventionRepository;
 use App\Repository\MarcheChangesRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\FinancesPubliquesRepository;
+use App\Repository\TransactionsUsdRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
 
 class AlerteService
 {
@@ -27,7 +29,8 @@ class AlerteService
         private AlerteChangeRepository $alerteRepository,
         private MarcheChangesRepository $marcheRepository,
         private ReservesFinancieresRepository $reservesRepository,
-        private FinancesPubliquesRepository $financesRepository
+        private FinancesPubliquesRepository $financesRepository,
+        private TransactionsUsdRepository $transactionRepository
     ) {}
 
     /**
@@ -125,6 +128,7 @@ class AlerteService
             'SOLDE_BUDGET' => $this->getSoldeBudget($conjoncture),
             'COURS_INDICATIF' => $this->getCoursIndicatif($conjoncture),
             'VOLUME_USD' => $this->getVolumeUSD($conjoncture),
+            'AVOIRS_LIBRES_CDF' => $this->getAvoirsLibresCDF($conjoncture),
             default => null,
         };
     }
@@ -155,9 +159,13 @@ class AlerteService
 
     private function getVolumeUSD(ConjonctureJour $conjoncture): ?float
     {
-        // This would need to aggregate from transactions_usd or volumes table
-        // For now return null - to be implemented based on actual data structure
-        return null;
+        return $this->transactionRepository->getTotalVolumeForConjoncture($conjoncture);
+    }
+
+    private function getAvoirsLibresCDF(ConjonctureJour $conjoncture): ?float
+    {
+        $reserves = $this->reservesRepository->findOneBy(['conjoncture' => $conjoncture]);
+        return $reserves ? (float)$reserves->getAvoirsLibresCdf() : null;
     }
 
     /**
@@ -177,15 +185,20 @@ class AlerteService
         $formatted = [];
         
         foreach ($alerts as $alerte) {
-            $formatted[] = [
-                'type' => $alerte->getStatut() === self::STATUS_ALERTE ? 'danger' : 'warning',
-                'icon' => $this->getAlertIcon($alerte),
-                'titre' => $alerte->getIndicateur()?->getLibelle() ?? 'Indicateur',
-                'message' => $this->formatAlertMessage($alerte),
-                'date' => $alerte->getConjoncture()?->getDateSituation() ?? $alerte->getCreatedAt(),
-                'statut' => $alerte->getStatut(),
-                'valeur' => $alerte->getValeur()
-            ];
+            try {
+                $formatted[] = [
+                    'type' => $alerte->getStatut() === self::STATUS_ALERTE ? 'danger' : 'warning',
+                    'icon' => $this->getAlertIcon($alerte),
+                    'titre' => $alerte->getIndicateur()?->getLibelle() ?? 'Indicateur',
+                    'message' => $this->formatAlertMessage($alerte),
+                    'date' => $alerte->getConjoncture()?->getDateSituation() ?? $alerte->getCreatedAt(),
+                    'statut' => $alerte->getStatut(),
+                    'valeur' => $alerte->getValeur()
+                ];
+            } catch (EntityNotFoundException $e) {
+                // Skip alerts with orphaned conjoncture references (e.g. conjoncture_id = 0)
+                continue;
+            }
         }
         
         return $formatted;
@@ -200,15 +213,20 @@ class AlerteService
         $formatted = [];
         
         foreach ($alerts as $alerte) {
-            $formatted[] = [
-                'type' => $alerte->getStatut() === self::STATUS_ALERTE ? 'danger' : 'warning',
-                'icon' => $this->getAlertIcon($alerte),
-                'titre' => $alerte->getIndicateur()?->getLibelle() ?? 'Indicateur',
-                'message' => $this->formatAlertMessage($alerte),
-                'date' => $alerte->getConjoncture()?->getDateSituation() ?? $alerte->getCreatedAt(),
-                'statut' => $alerte->getStatut(),
-                'valeur' => $alerte->getValeur()
-            ];
+            try {
+                $formatted[] = [
+                    'type' => $alerte->getStatut() === self::STATUS_ALERTE ? 'danger' : 'warning',
+                    'icon' => $this->getAlertIcon($alerte),
+                    'titre' => $alerte->getIndicateur()?->getLibelle() ?? 'Indicateur',
+                    'message' => $this->formatAlertMessage($alerte),
+                    'date' => $alerte->getConjoncture()?->getDateSituation() ?? $alerte->getCreatedAt(),
+                    'statut' => $alerte->getStatut(),
+                    'valeur' => $alerte->getValeur()
+                ];
+            } catch (EntityNotFoundException $e) {
+                // Skip alerts with orphaned conjoncture references
+                continue;
+            }
         }
         
         return $formatted;

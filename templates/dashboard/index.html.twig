@@ -236,7 +236,7 @@
                     Évolution du Taux de Change
                 </h3>
                 <div class="card-actions">
-                    <span class="card-badge badge-info">7 jours</span>
+                    <span class="card-badge badge-info">{{ periode == '7jours' ? '7 jours' : (periode == '30jours' ? '30 jours' : (periode == '3mois' ? '3 mois' : 'Personnalisé')) }}</span>
                 </div>
             </div>
             <div class="chart-container" style="height: 280px;">
