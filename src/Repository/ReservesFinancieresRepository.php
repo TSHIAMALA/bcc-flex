@@ -51,4 +51,19 @@ class ReservesFinancieresRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * Find the single most recent record on or before a given date
+     */
+    public function findMostRecentBeforeOrEqual(string $date): ?ReservesFinancieres
+    {
+        return $this->createQueryBuilder('r')
+            ->join('r.conjoncture', 'c')
+            ->where('c.date_situation <= :date')
+            ->setParameter('date', $date)
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

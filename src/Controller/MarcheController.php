@@ -54,31 +54,30 @@ class MarcheController extends AbstractController
 
         // Filtered data by period
         $volumes = $transacRepository->getVolumesByBankForPeriod($dateDebut, $dateFin);
-        $latestEncours = $encoursRepository->getEncoursByPeriod($dateDebut, $dateFin);
+        // Get latest encours data (closest to end date, finding previous value if needed)
+        $latestEncours = $encoursRepository->findMostRecentBeforeOrEqual($dateFin);
         
         // Use filtered data
         $evolutionData = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
-        $marcheHistory = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         
-        // Get latest data from filtered period only
-        $latestMarche = !empty($evolutionData) ? end($evolutionData) : null;
-        $latestReserves = !empty($reservesHistory) ? $reservesHistory[0] : null;
+        // Get latest data from filtered period only (closest to end date)
+        $latestMarche = $marcheRepository->findMostRecentBeforeOrEqual($dateFin);
+        $latestReserves = $reservesRepository->findMostRecentBeforeOrEqual($dateFin);
 
-        // Calculate variation
+        // Calculate variation between START and END of the selected period
         $varIndicatif = 0;
-        if (count($marcheHistory) >= 2) {
-            $count = count($marcheHistory);
-            $latest = $marcheHistory[$count - 1];
-            $previous = $marcheHistory[$count - 2];
+        if (count($evolutionData) >= 2) {
+            $latest = end($evolutionData);      // Borne supérieure (Fin Période)
+            $first = reset($evolutionData);     // Borne inférieure (Début Période)
             
-            if ($previous->getCoursIndicatif() != 0) {
-                $varIndicatif = (($latest->getCoursIndicatif() - $previous->getCoursIndicatif()) / $previous->getCoursIndicatif()) * 100;
+            if ($first->getCoursIndicatif() != 0) {
+                $varIndicatif = (($latest->getCoursIndicatif() - $first->getCoursIndicatif()) / $first->getCoursIndicatif()) * 100;
             }
         }
 
         // Reverse history for table (DESC)
-        $marcheTableData = array_reverse($marcheHistory);
+        $marcheTableData = array_reverse($evolutionData);
 
         return $this->render('marche/index.html.twig', [
             'latestMarche' => $latestMarche,

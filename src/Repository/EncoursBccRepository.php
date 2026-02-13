@@ -47,4 +47,18 @@ class EncoursBccRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getOneOrNullResult();
     }
+    /**
+     * Find the single most recent record on or before a given date
+     */
+    public function findMostRecentBeforeOrEqual(string $date): ?EncoursBcc
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.conjoncture', 'c')
+            ->where('c.date_situation <= :date')
+            ->setParameter('date', $date)
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
