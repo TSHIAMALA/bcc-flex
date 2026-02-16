@@ -65,14 +65,27 @@ class MarcheController extends AbstractController
         $latestMarche = $marcheRepository->findMostRecentBeforeOrEqual($dateFin);
         $latestReserves = $reservesRepository->findMostRecentBeforeOrEqual($dateFin);
 
-        // Calculate variation between START and END of the selected period
+        // Calculate variation: Compare LATEST date with PREVIOUS date (Day-to-Day)
         $varIndicatif = 0;
-        if (count($evolutionData) >= 2) {
-            $latest = end($evolutionData);      // Borne supérieure (Fin Période)
-            $first = reset($evolutionData);     // Borne inférieure (Début Période)
+        if ($latestMarche) {
+            // Get the date of the latest data point
+            $latestDate = $latestMarche->getConjoncture()->getDateSituation();
+            // Find the data point immediately preceding this date
+            $previousMarche = $marcheRepository->findMostRecentBefore($latestDate);
             
-            if ($first->getCoursIndicatif() != 0) {
-                $varIndicatif = (($latest->getCoursIndicatif() - $first->getCoursIndicatif()) / $first->getCoursIndicatif()) * 100;
+            if ($previousMarche && $previousMarche->getCoursIndicatif() != 0) {
+                $varIndicatif = (($latestMarche->getCoursIndicatif() - $previousMarche->getCoursIndicatif()) / $previousMarche->getCoursIndicatif()) * 100;
+            }
+        }
+
+        // Calculate reserves variation (Day-to-Day)
+        $varReserves = 0;
+        if ($latestReserves) {
+            $latestResDate = $latestReserves->getConjoncture()->getDateSituation();
+            $previousReserves = $reservesRepository->findMostRecentBefore($latestResDate);
+
+            if ($previousReserves && $previousReserves->getReservesInternationalesUsd() != 0) {
+                $varReserves = (($latestReserves->getReservesInternationalesUsd() - $previousReserves->getReservesInternationalesUsd()) / $previousReserves->getReservesInternationalesUsd()) * 100;
             }
         }
 
@@ -88,6 +101,7 @@ class MarcheController extends AbstractController
             'reservesHistory' => $reservesHistory,
             'marcheTableData' => $marcheTableData,
             'varIndicatif' => $varIndicatif,
+            'varReserves' => $varReserves,
             // Date filter parameters
             'dateDebut' => $dateDebut,
             'dateFin' => $dateFin,

@@ -59,7 +59,12 @@ class DashboardController extends AbstractController
 
         // Fetch KPI data with date filter
         $latestKPI = $kpiRepository->getKPIByDate($dateDebut, $dateFin);
-        $previousKPI = $kpiRepository->getPreviousKPIByDate($dateDebut);
+        
+        // Get previous KPI based on the latest KPI date (Day-to-Day comparison)
+        $previousKPI = null;
+        if ($latestKPI) {
+            $previousKPI = $kpiRepository->getPreviousKPIByDate($latestKPI->getDateSituation());
+        }
         $kpiHistory = $kpiRepository->getKPIByPeriod($dateDebut, $dateFin);
 
         // Calculate variations

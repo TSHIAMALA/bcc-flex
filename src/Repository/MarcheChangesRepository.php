@@ -66,4 +66,19 @@ class MarcheChangesRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * Find the single most recent record STRICTLY BEFORE a given date
+     */
+    public function findMostRecentBefore(\DateTimeInterface $date): ?MarcheChanges
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.conjoncture', 'c')
+            ->where('c.date_situation < :date')
+            ->setParameter('date', $date->format('Y-m-d'))
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
