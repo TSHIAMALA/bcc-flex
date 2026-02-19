@@ -8,6 +8,7 @@ use App\Repository\FinancesPubliquesRepository;
 use App\Repository\MarcheChangesRepository;
 use App\Repository\EncoursBccRepository;
 use App\Repository\ReservesFinancieresRepository;
+use App\Repository\ParametreGlobalRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,7 +24,8 @@ class AnalyseController extends AbstractController
         MarcheChangesRepository $marcheRepository,
         EncoursBccRepository $encoursRepository,
         ReservesFinancieresRepository $reservesRepository,
-        ConjonctureJourRepository $conjonctureRepository
+        ConjonctureJourRepository $conjonctureRepository,
+        ParametreGlobalRepository $paramRepo
     ): Response {
         // Date filter parameters
         $periode = $request->query->get('periode', '7jours');
@@ -60,54 +62,88 @@ class AnalyseController extends AbstractController
         $latestReserves = !empty($reservesData) ? $reservesData[0] : null;
         
         $latestEncours = $encoursRepository->getEncoursByPeriod($dateDebut, $dateFin);
+        $latestMarche = $latestKPI ? $marcheRepository->findMostRecentBeforeOrEqual($latestKPI->getDateSituation()) : null;
 
-        // Calculations
+        // ==========================================================
+        // FETCH PARAMETERS from PARAMETRE_GLOBAUX TABLE
+        // ==========================================================
+        $diviseurChange = $paramRepo->getValue('RADAR_CHANGE_DIVISEUR', 2);
+        $reservesOptimal = $paramRepo->getValue('RADAR_RESERVES_OPTIMAL', 5000);
+        $liquiditeOptimal = $paramRepo->getValue('RADAR_LIQUIDITE_OPTIMAL', 1000);
+        $budgetBase = $paramRepo->getValue('RADAR_BUDGET_BASE', 60);
+        $croissanceMult = $paramRepo->getValue('RADAR_CROISSANCE_MULT', 70);
+
+        // Calculations (Using same logic as Dashboard)
         
         // 1. Stabilité du Change
         $ecartChange = 0.0;
-        $pressionChange = 0.0; // Pression par défaut
-        $scoreStabilite = 0.0; // Score par défaut si pas de données
+        $scoreStabilite = 0.0;
+        $pressionChange = 0.0;
         
-        if ($latestKPI) {
+        if ($latestMarche && $latestMarche->getEcartIndicParallele() !== null) {
+            $ecartChange = (float) $latestMarche->getEcartIndicParallele();
+            // Nouvelle logique : 100 - (Ecart / Diviseur), borné [0,100]
+            $scoreStabilite = max(0, min(100, 100 - ($ecartChange / $diviseurChange)));
+            // Pour compatibilité "pression" : inverse du score
+            $pressionChange = 100 - $scoreStabilite;
+        } elseif ($latestKPI) {
+             // Fallback sur KPI si Marche non trouvé
             $ecartChange = (float) $latestKPI->getEcartIndicParallele();
-            $pressionChange = min(100, ($ecartChange / 150) * 100);
-            $scoreStabilite = max(0, 100 - $pressionChange);
+            $scoreStabilite = max(0, min(100, 100 - ($ecartChange / $diviseurChange)));
+            $pressionChange = 100 - $scoreStabilite;
         }
 
         // 2. Niveau des Réserves
         $reservesInt = $latestKPI ? (float) $latestKPI->getReservesInternationalesUsd() : 0.0;
-        $niveauReserves = min(100, ($reservesInt / 10000) * 100);
+        // Nouvelle logique : (Reserves / Optimal) * 100, borné [0,100]
+        $niveauReserves = min(100, ($reservesInt / $reservesOptimal) * 100);
 
-        // 3. Équilibre Budgétaire
+        // 3. Équilibre Budgétaire (Solde < 0 -> <60, Solde > 0 -> >60)
+        // Note: AnalyseController utilisait Ratio R/D, Dashboard utilisait Solde.
+        // On aligne AnalyseController sur Dashboard pour Solde, ou on garde logic Ratio ?
+        // L'indicateur s'appelle "Équilibre Budgétaire" dans Analyse. Dashboard utilise Solde pour "Equilibre".
+        // On va garder Ratio R/D ici car c'est plus précis pour "Analyse", mais utiliser les seuils cohérents.
+        // Ratio R/D : > 100% = Excédent. 
         $recettes = $latestFinances ? (float) $latestFinances->getRecettesTotales() : 0.0;
         $depenses = $latestFinances ? (float) $latestFinances->getDepensesTotales() : 0.0;
         $ratioRD = ($depenses > 0) ? ($recettes / $depenses) * 100 : 0.0;
-        $equilibreBudget = min(100, max(0, $ratioRD));
+        // Si ratio = 100%, score = 60 (BASE). Si ratio = 0%, score = 0.
+        // Si ratio = 200%, score = 100.
+        // Formule alignée : min(100, max(0, Ratio * (100/param) ? non, simplifions)
+        // Utilisons la logique Dashboard "Croissance/Perf" qui est basée sur ratio R/D
+        $equilibreBudget = min(100, max(0, ($ratioRD/100) * $croissanceMult * 1.5)); // Scaling factor arbitraire pour "Analyse" ?
+        // Ou mieux : on reprend la logique Dashboard "Equilibre Budget" basée sur le SOLDE si possible
+        if ($latestFinances && $latestFinances->getSolde() !== null) {
+             $soldeBudget = (float)$latestFinances->getSolde();
+             if ($soldeBudget >= 0) {
+                $equilibreBudget = min(100, $budgetBase + ($soldeBudget / 100));
+            } else {
+                $equilibreBudget = max(0, $budgetBase + ($soldeBudget / 50));
+            }
+        } else {
+            // Fallback Ratio
+            $equilibreBudget = min(100, max(0, ($ratioRD / 100) * 80)); 
+        }
+
 
         // 4. Liquidité Marché
-        $encoursTotal = ($latestEncours ? (float) $latestEncours->getEncoursOtBcc() : 0.0) + ($latestEncours ? (float) $latestEncours->getEncoursBBcc() : 0.0);
+        // Dashboard uses AvoirsLibres. Analyse used Encours Total + AvoirsLibres.
+        // Alignons sur Avoirs Libres (Dashboard logic) ou gardons complexité ?
+        // Le Dashboard logic est plus "paramétré". Utilisons la logique Dashboard pour Liquidité.
         $avoirsLibres = $latestReserves ? (float) $latestReserves->getAvoirsLibresCdf() : 0.0;
-        $scoreLiquidite = 0.0;
-        if ($encoursTotal > 0 || $avoirsLibres > 0) {
-            $scoreLiquidite = (min(100, ($encoursTotal / 2000) * 50) + min(50, ($avoirsLibres / 500) * 50));
-        }
-        $liquiditeMarche = min(100, max(0, $scoreLiquidite));
+        $liquiditeMarche = min(100, ($avoirsLibres / $liquiditeOptimal) * 100);
+        $encoursTotal = ($latestEncours ? (float) $latestEncours->getEncoursOtBcc() : 0.0) + ($latestEncours ? (float) $latestEncours->getEncoursBBcc() : 0.0);
 
-        // 5. Croissance Économique
+        // 5. Croissance Économique (Evolution Recettes)
         $croissanceEconomique = 0.0; // Défaut 0 si pas de données
         $variationRecettes = 0.0;
         if (count($evolutionFinances) >= 2) {
             $recettesDebut = (float) $evolutionFinances[count($evolutionFinances) - 1]->getRecettesTotales();
             $recettesFin = (float) $evolutionFinances[0]->getRecettesTotales();
-            // Éviter division par zéro
             if ($recettesDebut > 0) {
                 $variationRecettes = (($recettesFin - $recettesDebut) / $recettesDebut) * 100;
-                // Base 50 + variation
                 $croissanceEconomique = max(0, min(100, 50 + ($variationRecettes * 5)));
             }
-        } elseif ($latestFinances) {
-             // Si une seule donnée, on met 50 par défaut (neutre) mais seulement si donnée existe
-             $croissanceEconomique = 50.0;
         }
 
         // Score Global
@@ -120,7 +156,6 @@ class AnalyseController extends AbstractController
         );
 
         $niveauVigilance = $scoreVigilance > 70 ? 'Favorable' : ($scoreVigilance > 40 ? 'Modéré' : 'Critique');
-        // Si aucune donnée (score 0), on peut mettre un texte spécifique ou garder Critique
         if ($scoreVigilance == 0 && !$latestKPI && !$latestFinances) {
              $niveauVigilance = 'Non disponible';
         }
@@ -132,15 +167,15 @@ class AnalyseController extends AbstractController
 
         $indicateurs = [
             ['nom' => 'Stabilité du Change', 'planifie' => 100, 'realise' => round($scoreStabilite, 1), 'couleur' => 'primary', 
-             'source' => 'Écart indicatif/parallèle: ' . number_format($ecartChange, 0, ',', ' ') . ' CDF'],
+             'source' => 'Écart indicatif/parallèle: ' . number_format($ecartChange, 2, ',', ' ') . ' CDF'],
             ['nom' => 'Niveau des Réserves', 'planifie' => 100, 'realise' => round($niveauReserves, 1), 'couleur' => 'info',
              'source' => 'Réserves internationales: ' . number_format($reservesInt, 0, ',', ' ') . ' Mio USD'],
             ['nom' => 'Équilibre Budgétaire', 'planifie' => 100, 'realise' => round($equilibreBudget, 1), 'couleur' => 'success',
-             'source' => 'Ratio Recettes/Dépenses: ' . number_format($ratioRD, 1, ',', ' ') . '%'],
+             'source' => 'Solde Budgétaire: ' . (isset($soldeBudget) ? number_format($soldeBudget, 2, ',', ' ') : 'N/A') . ' Mds CDF'],
             ['nom' => 'Liquidité Marché', 'planifie' => 100, 'realise' => round($liquiditeMarche, 1), 'couleur' => 'warning',
-             'source' => 'Encours BCC: ' . number_format($encoursTotal, 0, ',', ' ') . ' Mds'],
+             'source' => 'Avoirs Libres: ' . number_format($avoirsLibres, 0, ',', ' ') . ' Mds'],
             ['nom' => 'Croissance Économique', 'planifie' => 100, 'realise' => round($croissanceEconomique, 1), 'couleur' => 'purple',
-             'source' => 'Évolution recettes: ' . ($variationRecettes >= 0 ? '+' : '') . number_format($variationRecettes, 1, ',', ' ') . '%'],
+             'source' => 'Variation recettes: ' . ($variationRecettes >= 0 ? '+' : '') . number_format($variationRecettes, 1, ',', ' ') . '%'],
         ];
 
         return $this->render('analyse/index.html.twig', [

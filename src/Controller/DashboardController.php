@@ -9,6 +9,8 @@ use App\Repository\MarcheChangesRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\VolumeUSDRepository;
 use App\Repository\PaieEtatRepository;
+use App\Repository\ParametreGlobalRepository;
+use App\Repository\ScoreItmDetailRepository;
 use App\Service\AlerteService;
 use App\Service\IndiceTensionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +30,8 @@ class DashboardController extends AbstractController
         \App\Repository\TransactionsUsdRepository $transacRepository,
         PaieEtatRepository $paieRepository,
         ConjonctureJourRepository $conjonctureRepository,
+        ParametreGlobalRepository $paramGlobalRepository,
+        ScoreItmDetailRepository $scoreItmDetailRepository,
         AlerteService $alerteService,
         IndiceTensionService $itmService
     ): Response {
@@ -89,16 +93,28 @@ class DashboardController extends AbstractController
         $latestReserves = null;
         $latestFinances = null;
         $latestConjoncture = null;
+        $scoreItmDetails = [];
 
         if ($latestKPI) {
             // Use date_situation to find related data since conjoncture_id is no longer available
             // Convert string date to DateTime for lookup
-            $dateSituation = $latestKPI->getDateSituation() ? new \DateTime($latestKPI->getDateSituation()) : null;
+            $dateSituationStr = $latestKPI->getDateSituation();
+            $dateSituation = $dateSituationStr ? new \DateTime($dateSituationStr) : null;
             $latestConjoncture = $dateSituation ? $conjonctureRepository->findOneBy(['date_situation' => $dateSituation]) : null;
             if ($latestConjoncture) {
                 $latestMarche = $marcheRepository->findOneBy(['conjoncture' => $latestConjoncture]);
                 $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
                 $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+            }
+            
+            // Fetch detailed scores for auditability
+            if ($dateSituationStr) {
+                try {
+                    $scoreItmDetails = $scoreItmDetailRepository->getScoresForDate($dateSituationStr);
+                } catch (\Exception $e) {
+                    // Fail silently if view doesn't exist yet
+                    $scoreItmDetails = [];
+                }
             }
         }
 
@@ -128,7 +144,8 @@ class DashboardController extends AbstractController
             $latestMarche,
             $latestReserves,
             $latestFinances,
-            $latestKPI
+            $latestKPI,
+            $paramGlobalRepository
         );
 
         return $this->render('dashboard/index.html.twig', [
@@ -150,6 +167,8 @@ class DashboardController extends AbstractController
             'itm' => $itm,
             'itmColor' => $itmColor,
             'itmClass' => $itmClass,
+            // Auditable Score Details
+            'scoreItmDetails' => $scoreItmDetails,
             // Active alerts
             'activeAlerts' => $activeAlerts,
             // Volume total for KPI
@@ -172,7 +191,8 @@ class DashboardController extends AbstractController
         ?\App\Entity\MarcheChanges $marche,
         ?\App\Entity\ReservesFinancieres $reserves,
         ?\App\Entity\FinancesPubliques $finances,
-        ?\App\Entity\KPIJournalier $kpi
+        ?\App\Entity\KPIJournalier $kpi,
+        ParametreGlobalRepository $params
     ): array {
         // Check if we have any data at all
         $hasData = $marche || $reserves || $finances;
@@ -189,21 +209,29 @@ class DashboardController extends AbstractController
             ];
         }
 
+        // Fetch configured Parameters (with defaults if missing)
+        $diviseurChange = $params->getValue('RADAR_CHANGE_DIVISEUR', 2);
+        $reservesOptimal = $params->getValue('RADAR_RESERVES_OPTIMAL', 5000);
+        $liquiditeOptimal = $params->getValue('RADAR_LIQUIDITE_OPTIMAL', 1000);
+        $budgetBase = $params->getValue('RADAR_BUDGET_BASE', 60);
+        $croissanceMult = $params->getValue('RADAR_CROISSANCE_MULT', 70);
+
         // 1. Stabilité Change: based on ecart indicatif/parallele
-        // Lower ecart = more stability (100 - ecart/2, capped at 0-100)
+        // Lower ecart = more stability (100 - ecart/diviseur, capped at 0-100)
         // Only calculate if we have marche data with actual ecart value
         $stabiliteChange = null;
         if ($marche && $marche->getEcartIndicParallele() !== null) {
             $ecart = (float)$marche->getEcartIndicParallele();
-            $stabiliteChange = max(0, min(100, 100 - ($ecart / 2)));
+            // Utilisation du paramètre configurable
+            $stabiliteChange = max(0, min(100, 100 - ($ecart / $diviseurChange)));
         }
 
         // 2. Niveau Réserves: reserves in USD normalized
-        // Using a reference of 5000 million USD as optimal (100%)
+        // Using a reference of OPTIMAL value (e.g., 5000M) as 100%
         $niveauReserves = null;
         if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
             $reservesUsd = (float)$reserves->getReservesInternationalesUsd();
-            $niveauReserves = min(100, ($reservesUsd / 5000) * 100);
+            $niveauReserves = min(100, ($reservesUsd / $reservesOptimal) * 100);
         }
 
         // 3. Équilibre Budget: based on solde budgetaire
@@ -212,18 +240,18 @@ class DashboardController extends AbstractController
         if ($finances && $finances->getSolde() !== null) {
             $soldeBudget = (float)$finances->getSolde();
             if ($soldeBudget >= 0) {
-                $equilibreBudget = min(100, 60 + ($soldeBudget / 100));
+                $equilibreBudget = min(100, $budgetBase + ($soldeBudget / 100));
             } else {
-                $equilibreBudget = max(0, 60 + ($soldeBudget / 50));
+                $equilibreBudget = max(0, $budgetBase + ($soldeBudget / 50));
             }
         }
 
         // 4. Liquidité: based on avoirs libres CDF
-        // Using a reference of 1000 billion CDF as optimal
+        // Using a reference of OPTIMAL value (e.g., 1000B) as 100%
         $liquidite = null;
         if ($reserves && $reserves->getAvoirsLibresCdf() !== null) {
             $avoirsLibres = (float)$reserves->getAvoirsLibresCdf();
-            $liquidite = min(100, ($avoirsLibres / 1000) * 100);
+            $liquidite = min(100, ($avoirsLibres / $liquiditeOptimal) * 100);
         }
 
         // 5. Croissance / Performance: ratio recettes/depenses
@@ -234,7 +262,7 @@ class DashboardController extends AbstractController
             $depenses = (float)$finances->getDepensesTotales();
             if ($depenses > 0 && $recettes > 0) {
                 $ratio = $recettes / $depenses;
-                $croissance = min(100, max(0, $ratio * 70));
+                $croissance = min(100, max(0, $ratio * $croissanceMult));
             }
         }
 

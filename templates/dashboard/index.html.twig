@@ -55,14 +55,64 @@
                             <strong>L'ITM</strong> (Indice de Tension du Marché) est un indicateur composite qui mesure la stabilité du marché des changes.
                         </p>
                         <div class="itm-info-calc">
-                            <div class="itm-info-title"><i class="fas fa-calculator"></i> Comment est-il calculé ?</div>
+                            <div class="itm-info-title"><i class="fas fa-calculator"></i> Détail du calcul {{ latestKPI ? '(' ~ latestKPI.dateSituation|date('d/m/Y') ~ ')' : '' }}</div>
+                            
+                            {% if scoreItmDetails is defined and scoreItmDetails|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="itm-detail-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Indicateur</th>
+                                            <th class="text-right">Valeur</th>
+                                            <th class="text-right">Alerte</th>
+                                            <th class="text-right">Interv.</th>
+                                            <th class="text-center">Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for detail in scoreItmDetails %}
+                                        <tr>
+                                            <td><span class="detail-label">{{ detail.indicateur }}</span></td>
+                                            <td class="text-right font-mono">{{ detail.valeur_brute|number_format(detail.indicateur_code == 'SOLDE_BUDGET' ? 2 : 0, ',', ' ') }}</td>
+                                            <td class="text-right text-muted small">{{ detail.seuil_alerte|number_format(0, ',', ' ') }}</td>
+                                            <td class="text-right text-muted small">{{ detail.seuil_intervention|number_format(0, ',', ' ') }}</td>
+                                            <td class="text-center">
+                                                <span class="score-badge {{ detail.score_calcule > 60 ? 'danger' : (detail.score_calcule > 30 ? 'warning' : 'success') }}">
+                                                    {{ detail.score_calcule|number_format(1, ',', ' ') }}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="itm-audit-note">
+                                <i class="fas fa-check-circle"></i> Données auditables via SQL (vue <code>v_score_itm_detail</code>)
+                            </div>
+                            {% else %}
                             <ul class="itm-info-list">
                                 <li><strong>Écart de change</strong> - Différence entre cours officiel et parallèle</li>
                                 <li><strong>Niveau des réserves</strong> - Réserves internationales en USD</li>
                                 <li><strong>Solde budgétaire</strong> - Équilibre recettes/dépenses</li>
                                 <li><strong>Volume des transactions</strong> - Activité du marché USD</li>
                             </ul>
+                            {% endif %}
                         </div>
+
+                        <style>
+                        .itm-detail-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+                        .itm-detail-table th { text-align: left; color: #64748b; font-weight: 600; padding: 6px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+                        .itm-detail-table td { padding: 8px 6px; border-bottom: 1px solid rgba(0,0,0,0.05); color: #1e293b; font-weight: 500; }
+                        .itm-detail-table .text-right { text-align: right; }
+                        .itm-detail-table .text-center { text-align: center; }
+                        .itm-detail-table .font-mono { font-family: 'Roboto Mono', monospace; }
+                        .score-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; min-width: 45px; text-align: center; }
+                        .score-badge.success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+                        .score-badge.warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+                        .score-badge.danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+                        .itm-audit-note { margin-top: 10px; font-size: 0.75rem; color: var(--text-secondary); text-align: right; font-style: italic; }
+                        .itm-audit-note code { background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+                        </style>
                         <div class="itm-info-levels">
                             <div class="itm-info-title"><i class="fas fa-thermometer-half"></i> Niveaux d'interprétation</div>
                             <div class="itm-level-grid">

@@ -110,13 +110,13 @@
         </div>
         <div id="perfInfo" class="info-panel" style="margin: 0 20px 15px 20px; width: auto;">
             <h5><i class="fas fa-info-circle"></i> Comment lire ce tableau ?</h5>
-            <p>Chaque indicateur est évalué sur un objectif de <strong>100%</strong>. Le <em>Réalisé</em> correspond au score obtenu à partir des données de la période sélectionnée.</p>
+            <p>Chaque indicateur est évalué sur un objectif de <strong>100%</strong> (Score de Performance). Les seuils sont <strong>paramétrables</strong> en base de données.</p>
             <ul>
-                <li><strong>Stabilité du Change</strong> — Basée sur l'écart entre taux indicatif et parallèle (faible écart = score élevé).</li>
-                <li><strong>Niveau des Réserves</strong> — Réserves internationales rapportées à l'objectif de 10 Mds USD.</li>
-                <li><strong>Équilibre Budgétaire</strong> — Ratio recettes/dépenses de l'État sur la période.</li>
-                <li><strong>Liquidité Marché</strong> — Combinaison des encours BCC et des avoirs libres en CDF.</li>
-                <li><strong>Croissance Économique</strong> — Évolution des recettes entre le début et la fin de la période.</li>
+                <li><strong>Stabilité du Change</strong> — Score calculé sur l'inverse de la pression sur le change (100 - Ecart/Diviseur).</li>
+                <li><strong>Niveau des Réserves</strong> — Réserves internationales rapportées à l'objectif optimal paramétré (ex: 5 Mds USD).</li>
+                <li><strong>Équilibre Budgétaire</strong> — Basé sur le Solde Budgétaire ou le ratio Recettes/Dépenses.</li>
+                <li><strong>Liquidité Marché</strong> — Basé sur les Avoirs Libres par rapport à la cible optimale (ex: 1000 Mds CDF).</li>
+                <li><strong>Croissance Économique</strong> — Évolution des recettes de l'État sur la période.</li>
             </ul>
             <p style="margin-top: 8px; font-size: 0.8rem;"><i class="fas fa-palette"></i> <strong>Couleurs :</strong> 
                 <span style="color: #10b981;">■ &ge; 70% (Favorable)</span> · 
@@ -282,11 +282,11 @@
         </div>
         <div id="pressionInfo" class="info-panel">
             <h5><i class="fas fa-info-circle"></i> Comprendre l'indicateur</h5>
-            <p>Cet indice mesure la tension sur le marché des changes en analysant l'écart entre le taux indicatif et le taux parallèle.</p>
+            <p>Cet indice mesure la tension sur le marché des changes. Il est calculé à partir de l'écart entre le taux indicatif et le taux parallèle, pondéré par un facteurs de tolérance (diviseur paramétrable).</p>
             <ul>
-                <li><strong>Stable (< 30%)</strong> : Écart faible, marché des changes calme.</li>
-                <li><strong>Vigilance (30-60%)</strong> : Écart modéré, surveillance accrue nécessaire.</li>
-                <li><strong>Tension (> 60%)</strong> : Écart important, risque de dépréciation élevé.</li>
+                <li><strong>Stable (< 30%)</strong> : Pression faible, l'écart est dans les normes acceptables.</li>
+                <li><strong>Vigilance (30-60%)</strong> : Pression modérée, l'écart commence à se creuser.</li>
+                <li><strong>Tension (> 60%)</strong> : Pression forte, écart significatif nécessitant attention.</li>
             </ul>
         </div>
     </div>
@@ -314,7 +314,7 @@
         </div>
         <div id="reservesInfo" class="info-panel">
             <h5><i class="fas fa-info-circle"></i> Comprendre l'indicateur</h5>
-            <p>Niveau d'adéquation des réserves de change par rapport à un objectif stratégique de 10 Milliards USD.</p>
+            <p>Niveau d'adéquation des réserves de change par rapport à un objectif stratégique paramétrable (ex: 5 Mds USD).</p>
             <ul>
                 <li><strong>Solide (> 70%)</strong> : Couverture confortable des importations.</li>
                 <li><strong>Acceptable (40-70%)</strong> : Niveau suffisant à court terme.</li>
