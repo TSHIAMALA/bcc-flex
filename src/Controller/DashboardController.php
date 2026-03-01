@@ -50,7 +50,7 @@ class DashboardController extends AbstractController
                 $endDate = new \DateTime();
             }
             $dateFin = $endDate->format('Y-m-d');
-            $days = match($periode) {
+            $days = match ($periode) {
                 '30jours' => 30,
                 '3mois' => 90,
                 '90' => 90, // Backward compatibility
@@ -63,7 +63,7 @@ class DashboardController extends AbstractController
 
         // Fetch KPI data with date filter
         $latestKPI = $kpiRepository->getKPIByDate($dateDebut, $dateFin);
-        
+
         // Get previous KPI based on the latest KPI date (Day-to-Day comparison)
         $previousKPI = null;
         if ($latestKPI) {
@@ -77,14 +77,14 @@ class DashboardController extends AbstractController
         $varSolde = 0;
 
         if ($latestKPI && $previousKPI) {
-            $varCoursIndicatif = $previousKPI->getCoursIndicatif() != 0 
-                ? (($latestKPI->getCoursIndicatif() - $previousKPI->getCoursIndicatif()) / $previousKPI->getCoursIndicatif()) * 100 
+            $varCoursIndicatif = $previousKPI->getCoursIndicatif() != 0
+                ? (($latestKPI->getCoursIndicatif() - $previousKPI->getCoursIndicatif()) / $previousKPI->getCoursIndicatif()) * 100
                 : 0;
-            
+
             $varReserves = $previousKPI->getReservesInternationalesUsd() != 0
                 ? (($latestKPI->getReservesInternationalesUsd() - $previousKPI->getReservesInternationalesUsd()) / $previousKPI->getReservesInternationalesUsd()) * 100
                 : 0;
-            
+
             $varSolde = $latestKPI->getSolde() - $previousKPI->getSolde();
         }
 
@@ -106,7 +106,7 @@ class DashboardController extends AbstractController
                 $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
                 $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
             }
-            
+
             // Fetch detailed scores for auditability
             if ($dateSituationStr) {
                 try {
@@ -128,7 +128,11 @@ class DashboardController extends AbstractController
 
         // Other data with date filter
         $evolutionMarche = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
-        $volumes = $transacRepository->getLatestVolumesByBank();
+        try {
+            $volumes = $transacRepository->getLatestVolumesByBank();
+        } catch (\Exception $e) {
+            $volumes = [];
+        }
         $paie = $paieRepository->getPaieByDate($dateDebut, $dateFin);
         $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
         $financesHistory = $financesRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
@@ -196,7 +200,7 @@ class DashboardController extends AbstractController
     ): array {
         // Check if we have any data at all
         $hasData = $marche || $reserves || $finances;
-        
+
         if (!$hasData) {
             // No data at all - return null for all indicators
             return [
@@ -221,7 +225,7 @@ class DashboardController extends AbstractController
         // Only calculate if we have marche data with actual ecart value
         $stabiliteChange = null;
         if ($marche && $marche->getEcartIndicParallele() !== null) {
-            $ecart = (float)$marche->getEcartIndicParallele();
+            $ecart = (float) $marche->getEcartIndicParallele();
             // Utilisation du paramètre configurable
             $stabiliteChange = max(0, min(100, 100 - ($ecart / $diviseurChange)));
         }
@@ -230,7 +234,7 @@ class DashboardController extends AbstractController
         // Using a reference of OPTIMAL value (e.g., 5000M) as 100%
         $niveauReserves = null;
         if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
-            $reservesUsd = (float)$reserves->getReservesInternationalesUsd();
+            $reservesUsd = (float) $reserves->getReservesInternationalesUsd();
             $niveauReserves = min(100, ($reservesUsd / $reservesOptimal) * 100);
         }
 
@@ -238,7 +242,7 @@ class DashboardController extends AbstractController
         // Positive solde = good, negative solde = bad
         $equilibreBudget = null;
         if ($finances && $finances->getSolde() !== null) {
-            $soldeBudget = (float)$finances->getSolde();
+            $soldeBudget = (float) $finances->getSolde();
             if ($soldeBudget >= 0) {
                 $equilibreBudget = min(100, $budgetBase + ($soldeBudget / 100));
             } else {
@@ -250,7 +254,7 @@ class DashboardController extends AbstractController
         // Using a reference of OPTIMAL value (e.g., 1000B) as 100%
         $liquidite = null;
         if ($reserves && $reserves->getAvoirsLibresCdf() !== null) {
-            $avoirsLibres = (float)$reserves->getAvoirsLibresCdf();
+            $avoirsLibres = (float) $reserves->getAvoirsLibresCdf();
             $liquidite = min(100, ($avoirsLibres / $liquiditeOptimal) * 100);
         }
 
@@ -258,8 +262,8 @@ class DashboardController extends AbstractController
         // ratio > 1 = excédent, ratio < 1 = déficit
         $croissance = null;
         if ($finances && $finances->getRecettesTotales() !== null && $finances->getDepensesTotales() !== null) {
-            $recettes = (float)$finances->getRecettesTotales();
-            $depenses = (float)$finances->getDepensesTotales();
+            $recettes = (float) $finances->getRecettesTotales();
+            $depenses = (float) $finances->getDepensesTotales();
             if ($depenses > 0 && $recettes > 0) {
                 $ratio = $recettes / $depenses;
                 $croissance = min(100, max(0, $ratio * $croissanceMult));

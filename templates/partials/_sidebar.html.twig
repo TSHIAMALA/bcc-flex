@@ -17,6 +17,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Vue d'ensemble</span>
             </a>
+            <a href="{{ path('app_fiche_journaliere') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_fiche_journaliere' ? 'active' : '' }}">
+                <i class="fas fa-file-contract"></i>
+                <span>Fiche Journalière</span>
+            </a>
         </div>
         
         <div class="nav-section">

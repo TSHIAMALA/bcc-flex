@@ -22,7 +22,7 @@ class ScoreItmDetailRepository extends ServiceEntityRepository
     public function getScoresForDate(string $date): array
     {
         $conn = $this->getEntityManager()->getConnection();
-        
+
         $sql = "
             SELECT 
                 indicateur_code, indicateur, poids, 
@@ -31,10 +31,11 @@ class ScoreItmDetailRepository extends ServiceEntityRepository
             FROM v_score_itm_detail
             WHERE date_situation = :date
         ";
-        
+
         $stmt = $conn->prepare($sql);
-        $resultSet = $stmt->executeQuery(['date' => $date]);
-        
+        $stmt->bindValue('date', $date);
+        $resultSet = $stmt->executeQuery();
+
         return $resultSet->fetchAllAssociative();
     }
 }
