@@ -36,7 +36,7 @@
     </script>
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}?v={{ 'now'|date('U') }}">
     {% block stylesheets %}{% endblock %}
 </head>
 <body>

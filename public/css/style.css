@@ -1899,6 +1899,123 @@ body.dark-mode .mobile-overlay {
     background: rgba(0, 0, 0, 0.8);
 }
 
+/* Dark Mode - Fiche Journalière */
+body.dark-mode .mini-table td {
+    color: var(--text-primary);
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+body.dark-mode .mini-table td:first-child {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .detail-section h3::after {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .signal-green {
+    background: rgba(21, 87, 36, 0.4);
+    color: #6fcf97;
+}
+
+body.dark-mode .signal-yellow {
+    background: rgba(133, 100, 4, 0.4);
+    color: #f6e05e;
+}
+
+body.dark-mode .signal-orange {
+    background: rgba(138, 71, 0, 0.4);
+    color: #f6ad55;
+}
+
+body.dark-mode .signal-red {
+    background: rgba(114, 28, 36, 0.4);
+    color: #fc8181;
+}
+
+body.dark-mode .signal-secondary {
+    background: rgba(108, 117, 125, 0.3);
+    color: #a0aec0;
+}
+
+body.dark-mode .pillar-green .pillar-icon {
+    background: rgba(21, 87, 36, 0.3);
+    color: #6fcf97;
+}
+
+body.dark-mode .pillar-orange .pillar-icon {
+    background: rgba(138, 71, 0, 0.3);
+    color: #f6ad55;
+}
+
+body.dark-mode .pillar-red .pillar-icon {
+    background: rgba(114, 28, 36, 0.3);
+    color: #fc8181;
+}
+
+body.dark-mode .pillar-yellow .pillar-icon {
+    background: rgba(133, 100, 4, 0.3);
+    color: #f6e05e;
+}
+
+body.dark-mode .pillar-secondary .pillar-icon {
+    background: rgba(108, 117, 125, 0.2);
+    color: #a0aec0;
+}
+
+body.dark-mode .scenario-widget.scenario-1 {
+    background: rgba(56, 161, 105, 0.12);
+    border-color: #38a169;
+    color: var(--text-primary);
+}
+
+body.dark-mode .scenario-widget.scenario-2 {
+    background: rgba(221, 107, 32, 0.12);
+    border-color: #dd6b20;
+    color: var(--text-primary);
+}
+
+body.dark-mode .scenario-widget.scenario-3 {
+    background: rgba(197, 48, 48, 0.12);
+    border-color: #c53030;
+    color: var(--text-primary);
+}
+
+body.dark-mode .phrase-cabinet {
+    background: rgba(45, 109, 166, 0.12);
+    border-color: rgba(45, 109, 166, 0.4);
+    border-left-color: #4a9ede;
+    color: #cbd5e1;
+}
+
+body.dark-mode .phrase-cabinet>div {
+    color: #4a9ede !important;
+}
+
+body.dark-mode .attention-list li {
+    background: var(--bg-card);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+body.dark-mode .table-wrapper {
+    background: var(--bg-card);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .table-wrapper .mini-table thead tr {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .table-wrapper .mini-table thead td,
+body.dark-mode .table-wrapper .mini-table thead td strong {
+    color: var(--text-primary);
+}
+
+body.dark-mode .fiche-banner {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
 /* Smooth Transition for Theme Change */
 body,
 body *,
