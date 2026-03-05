@@ -181,6 +181,14 @@
     .fiche-banner { flex-direction: column; }
     .pillars-grid { grid-template-columns: 1fr; }
 }
+
+/* threshold header */
+.thresholds-header { background: #f8f9fa; color: var(--text-primary); }
+.thresholds-header td { background: inherit; color: inherit; }
+[data-theme="dark"] .thresholds-header,
+body.dark-mode .thresholds-header { background: #1e293b; color: #fff; }
+[data-theme="dark"] .thresholds-header td,
+body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
 </style>
 {% endblock %}
 
@@ -440,7 +448,7 @@
         <h3><i class="fas fa-sliders-h"></i> Seuils d'alerte de référence</h3>
         <div class="table-wrapper">
             <table class="mini-table">
-                <thead><tr style="background:#f8f9fa;">
+                <thead><tr class="thresholds-header">
                     <td><strong>Indicateur</strong></td>
                     <td style="text-align:center;"><strong>🟢 Normal</strong></td>
                     <td style="text-align:center;"><strong>🟡 Vigilance</strong></td>
