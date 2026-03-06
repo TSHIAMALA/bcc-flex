@@ -9,6 +9,7 @@ use App\Repository\MarcheChangesRepository;
 use App\Repository\EncoursBccRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\ParametreGlobalRepository;
+use App\Repository\TransactionsUsdRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +26,8 @@ class AnalyseController extends AbstractController
         EncoursBccRepository $encoursRepository,
         ReservesFinancieresRepository $reservesRepository,
         ConjonctureJourRepository $conjonctureRepository,
-        ParametreGlobalRepository $paramRepo
+        ParametreGlobalRepository $paramRepo,
+        TransactionsUsdRepository $transactionsRepository
     ): Response {
         // Date filter parameters
         $periode = $request->query->get('periode', '7jours');
@@ -178,6 +180,23 @@ class AnalyseController extends AbstractController
              'source' => 'Variation recettes: ' . ($variationRecettes >= 0 ? '+' : '') . number_format($variationRecettes, 1, ',', ' ') . '%'],
         ];
 
+        // ==========================================================
+        // BANK ANALYSIS DATA
+        // ==========================================================
+        $topBanquesVente = $transactionsRepository->getTopBanksByTypeForPeriod('VENTE', $dateDebut, $dateFin, 10);
+        $topBanquesAchat = $transactionsRepository->getTopBanksByTypeForPeriod('ACHAT', $dateDebut, $dateFin, 10);
+        $bankSummary = $transactionsRepository->getBankSummaryForPeriod($dateDebut, $dateFin);
+
+        // Calculate totals for all banks
+        $totalVolumeVente = array_sum(array_map(fn($b) => (float) $b['volumeTotalUsd'], $topBanquesVente));
+        $totalVolumeAchat = array_sum(array_map(fn($b) => (float) $b['volumeTotalUsd'], $topBanquesAchat));
+        $totalVolumeGlobal = $totalVolumeVente + $totalVolumeAchat;
+        $nbBanquesActives = count($bankSummary);
+
+        // Top 1 banks for KPI cards
+        $topVendeur = !empty($topBanquesVente) ? $topBanquesVente[0] : null;
+        $topAcheteur = !empty($topBanquesAchat) ? $topBanquesAchat[0] : null;
+
         return $this->render('analyse/index.html.twig', [
             'kpiData' => $kpiData,
             'scoreVigilance' => $scoreVigilance,
@@ -191,6 +210,16 @@ class AnalyseController extends AbstractController
             'dateDebut' => $dateDebut,
             'dateFin' => $dateFin,
             'periode' => $periode,
+            // Bank analysis data
+            'topBanquesVente' => $topBanquesVente,
+            'topBanquesAchat' => $topBanquesAchat,
+            'bankSummary' => $bankSummary,
+            'totalVolumeVente' => $totalVolumeVente,
+            'totalVolumeAchat' => $totalVolumeAchat,
+            'totalVolumeGlobal' => $totalVolumeGlobal,
+            'nbBanquesActives' => $nbBanquesActives,
+            'topVendeur' => $topVendeur,
+            'topAcheteur' => $topAcheteur,
         ]);
     }
 }

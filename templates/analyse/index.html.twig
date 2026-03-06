@@ -257,6 +257,298 @@
     </div>
 </div>
 
+<!-- ============================================================== -->
+<!-- SECTION: ANALYSE DES BANQUES                                    -->
+<!-- ============================================================== -->
+<div class="section-divider mb-30">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-title">
+        <i class="fas fa-university"></i>
+        Analyse des Banques Commerciales
+    </div>
+    <div class="section-divider-line"></div>
+</div>
+
+<!-- Bank KPI Cards -->
+<div class="kpi-header-grid mb-30">
+    <div class="kpi-header-card" style="border-left-color: #6366f1;">
+        <div class="kpi-header-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+            <i class="fas fa-university"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">BANQUES ACTIVES</span>
+            <span class="kpi-header-value">{{ nbBanquesActives }}</span>
+        </div>
+    </div>
+    <div class="kpi-header-card" style="border-left-color: #8b5cf6;">
+        <div class="kpi-header-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+            <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">VOLUME TOTAL USD</span>
+            <span class="kpi-header-value">{{ totalVolumeGlobal|number_format(0, ',', ' ') }}</span>
+        </div>
+    </div>
+    <div class="kpi-header-card bank-highlight-vente">
+        <div class="kpi-header-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">TOP VENDEUR</span>
+            <span class="kpi-header-value" style="font-size: 1.1rem;">
+                {% if topVendeur %}
+                    {{ topVendeur.banque }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </span>
+            {% if topVendeur %}
+            <span class="bank-volume-hint">{{ topVendeur.volumeTotalUsd|number_format(0, ',', ' ') }} USD</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="kpi-header-card bank-highlight-achat">
+        <div class="kpi-header-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fas fa-arrow-down"></i>
+        </div>
+        <div class="kpi-header-content">
+            <span class="kpi-header-label">TOP ACHETEUR</span>
+            <span class="kpi-header-value" style="font-size: 1.1rem;">
+                {% if topAcheteur %}
+                    {{ topAcheteur.banque }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </span>
+            {% if topAcheteur %}
+            <span class="bank-volume-hint">{{ topAcheteur.volumeTotalUsd|number_format(0, ',', ' ') }} USD</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bank Charts Row: Bar Chart Comparatif + Donut Répartition -->
+<div class="grid-2 mb-30">
+    <!-- Histogramme Comparatif Achat vs Vente -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-chart-bar"></i>
+                Volume USD par Banque (Achat vs Vente)
+                <button class="info-toggle" onclick="toggleInfo('bankChartInfo')"><i class="fas fa-question-circle"></i></button>
+            </h3>
+        </div>
+        <div id="bankChartInfo" class="info-panel" style="margin: 0 20px 15px 20px; width: auto;">
+            <h5><i class="fas fa-info-circle"></i> Comment lire ce graphique ?</h5>
+            <p>Ce graphique compare les volumes de <strong>vente</strong> (barres rouges) et d'<strong>achat</strong> (barres vertes) de devises USD par banque commerciale sur la période sélectionnée.</p>
+            <ul>
+                <li>Les banques sont classées par volume total décroissant.</li>
+                <li>Une forte asymétrie achat/vente peut indiquer une pression sur le change.</li>
+            </ul>
+        </div>
+        <div class="chart-container" style="height: 350px; padding: 15px;">
+            <canvas id="chartBanquesComparatif"></canvas>
+        </div>
+    </div>
+
+    <!-- Donut Répartition par Banque -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-chart-pie"></i>
+                Parts de Marché (Volume Total)
+            </h3>
+        </div>
+        <div class="donut-wrapper">
+            <div class="chart-container" style="height: 250px;">
+                <canvas id="chartBanquesDonut"></canvas>
+            </div>
+            <div class="donut-legend-horizontal" id="bankDonutLegend">
+                {% set bankColors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#3b82f6', '#60a5fa', '#93c5fd', '#10b981', '#f59e0b', '#ef4444'] %}
+                {% for bank in bankSummary|slice(0, 10) %}
+                <div class="donut-legend-item">
+                    <span class="donut-legend-color" style="background: {{ bankColors[loop.index0] ?? '#94a3b8' }};"></span>
+                    <span class="donut-legend-label">{{ bank.banque }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bank Tables Row: Top Vendeurs + Top Acheteurs -->
+<div class="grid-2 mb-30">
+    <!-- Top Banques Vendeuses -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-arrow-circle-up" style="color: #ef4444;"></i>
+                Top Banques Vendeuses USD
+            </h3>
+            <span class="bank-total-badge vente">
+                Total : {{ totalVolumeVente|number_format(0, ',', ' ') }} USD
+            </span>
+        </div>
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table class="data-table bank-ranking-table" id="tableVendeurs">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Banque</th>
+                        <th>Volume USD</th>
+                        <th>Cours Moyen</th>
+                        <th>Part (%)</th>
+                        <th style="width: 120px;">Répartition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bank in topBanquesVente %}
+                    {% set partVente = totalVolumeVente > 0 ? ((bank.volumeTotalUsd / totalVolumeVente) * 100) : 0 %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge {{ loop.index <= 3 ? 'top' ~ loop.index : '' }}">
+                                {{ loop.index }}
+                            </span>
+                        </td>
+                        <td><strong>{{ bank.banque }}</strong></td>
+                        <td class="font-bold">{{ bank.volumeTotalUsd|number_format(0, ',', ' ') }}</td>
+                        <td>{{ bank.coursMoyen|number_format(2, ',', ' ') }}</td>
+                        <td>
+                            <span class="taux-badge {{ partVente >= 20 ? 'danger' : (partVente >= 10 ? 'warning' : 'success') }}">
+                                {{ partVente|number_format(1) }}%
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-progress">
+                                <div class="table-progress-fill" style="width: {{ partVente }}%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction de vente sur cette période</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Banques Acheteuses -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-arrow-circle-down" style="color: #10b981;"></i>
+                Top Banques Acheteuses USD
+            </h3>
+            <span class="bank-total-badge achat">
+                Total : {{ totalVolumeAchat|number_format(0, ',', ' ') }} USD
+            </span>
+        </div>
+        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+            <table class="data-table bank-ranking-table" id="tableAcheteurs">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>Banque</th>
+                        <th>Volume USD</th>
+                        <th>Cours Moyen</th>
+                        <th>Part (%)</th>
+                        <th style="width: 120px;">Répartition</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bank in topBanquesAchat %}
+                    {% set partAchat = totalVolumeAchat > 0 ? ((bank.volumeTotalUsd / totalVolumeAchat) * 100) : 0 %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge {{ loop.index <= 3 ? 'top' ~ loop.index : '' }}">
+                                {{ loop.index }}
+                            </span>
+                        </td>
+                        <td><strong>{{ bank.banque }}</strong></td>
+                        <td class="font-bold">{{ bank.volumeTotalUsd|number_format(0, ',', ' ') }}</td>
+                        <td>{{ bank.coursMoyen|number_format(2, ',', ' ') }}</td>
+                        <td>
+                            <span class="taux-badge {{ partAchat >= 20 ? 'success' : (partAchat >= 10 ? 'warning' : 'info') }}">
+                                {{ partAchat|number_format(1) }}%
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-progress">
+                                <div class="table-progress-fill" style="width: {{ partAchat }}%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction d'achat sur cette période</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bank Summary Table (Full width) -->
+<div class="card mb-30">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-table"></i>
+            Synthèse Complète par Banque
+            <button class="info-toggle" onclick="toggleInfo('bankSummaryInfo')"><i class="fas fa-question-circle"></i></button>
+        </h3>
+    </div>
+    <div id="bankSummaryInfo" class="info-panel" style="margin: 0 20px 15px 20px; width: auto;">
+        <h5><i class="fas fa-info-circle"></i> Comprendre cette synthèse</h5>
+        <p>Ce tableau présente pour chaque banque commerciale une vue consolidée de son activité sur le marché des changes :</p>
+        <ul>
+            <li><strong>Volume Achat</strong> — Total des USD achetés par la banque</li>
+            <li><strong>Volume Vente</strong> — Total des USD vendus par la banque</li>
+            <li><strong>Position Nette</strong> — Différence (Achat − Vente). Un solde <strong>positif</strong> signifie que la banque achète plus qu'elle ne vend (demande nette de USD).</li>
+            <li><strong>Cours Moyen</strong> — Cours moyen pondéré pratiqué à l'achat et à la vente</li>
+        </ul>
+    </div>
+    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+        <table class="data-table bank-summary-table" id="tableSynthese">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Banque</th>
+                    <th>Vol. Achat (USD)</th>
+                    <th>Vol. Vente (USD)</th>
+                    <th>Vol. Total (USD)</th>
+                    <th>Position Nette</th>
+                    <th>Cours Moy. Achat</th>
+                    <th>Cours Moy. Vente</th>
+                    <th>Nb Trans.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bank in bankSummary %}
+                {% set positionNette = (bank.volumeAchat|default(0)) - (bank.volumeVente|default(0)) %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {{ loop.index <= 3 ? 'top' ~ loop.index : '' }}">{{ loop.index }}</span>
+                    </td>
+                    <td><strong>{{ bank.banque }}</strong></td>
+                    <td style="color: #10b981; font-weight: 600;">{{ bank.volumeAchat|number_format(0, ',', ' ') }}</td>
+                    <td style="color: #ef4444; font-weight: 600;">{{ bank.volumeVente|number_format(0, ',', ' ') }}</td>
+                    <td class="font-bold">{{ bank.volumeTotal|number_format(0, ',', ' ') }}</td>
+                    <td>
+                        <span class="score-badge {{ positionNette >= 0 ? 'success' : 'danger' }}">
+                            {{ positionNette >= 0 ? '+' : '' }}{{ positionNette|number_format(0, ',', ' ') }}
+                        </span>
+                    </td>
+                    <td>{{ bank.coursMoyenAchat ? bank.coursMoyenAchat|number_format(2, ',', ' ') : '—' }}</td>
+                    <td>{{ bank.coursMoyenVente ? bank.coursMoyenVente|number_format(2, ',', ' ') : '—' }}</td>
+                    <td>{{ bank.nbTransactions }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune donnée bancaire disponible pour cette période</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Row 3: Analysis Cards -->
 <div class="grid-3">
     <!-- Pression Change -->
@@ -839,6 +1131,168 @@ body.dark-mode .analysis-gauge svg path:first-child {
     gap: 20px;
     width: 100%;
 }
+
+/* =============================== */
+/* BANK ANALYSIS MODULE STYLES     */
+/* =============================== */
+
+/* Section Divider */
+.section-divider {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.section-divider-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+}
+
+.section-divider-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #6366f1;
+    white-space: nowrap;
+    padding: 10px 25px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+    border-radius: 30px;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.section-divider-title i {
+    font-size: 1.2rem;
+}
+
+/* Bank KPI Cards */
+.bank-highlight-vente {
+    border-left-color: #ef4444 !important;
+}
+
+.bank-highlight-achat {
+    border-left-color: #10b981 !important;
+}
+
+.bank-volume-hint {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Bank Ranking Badges */
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: var(--text-secondary);
+}
+
+.rank-badge.top1 {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.rank-badge.top2 {
+    background: linear-gradient(135deg, #94a3b8, #64748b);
+    color: white;
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+}
+
+.rank-badge.top3 {
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: white;
+    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.3);
+}
+
+/* Bank Total Badge */
+.bank-total-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.bank-total-badge.vente {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.bank-total-badge.achat {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Bank Summary Table */
+.bank-summary-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bank-ranking-table td,
+.bank-summary-table td {
+    padding: 12px 14px;
+    vertical-align: middle;
+}
+
+/* Dark Mode - Bank Analysis */
+body.dark-mode .section-divider-line {
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), transparent);
+}
+
+body.dark-mode .section-divider-title {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
+    border-color: rgba(99, 102, 241, 0.3);
+    color: #a5b4fc;
+}
+
+body.dark-mode .rank-badge {
+    background: #334155;
+    color: #94a3b8;
+}
+
+body.dark-mode .bank-total-badge.vente {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+body.dark-mode .bank-total-badge.achat {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+body.dark-mode .bank-volume-hint {
+    color: #94a3b8;
+}
+
+[data-theme="dark"] .section-divider-line,
+[data-theme="dark"] .section-divider-title,
+[data-theme="dark"] .rank-badge,
+[data-theme="dark"] .bank-total-badge.vente,
+[data-theme="dark"] .bank-total-badge.achat,
+[data-theme="dark"] .bank-volume-hint {
+    /* Same as body.dark-mode */
+}
+
+.taux-badge.info {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
 </style>
 
 {% block javascripts %}
@@ -902,6 +1356,116 @@ function toggleInfo(id) {
     } else {
         el.style.display = 'none';
     }
+}
+
+// ===================================
+// BANK ANALYSIS CHARTS
+// ===================================
+
+// Bank data from Twig
+const bankSummaryData = {{ bankSummary|json_encode|raw }};
+const bankColors = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#3b82f6', '#60a5fa', '#93c5fd', '#10b981', '#f59e0b', '#ef4444'];
+
+// Horizontal Bar Chart: Achat vs Vente by Bank
+if (bankSummaryData.length > 0) {
+    const topBanksSummary = bankSummaryData.slice(0, 10);
+    new Chart(document.getElementById('chartBanquesComparatif'), {
+        type: 'bar',
+        data: {
+            labels: topBanksSummary.map(b => {
+                // Shorten long bank names
+                const name = b.banque;
+                return name.length > 15 ? name.substring(0, 14) + '…' : name;
+            }),
+            datasets: [
+                {
+                    label: 'Vente USD',
+                    data: topBanksSummary.map(b => parseFloat(b.volumeVente) || 0),
+                    backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Achat USD',
+                    data: topBanksSummary.map(b => parseFloat(b.volumeAchat) || 0),
+                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: 'rectRounded',
+                        padding: 20,
+                        font: { size: 12, family: 'Inter' }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': ' + new Intl.NumberFormat('fr-FR').format(ctx.raw) + ' USD';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: {
+                        callback: v => new Intl.NumberFormat('fr-FR', { notation: 'compact' }).format(v),
+                        font: { family: 'Inter' }
+                    }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11, family: 'Inter', weight: '500' } }
+                }
+            }
+        }
+    });
+
+    // Donut: Market Share
+    new Chart(document.getElementById('chartBanquesDonut'), {
+        type: 'doughnut',
+        data: {
+            labels: topBanksSummary.map(b => b.banque),
+            datasets: [{
+                data: topBanksSummary.map(b => parseFloat(b.volumeTotal) || 0),
+                backgroundColor: bankColors.slice(0, topBanksSummary.length),
+                borderWidth: 2,
+                borderColor: 'white',
+                hoverOffset: 12
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct = ((ctx.raw / total) * 100).toFixed(1);
+                            return ctx.label + ': ' + new Intl.NumberFormat('fr-FR').format(ctx.raw) + ' USD (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 </script>
 {% endblock %}

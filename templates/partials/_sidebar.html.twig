@@ -34,11 +34,17 @@
                 <i class="fas fa-brain"></i>
                 <span>Analyse & Décision</span>
             </a> #}
+
+              </a>
+            <a href="{{ path('app_banques_analyse') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_banques_analyse' ? 'active' : '' }}">
+                <i class="fas fa-university"></i>
+                <span>Banques</span>
+            </a>
+
              <a href="{{ path('app_fiche_journaliere') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_fiche_journaliere' ? 'active' : '' }}">
                 <i class="fas fa-file-contract"></i>
                 <span>Analyse & Décision</span>
-            </a>
-
+          
             {# <a href="{{ path('app_alertes') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_alertes' ? 'active' : '' }}">
                 <i class="fas fa-bell"></i>
                 <span>Alertes & Surveillance</span>
