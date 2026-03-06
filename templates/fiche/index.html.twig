@@ -237,6 +237,10 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
             <a href="{{ path('app_fiche_journaliere_pdf', {date: date|date('Y-m-d')}) }}" class="btn-pdf">
                 <i class="fas fa-file-pdf"></i> Exporter PDF
             </a>
+            {# PPTX Export #}
+            <a href="{{ path('app_fiche_journaliere_slides', {date: date|date('Y-m-d')}) }}" class="btn-pdf" style="background:#217346;">
+                <i class="fas fa-file-powerpoint"></i> Exporter PPTX
+            </a>
         </div>
     </div>
 
