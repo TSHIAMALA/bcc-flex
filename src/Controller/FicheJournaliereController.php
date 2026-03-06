@@ -10,6 +10,7 @@ use App\Repository\PaieEtatRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\TresorerieEtatRepository;
 use App\Service\IndicateursCalculService;
+use App\Service\SlideExportService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -189,5 +190,98 @@ class FicheJournaliereController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ]
         );
+    }
+
+    #[Route('/fiche-journaliere/slides', name: 'app_fiche_journaliere_slides')]
+    public function slides(
+        Request $request,
+        ConjonctureJourRepository $conjonctureRepo,
+        MarcheChangesRepository $marcheRepo,
+        ReservesFinancieresRepository $reservesRepo,
+        EncoursBccRepository $encoursRepo,
+        FinancesPubliquesRepository $financesRepo,
+        TresorerieEtatRepository $tresorerieRepo,
+        PaieEtatRepository $paieRepo,
+        IndicateursCalculService $calc,
+        SlideExportService $slideService
+    ): Response {
+        $dateStr = $request->query->get('date');
+        $dateObj = $dateStr
+            ? \DateTime::createFromFormat('Y-m-d', $dateStr)
+            : (($latest = $conjonctureRepo->findLatest()) ? clone $latest->getDateSituation() : new \DateTime());
+
+        $conjoncture = $conjonctureRepo->findOneBy(['date_situation' => $dateObj]);
+
+        $marche = $conjoncture ? $marcheRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+        $reserves = $conjoncture ? $reservesRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+        $encours = $conjoncture ? $encoursRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+        $finances = $conjoncture ? $financesRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+        $tresorerie = $conjoncture ? $tresorerieRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+        $paie = $conjoncture ? $paieRepo->findOneBy(['conjoncture' => $conjoncture]) : null;
+
+        $ecartPct = $calc->getEcartPct($marche);
+        $ecartMaxPct = $calc->getEcartMaxPct($marche);
+        $spreadPct = $calc->getSpreadParallelePct($marche);
+        $ratioSteri = $calc->getRatioSterilisation($encours, $reserves);
+        $tauxPaie = $calc->getTauxExecutionPaie($paie);
+        $pctRestePaie = $calc->getPctRestePayie($paie);
+
+        $signalChange = $calc->getSignalChange($marche);
+        $signalLiquidite = $calc->getSignalLiquidite($reserves);
+        $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
+        $signalPaie = $calc->getSignalPaie($paie);
+
+        $signalReserves = 'secondary';
+        if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
+            $r = (float) $reserves->getReservesInternationalesUsd();
+            $signalReserves = $r >= 5000 ? 'green' : ($r >= 3000 ? 'yellow' : 'red');
+        }
+
+        $colorRank = ['secondary' => 0, 'green' => 1, 'yellow' => 2, 'orange' => 3, 'red' => 4];
+        $worstSignal = 'secondary';
+        foreach ([$signalChange, $signalLiquidite, $signalTresorerie, $signalPaie] as $s) {
+            if (($colorRank[$s] ?? 0) > ($colorRank[$worstSignal] ?? 0)) {
+                $worstSignal = $s;
+            }
+        }
+
+        $scenario = $calc->getScenarioPilotage($marche, $reserves, $tresorerie, $paie);
+        $phraseCabinet = $calc->getPhraseCabinet($marche, $reserves, $tresorerie, $paie, $scenario);
+
+        $data = [
+            'date' => $dateObj,
+            'marche' => $marche,
+            'reserves' => $reserves,
+            'encours' => $encours,
+            'finances' => $finances,
+            'tresorerie' => $tresorerie,
+            'paie' => $paie,
+            'ecartPct' => $ecartPct,
+            'ecartMaxPct' => $ecartMaxPct,
+            'spreadPct' => $spreadPct,
+            'ratioSteri' => $ratioSteri,
+            'tauxPaie' => $tauxPaie,
+            'pctRestePaie' => $pctRestePaie,
+            'signalChange' => $signalChange,
+            'signalLiquidite' => $signalLiquidite,
+            'signalTresorerie' => $signalTresorerie,
+            'signalPaie' => $signalPaie,
+            'signalReserves' => $signalReserves,
+            'worstSignal' => $worstSignal,
+            'scenario' => $scenario,
+            'phraseCabinet' => $phraseCabinet,
+        ];
+
+        $tmpFile = $slideService->generate($data);
+        $filename = 'fiche-journaliere-' . $dateObj->format('Y-m-d') . '.pptx';
+
+        $response = new Response(file_get_contents($tmpFile), 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+
+        @unlink($tmpFile);
+
+        return $response;
     }
 }
