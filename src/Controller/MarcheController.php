@@ -20,7 +20,8 @@ class MarcheController extends AbstractController
         ReservesFinancieresRepository $reservesRepository,
         \App\Repository\TransactionsUsdRepository $transacRepository,
         EncoursBccRepository $encoursRepository,
-        ConjonctureJourRepository $conjonctureRepository
+        ConjonctureJourRepository $conjonctureRepository,
+        \App\Service\IndicateursCalculService $calculService
     ): Response {
         // Date filter parameters
         $periode = $request->query->get('periode', '7jours');
@@ -56,11 +57,11 @@ class MarcheController extends AbstractController
         $volumes = $transacRepository->getVolumesByBankForPeriod($dateDebut, $dateFin);
         // Get latest encours data (closest to end date, finding previous value if needed)
         $latestEncours = $encoursRepository->findMostRecentBeforeOrEqual($dateFin);
-        
+
         // Use filtered data
         $evolutionData = $marcheRepository->getEvolutionDataByPeriod($dateDebut, $dateFin);
         $reservesHistory = $reservesRepository->getReservesHistoryByPeriod($dateDebut, $dateFin);
-        
+
         // Get latest data from filtered period only (closest to end date)
         $latestMarche = $marcheRepository->findMostRecentBeforeOrEqual($dateFin);
         $latestReserves = $reservesRepository->findMostRecentBeforeOrEqual($dateFin);
@@ -72,7 +73,7 @@ class MarcheController extends AbstractController
             $latestDate = $latestMarche->getConjoncture()->getDateSituation();
             // Find the data point immediately preceding this date
             $previousMarche = $marcheRepository->findMostRecentBefore($latestDate);
-            
+
             if ($previousMarche && $previousMarche->getCoursIndicatif() != 0) {
                 $varIndicatif = (($latestMarche->getCoursIndicatif() - $previousMarche->getCoursIndicatif()) / $previousMarche->getCoursIndicatif()) * 100;
             }
@@ -89,6 +90,11 @@ class MarcheController extends AbstractController
             }
         }
 
+        // Calculate new KPIs from the latest filtered market data
+        $ecartPct = $calculService->getEcartPct($latestMarche);
+        $ecartMaxPct = $calculService->getEcartMaxPct($latestMarche);
+        $spreadPct = $calculService->getSpreadParallelePct($latestMarche);
+
         // Reverse history for table (DESC)
         $marcheTableData = array_reverse($evolutionData);
 
@@ -102,6 +108,9 @@ class MarcheController extends AbstractController
             'marcheTableData' => $marcheTableData,
             'varIndicatif' => $varIndicatif,
             'varReserves' => $varReserves,
+            'ecartPct' => $ecartPct,
+            'ecartMaxPct' => $ecartMaxPct,
+            'spreadPct' => $spreadPct,
             // Date filter parameters
             'dateDebut' => $dateDebut,
             'dateFin' => $dateFin,

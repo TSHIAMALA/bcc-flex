@@ -79,7 +79,7 @@
 </div>
 
 {% if latestMarche and latestMarche.ecartIndicParallele > 100 %}
-<div class="alert-box alert-warning">
+<div class="alert-box alert-warning mb-20">
     <i class="fas fa-exclamation-triangle alert-icon"></i>
     <div class="alert-content">
         <h4>⚠️ Pression sur le taux de change détectée</h4>
@@ -87,6 +87,31 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Nouveaux Indicateurs Extra (Écart Moyen, Écart Max, Spread) -->
+<div class="kpi-cards grid-3 mb-30">
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-percentage"></i></div>
+        <div class="kpi-content">
+            <span class="kpi-label">Écart Moyen Indicatif/Parallèle</span>
+            <span class="kpi-value">{{ ecartPct is not null ? ecartPct|number_format(2, ',', ' ') ~ ' %' : 'N/D' }}</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-arrow-up"></i></div>
+        <div class="kpi-content">
+            <span class="kpi-label">Écart Max (Borne Haute)</span>
+            <span class="kpi-value">{{ ecartMaxPct is not null ? ecartMaxPct|number_format(2, ',', ' ') ~ ' %' : 'N/D' }}</span>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon"><i class="fas fa-arrows-alt-h"></i></div>
+        <div class="kpi-content">
+            <span class="kpi-label">Spread Parallèle</span>
+            <span class="kpi-value">{{ spreadPct is not null ? spreadPct|number_format(2, ',', ' ') ~ ' %' : 'N/D' }}</span>
+        </div>
+    </div>
+</div>
 
 <!-- Row 1: Historique des Cours + Évolution des Cours (30j) -->
 <div class="grid-2 mb-30">
@@ -362,8 +387,18 @@ body.dark-mode .filter-divider {
 .inline-badge.success { background: var(--success-light); color: var(--success); }
 .inline-badge.danger { background: var(--danger-light); color: var(--danger); }
 .stats-date { text-align: center; margin-bottom: 15px; }
-.stats-date-badge { display: inline-block; padding: 6px 16px; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); border-radius: 20px; font-size: 0.82rem; font-weight: 500; letter-spacing: 0.3px; }
 .stats-date-badge i { margin-right: 5px; opacity: 0.7; }
+
+/* KPI Cards Minimalistes */
+.kpi-cards.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+.kpi-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden; border: 1px solid #f1f5f9; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
+.kpi-icon { width: 45px; height: 45px; border-radius: 10px; background: rgba(0,127,255,0.1); color: var(--bcc-primary); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.kpi-content { display: flex; flex-direction: column; z-index: 1; }
+.kpi-label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.kpi-value { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
+[data-theme="dark"] .kpi-card, body.dark-mode .kpi-card { background: var(--bg-card); border-color: #334155; }
+[data-theme="dark"] .kpi-value, body.dark-mode .kpi-value { color: white; }
 </style>
 
 {% block javascripts %}
