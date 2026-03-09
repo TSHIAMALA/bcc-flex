@@ -160,7 +160,6 @@
                         <th>Volume USD</th>
                         <th>Cours Moyen</th>
                         <th>Part (%)</th>
-                        <th style="width: 120px;">Répartition</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -180,14 +179,9 @@
                                 {{ partVente|number_format(1) }}%
                             </span>
                         </td>
-                        <td>
-                            <div class="table-progress">
-                                <div class="table-progress-fill" style="width: {{ partVente }}%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
-                            </div>
-                        </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction de vente sur cette période</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction de vente sur cette période</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -214,7 +208,6 @@
                         <th>Volume USD</th>
                         <th>Cours Moyen</th>
                         <th>Part (%)</th>
-                        <th style="width: 120px;">Répartition</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -234,14 +227,9 @@
                                 {{ partAchat|number_format(1) }}%
                             </span>
                         </td>
-                        <td>
-                            <div class="table-progress">
-                                <div class="table-progress-fill" style="width: {{ partAchat }}%; background: linear-gradient(90deg, #10b981, #34d399);"></div>
-                            </div>
-                        </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="6" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction d'achat sur cette période</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> Aucune transaction d'achat sur cette période</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
