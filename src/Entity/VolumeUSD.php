@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VolumeUSDRepository::class, readOnly: true)]
-#[ORM\Table(name: 'v_volumes_usd_par_banque')]
+#[ORM\Table(name: 'v_volumes_usd_par_banque', options: ['schema_ignore' => true])]
 class VolumeUSD
 {
     #[ORM\Id]
@@ -15,7 +15,7 @@ class VolumeUSD
     private ?string $banque = null; // Assuming banque is unique per date, but it's not. Composite key needed or just use as DTO.
     // Actually, Doctrine needs a PK. The view doesn't have a clear PK.
     // I'll assume (date_situation, banque, type_transaction) is unique.
-    
+
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING)]
     private ?string $date_situation = null;

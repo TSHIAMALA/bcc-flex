@@ -237,10 +237,10 @@ class IndicateursCalculService
         if ($isRouge) {
             return [
                 'scenario' => 3,
-                'label' => 'Action forte coordonnée',
+                'label' => 'Resserrement coordonné — Intervention urgente',
                 'color' => 'red',
                 'justification' => sprintf(
-                    'Écart change %.1f%% (seuil %.1f%%) — action immédiate requise.',
+                    "L'écart de change (%.1f%%) franchit le seuil critique de %.1f%% — une intervention monétaire coordonnée est requise sans délai pour enrayer l'érosion de la crédibilité du taux indicatif.",
                     $ecartPct ?? 0,
                     $seuilChangeRouge
                 ),
@@ -260,27 +260,27 @@ class IndicateursCalculService
         if ($isOrange) {
             $raisons = [];
             if ($ecartPct !== null && $ecartPct >= $seuilChangeOrange)
-                $raisons[] = sprintf('Écart change %.1f%%', $ecartPct);
+                $raisons[] = sprintf("Écart indicatif/parallèle de %.1f%% en zone orange — la marge de tolérance est épuisée", $ecartPct);
             if ($avLibres !== null && $avLibres >= $seuilLiqOrange)
-                $raisons[] = sprintf('Avoirs libres %.0f Mds CDF', $avLibres);
+                $raisons[] = sprintf("Surliquidité bancaire à %.0f Mds CDF — constitue un carburant latent pour la demande de devises", $avLibres);
             if ($soldeAvFin !== null && $soldeAvFin < $seuilTresOrange)
-                $raisons[] = sprintf('Solde trésorerie %.0f Mds', $soldeAvFin);
+                $raisons[] = sprintf("Solde de trésorerie de l'État à %.0f Mds CDF — risque de recours monétaire", $soldeAvFin);
             if ($pctReste !== null && $pctReste >= $seuilPaieOrange)
-                $raisons[] = sprintf('Paie restante %.0f%%', $pctReste);
+                $raisons[] = sprintf("Arriérés de paie à %.0f%% — risque d'injection monétaire non stérilisée", $pctReste);
 
             return [
                 'scenario' => 2,
-                'label' => 'Ajustement préventif',
+                'label' => 'Vigilance active — Ajustement préventif',
                 'color' => 'orange',
-                'justification' => implode(' · ', $raisons),
+                'justification' => implode('. ', $raisons) . '.',
             ];
         }
 
         return [
             'scenario' => 1,
-            'label' => 'Status quo discipliné',
+            'label' => 'Neutralité restrictive — Discipline maintenue',
             'color' => 'green',
-            'justification' => 'Indicateurs dans les normes — surveillance maintenue.',
+            'justification' => "L'ensemble des piliers se situent dans leurs zones de référence. La posture de neutralité restrictive peut être maintenue, sous surveillance continue des avoirs libres et de l'écart de change.",
         ];
     }
 
@@ -297,30 +297,47 @@ class IndicateursCalculService
     ): string {
         $ecartPct = $this->getEcartPct($marche);
         $avLibres = $reserves && $reserves->getAvoirsLibresCdf() !== null ? (float) $reserves->getAvoirsLibresCdf() : null;
+        $resIntl = $reserves && $reserves->getReservesInternationalesUsd() !== null ? (float) $reserves->getReservesInternationalesUsd() : null;
         $soldeAvFin = $tresorerie && $tresorerie->getSoldeAvantFin() !== null ? (float) $tresorerie->getSoldeAvantFin() : null;
 
-        $change = $ecartPct !== null
-            ? sprintf("un écart change de %.1f%%", $ecartPct)
+        // Acte 1 — Constat factuel
+        $changePhrase = $ecartPct !== null
+            ? sprintf("un écart indicatif/parallèle de %.1f%%", $ecartPct)
             : "des données de change partielles";
 
-        $liquidite = $avLibres !== null
-            ? sprintf("des avoirs libres à %.0f Mds CDF", $avLibres)
-            : "une liquidité non disponible";
+        $liquPhrase = $avLibres !== null
+            ? ($avLibres > 1200
+                ? sprintf("une surliquidité bancaire structurelle à %.0f Mds CDF", $avLibres)
+                : ($avLibres < 500
+                    ? sprintf("une liquidité bancaire contrainte à %.0f Mds CDF", $avLibres)
+                    : sprintf("une liquidité bancaire maîtrisée à %.0f Mds CDF", $avLibres)))
+            : "une position de liquidité non disponible";
 
-        $trésorerie = $soldeAvFin !== null
-            ? ($soldeAvFin >= 0
-                ? "une trésorerie équilibrée"
-                : sprintf("un déficit de trésorerie de %.0f Mds CDF", abs($soldeAvFin)))
-            : "une trésorerie non disponible";
+        $tresoPhrase = $soldeAvFin !== null
+            ? ($soldeAvFin >= 100
+                ? sprintf("un solde budgétaire excédentaire de %.0f Mds CDF", $soldeAvFin)
+                : ($soldeAvFin >= 0
+                    ? "un solde de trésorerie marginalement positif"
+                    : sprintf("un solde de trésorerie déficitaire de %.0f Mds CDF", abs($soldeAvFin))))
+            : "une position budgétaire non disponible";
 
-        $scenarioLabel = match ($scenario['scenario']) {
-            3 => "exige une action monétaire forte et coordonnée",
-            2 => "recommande un ajustement préventif de la stérilisation et une coordination étroite avec le Trésor",
-            default => "plaide pour le maintien de la discipline monétaire actuelle",
+        // Acte 2 — Diagnostic de risque
+        $risquePhrase = match ($scenario['scenario']) {
+            3 => "traduit un désalignement structurel exigeant une intervention monétaire coordonnée sans délai",
+            2 => "révèle des fragilités persistantes imposant une vigilance renforcée et un ajustement préventif de la stérilisation",
+            default => "reste globalement dans les normes de référence, sous réserve d'une surveillance continue",
         };
 
-        return "Les indicateurs du jour font état de {$change}, {$liquidite} et {$trésorerie}. "
-            . "Au regard de ces éléments, la situation {$scenarioLabel}.";
+        // Acte 3 — Orientation opérationnelle
+        $orientationPhrase = match ($scenario['scenario']) {
+            3 => "Une action coordonnée entre la BCC et le Trésor est requise pour enrayer la dynamique de dépréciation.",
+            2 => "La priorité est à l'absorption de liquidité et au calage du calendrier de paiements publics pour éviter tout choc sur le marché des changes.",
+            default => "La discipline monétaire en vigueur peut être maintenue. Toute inflexion accommodante devra être conditionnée à une réduction durable de l'écart de change.",
+        };
+
+        return "La situation du jour enregistre {$changePhrase}, {$liquPhrase} et {$tresoPhrase}. "
+            . "L'ensemble de ces indicateurs {$risquePhrase}. "
+            . $orientationPhrase;
     }
 
     public function colorToBootstrap(string $color): string

@@ -24,16 +24,40 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\TauxDirecteur;
+use App\Form\TauxDirecteurType;
+use App\Repository\TauxDirecteurRepository;
 
 final class SaisieController extends AbstractController
 {
     #[Route('/saisie', name: 'app_saisie')]
-    public function index(ConjonctureJourRepository $conjonctureRepository): Response
-    {
+    public function index(
+        Request $request,
+        ConjonctureJourRepository $conjonctureRepository,
+        TauxDirecteurRepository $tauxRepo,
+        EntityManagerInterface $em
+    ): Response {
         $conjonctures = $conjonctureRepository->findBy([], ['date_situation' => 'DESC']);
+        $tauxDirecteurs = $tauxRepo->findAllOrderedByDate();
+
+        $nouveauTaux = new TauxDirecteur();
+        // Optionnel: proposer la date du jour par défaut
+        $nouveauTaux->setDateApplication(new \DateTime());
+
+        $formTaux = $this->createForm(TauxDirecteurType::class, $nouveauTaux);
+        $formTaux->handleRequest($request);
+
+        if ($formTaux->isSubmitted() && $formTaux->isValid()) {
+            $em->persist($nouveauTaux);
+            $em->flush();
+            $this->addFlash('success', 'Nouveau taux directeur enregistré avec succès.');
+            return $this->redirectToRoute('app_saisie');
+        }
 
         return $this->render('saisie/index.html.twig', [
             'conjonctures' => $conjonctures,
+            'tauxDirecteurs' => $tauxDirecteurs,
+            'formTaux' => $formTaux->createView(),
         ]);
     }
 
@@ -58,8 +82,8 @@ final class SaisieController extends AbstractController
 
     #[Route('/saisie/{id}/edit', name: 'app_saisie_edit')]
     public function edit(
-        Request $request, 
-        ConjonctureJour $conjoncture, 
+        Request $request,
+        ConjonctureJour $conjoncture,
         EntityManagerInterface $em,
         MarcheChangesRepository $marcheRepo,
         ReservesFinancieresRepository $reservesRepo,
@@ -69,13 +93,12 @@ final class SaisieController extends AbstractController
         \App\Repository\PaieEtatRepository $paieRepo,
         \App\Repository\TransactionsUsdRepository $transacRepo,
         EventDispatcherInterface $eventDispatcher
-    ): Response
-    {
+    ): Response {
         // 1. Marche des Changes
         $marche = $marcheRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new MarcheChanges();
         $marche->setConjoncture($conjoncture);
         $formMarche = $this->createForm(MarcheChangesType::class, $marche);
-        
+
         // 2. Reserves
         $reserves = $reservesRepo->findOneBy(['conjoncture' => $conjoncture]) ?? new ReservesFinancieres();
         $reserves->setConjoncture($conjoncture);
@@ -191,7 +214,7 @@ final class SaisieController extends AbstractController
     public function deleteTransaction(Request $request, \App\Entity\TransactionsUsd $transaction, EntityManagerInterface $em): Response
     {
         $conjonctureId = $transaction->getConjoncture()->getId();
-        if ($this->isCsrfTokenValid('delete'.$transaction->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $transaction->getId(), $request->request->get('_token'))) {
             $em->remove($transaction);
             $em->flush();
             $this->addFlash('success', 'Transaction supprimée.');

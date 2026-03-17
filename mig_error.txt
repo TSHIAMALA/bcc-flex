@@ -1,0 +1,3 @@
+﻿[notice] Migrating up to DoctrineMigrations\Version20260312122628
+[info] ++ migrating DoctrineMigrations\Version20260312122628
+[debug] CREATE TABLE taux_directeur (id INT AUTO_INCREMENT NOT NULL, date_application DATE NOT NULL, valeur NUMERIC(6, 2) NOT NULL, commentaire VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB 

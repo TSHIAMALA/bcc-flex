@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: KPIJournalierRepository::class, readOnly: true)]
-#[ORM\Table(name: 'v_kpi_journalier')]
+#[ORM\Table(name: 'v_kpi_journalier', options: ['schema_ignore' => true])]
 class KPIJournalier
 {
     #[ORM\Id]

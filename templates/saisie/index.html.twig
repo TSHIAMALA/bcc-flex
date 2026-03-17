@@ -7,12 +7,76 @@
 
 {% block body %}
     <div class="mb-6 flex justify-between items-center">
-        <h3 class="text-xl font-bold text-gray-800">Historique des Saisies</h3>
+        <h3 class="text-xl font-bold text-gray-800">Historique des Saisies (Données Journalières)</h3>
         <a href="{{ path('app_saisie_new') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow-md transition-all flex items-center gap-2">
             <i class="fas fa-plus"></i> Nouvelle Date
         </a>
     </div>
 
+    <!-- Taux Directeur Section -->
+    <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Taux Directeur Form -->
+        <div class="card p-6 shadow-md rounded-lg overflow-hidden border-l-4 border-blue-500 bg-white">
+            <h3 class="text-lg font-bold text-gray-800 mb-4"><i class="fas fa-percentage text-blue-500 mr-2"></i>Nouveau Taux Directeur (CPM)</h3>
+            {{ form_start(formTaux, {'attr': {'class': 'space-y-4'}}) }}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        {{ form_label(formTaux.dateApplication, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(formTaux.dateApplication, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}}) }}
+                    </div>
+                    <div>
+                        {{ form_label(formTaux.valeur, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        <div class="relative mt-1 rounded-md shadow-sm">
+                            {{ form_widget(formTaux.valeur, {'attr': {'class': 'block w-full rounded-md border-gray-300 pr-8 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}}) }}
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                <span class="text-gray-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    {{ form_label(formTaux.commentaire, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(formTaux.commentaire, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm'}}) }}
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+                    Enregistrer le nouveau Taux
+                </button>
+            {{ form_end(formTaux) }}
+        </div>
+
+        <!-- Taux Directeur History -->
+        <div class="card shadow-md rounded-lg overflow-hidden bg-white">
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-history text-gray-500 mr-2"></i>Historique des Taux</h3>
+            </div>
+            <div class="overflow-y-auto max-h-64">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Application</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taux (%)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commentaire</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for taux in tauxDirecteurs %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ taux.dateApplication|date('d/m/Y') }}</td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-blue-600 font-bold">{{ taux.valeur|number_format(2, ',', ' ') }} %</td>
+                                <td class="px-6 py-3 text-sm text-gray-500 truncate max-w-xs">{{ taux.commentaire ?? '-' }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">Aucun taux enregistré.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conjoncture Journalieres Section -->
     <div class="card overflow-hidden">
         <div class="table-container">
             <table class="data-table w-full">

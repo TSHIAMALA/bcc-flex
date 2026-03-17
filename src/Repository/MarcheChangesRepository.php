@@ -41,12 +41,12 @@ class MarcheChangesRepository extends ServiceEntityRepository
 
         if ($dateFin) {
             $qb->andWhere('c.date_situation <= :dateFin')
-               ->setParameter('dateFin', $dateFin);
+                ->setParameter('dateFin', $dateFin);
         }
 
         if ($dateDebut) {
             $qb->andWhere('c.date_situation >= :dateDebut')
-               ->setParameter('dateDebut', $dateDebut);
+                ->setParameter('dateDebut', $dateDebut);
         }
 
         return $qb->getQuery()->getResult();
@@ -80,5 +80,54 @@ class MarcheChangesRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Retourne les agrégats marché des changes sur une période libre.
+     * Toutes les valeurs numériques sont des moyennes ou extrema sur 
+     * l'ensemble des jours de la période.
+     */
+    public function getPeriodAggregates(string $dateDebut, string $dateFin): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "
+            SELECT
+                COUNT(m.id)                                                  AS nb_jours,
+                AVG(CAST(m.cours_indicatif AS DECIMAL(18,4)))               AS cours_indicatif_moy,
+                AVG((CAST(m.parallele_achat AS DECIMAL(18,4)) + CAST(m.parallele_vente AS DECIMAL(18,4))) / 2) AS mid_parallele_moy,
+                AVG(
+                    CASE WHEN m.cours_indicatif > 0
+                    THEN (((CAST(m.parallele_achat AS DECIMAL(18,4)) + CAST(m.parallele_vente AS DECIMAL(18,4))) / 2
+                           - CAST(m.cours_indicatif AS DECIMAL(18,4)))
+                         / CAST(m.cours_indicatif AS DECIMAL(18,4))) * 100
+                    ELSE NULL END
+                )                                                            AS ecart_pct_moy,
+                MIN(
+                    CASE WHEN m.cours_indicatif > 0
+                    THEN (((CAST(m.parallele_achat AS DECIMAL(18,4)) + CAST(m.parallele_vente AS DECIMAL(18,4))) / 2
+                           - CAST(m.cours_indicatif AS DECIMAL(18,4)))
+                         / CAST(m.cours_indicatif AS DECIMAL(18,4))) * 100
+                    ELSE NULL END
+                )                                                            AS ecart_pct_min,
+                MAX(
+                    CASE WHEN m.cours_indicatif > 0
+                    THEN (((CAST(m.parallele_achat AS DECIMAL(18,4)) + CAST(m.parallele_vente AS DECIMAL(18,4))) / 2
+                           - CAST(m.cours_indicatif AS DECIMAL(18,4)))
+                         / CAST(m.cours_indicatif AS DECIMAL(18,4))) * 100
+                    ELSE NULL END
+                )                                                            AS ecart_pct_max,
+                AVG(CAST(m.parallele_achat AS DECIMAL(18,4)))               AS parallele_achat_moy,
+                AVG(CAST(m.parallele_vente AS DECIMAL(18,4)))               AS parallele_vente_moy
+            FROM marche_changes m
+            INNER JOIN conjoncture_jour c ON m.conjoncture_id = c.id
+            WHERE c.date_situation BETWEEN :dateDebut AND :dateFin
+                AND m.cours_indicatif IS NOT NULL
+                AND m.parallele_achat IS NOT NULL
+                AND m.parallele_vente IS NOT NULL
+        ";
+
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery(['dateDebut' => $dateDebut, 'dateFin' => $dateFin]);
+        return $result->fetchAssociative() ?: [];
     }
 }

@@ -38,11 +38,11 @@ class EncoursBccRepository extends ServiceEntityRepository
 
         if ($dateDebut) {
             $qb->andWhere('c.date_situation >= :dateDebut')
-               ->setParameter('dateDebut', $dateDebut);
+                ->setParameter('dateDebut', $dateDebut);
         }
         if ($dateFin) {
             $qb->andWhere('c.date_situation <= :dateFin')
-               ->setParameter('dateFin', $dateFin);
+                ->setParameter('dateFin', $dateFin);
         }
 
         return $qb->getQuery()->getOneOrNullResult();
@@ -60,5 +60,29 @@ class EncoursBccRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Agrégats encours BCC sur une période libre.
+     */
+    public function getPeriodAggregates(string $dateDebut, string $dateFin): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "
+            SELECT
+                COUNT(e.id)                                              AS nb_jours,
+                AVG(CAST(e.encours_ot_bcc AS DECIMAL(18,2)))            AS ot_bcc_moy,
+                AVG(CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS b_bcc_moy,
+                AVG(CAST(e.encours_ot_bcc AS DECIMAL(18,2))
+                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS sterilisation_totale_moy,
+                MAX(CAST(e.encours_ot_bcc AS DECIMAL(18,2))
+                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS sterilisation_totale_max
+            FROM encours_bcc e
+            INNER JOIN conjoncture_jour c ON e.conjoncture_id = c.id
+            WHERE c.date_situation BETWEEN :dateDebut AND :dateFin
+        ";
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery(['dateDebut' => $dateDebut, 'dateFin' => $dateFin]);
+        return $result->fetchAssociative() ?: [];
     }
 }

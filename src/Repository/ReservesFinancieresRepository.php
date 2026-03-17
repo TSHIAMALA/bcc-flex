@@ -33,7 +33,7 @@ class ReservesFinancieresRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('r')
             ->join('r.conjoncture', 'c')
-            ->orderBy('c.date_situation', 'DESC');
+            ->orderBy('c.date_situation', 'ASC');
 
         if ($limit !== null) {
             $qb->setMaxResults($limit);
@@ -41,12 +41,12 @@ class ReservesFinancieresRepository extends ServiceEntityRepository
 
         if ($dateFin) {
             $qb->andWhere('c.date_situation <= :dateFin')
-               ->setParameter('dateFin', $dateFin);
+                ->setParameter('dateFin', $dateFin);
         }
 
         if ($dateDebut) {
             $qb->andWhere('c.date_situation >= :dateDebut')
-               ->setParameter('dateDebut', $dateDebut);
+                ->setParameter('dateDebut', $dateDebut);
         }
 
         return $qb->getQuery()->getResult();
@@ -80,5 +80,29 @@ class ReservesFinancieresRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Agrégats réserves sur une période libre (moyennes).
+     */
+    public function getPeriodAggregates(string $dateDebut, string $dateFin): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = "
+            SELECT
+                COUNT(r.id)                                                AS nb_jours,
+                AVG(CAST(r.reserves_internationales_usd AS DECIMAL(18,2))) AS reserves_int_moy,
+                MIN(CAST(r.reserves_internationales_usd AS DECIMAL(18,2))) AS reserves_int_min,
+                MAX(CAST(r.reserves_internationales_usd AS DECIMAL(18,2))) AS reserves_int_max,
+                AVG(CAST(r.avoirs_externes_usd AS DECIMAL(18,2)))          AS avoirs_ext_moy,
+                AVG(CAST(r.avoirs_libres_cdf AS DECIMAL(18,2)))            AS avoirs_libres_moy,
+                MAX(CAST(r.avoirs_libres_cdf AS DECIMAL(18,2)))            AS avoirs_libres_max
+            FROM reserves_financieres r
+            INNER JOIN conjoncture_jour c ON r.conjoncture_id = c.id
+            WHERE c.date_situation BETWEEN :dateDebut AND :dateFin
+        ";
+        $stmt = $conn->prepare($sql);
+        $result = $stmt->executeQuery(['dateDebut' => $dateDebut, 'dateFin' => $dateFin]);
+        return $result->fetchAssociative() ?: [];
     }
 }
