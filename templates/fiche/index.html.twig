@@ -333,14 +333,19 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                     <td>{{ encours ? encours.encoursOtBcc|number_format(2,',') : 'N/D' }}</td></tr>
                 <tr><td>Encours B-BCC</td>
                     <td>{{ encours ? encours.encoursBBcc|number_format(2,',') : 'N/D' }}</td></tr>
-                <tr><td>Ratio stérilisation</td>
+                <tr>
+                    <td>
+                        Ratio stérilisation
+                        <i class="fas fa-info-circle text-muted ms-1" style="font-size: 0.85em; cursor: help;" title="Calcul: (Encours OT-BCC + Encours B-BCC) / Avoirs libres.&#10;Évalue la capacité de la BCC à absorber l'excédent de liquidité."></i>
+                    </td>
                     <td>{% if ratioSteri is not null %}{{ ratioSteri|number_format(2,',') }}{% else %}N/D{% endif %}
                         {% if ratioSteri is not null %}
                             <span class="ms-1 {% if ratioSteri >= 1.5 %}text-success{% elseif ratioSteri >= 1 %}text-warning{% else %}text-danger{% endif %}">
                                 ({{ ratioSteri >= 1.5 ? '✓ Efficace' : (ratioSteri >= 1 ? '⚠ Partiel' : '✗ Insuffisant') }})
                             </span>
                         {% endif %}
-                    </td></tr>
+                    </td>
+                </tr>
             </table>
         </div>
 
@@ -464,6 +469,16 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 <tr><td>Avoirs libres (Mds CDF)</td><td style="text-align:center;">&lt; 800</td><td style="text-align:center;">—</td><td style="text-align:center;">800–1 200</td><td style="text-align:center;">&gt; 1 200</td></tr>
                 <tr><td>Solde trésorerie avant fin</td><td style="text-align:center;">&gt; 0</td><td style="text-align:center;">0 à −100</td><td style="text-align:center;">—</td><td style="text-align:center;">&lt; −100</td></tr>
                 <tr><td>Reste paie / total</td><td style="text-align:center;">—</td><td style="text-align:center;">&lt; 20%</td><td style="text-align:center;">20–50%</td><td style="text-align:center;">&gt; 50%</td></tr>
+                <tr>
+                    <td>
+                        Ratio stérilisation<br>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">(OT-BCC + B-BCC) / Avoirs libres</span>
+                    </td>
+                    <td style="text-align:center;">≥ 1,5<br><small>(Efficace)</small></td>
+                    <td style="text-align:center;">1 à 1,49<br><small>(Partiel)</small></td>
+                    <td style="text-align:center;">—</td>
+                    <td style="text-align:center;">&lt; 1<br><small>(Insuffisant)</small></td>
+                </tr>
             </table>
         </div>
     </div>

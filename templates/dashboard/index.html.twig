@@ -425,7 +425,7 @@
                     <canvas id="chartPaieDoughnut"></canvas>
                 </div>
                 <div class="doughnut-center">
-                    <div class="doughnut-value">{{ ((paie.montantPaye / paie.montantTotal) * 100)|number_format(0) }}%</div>
+                    <div class="doughnut-value">{{ paie.montantTotal is not null and paie.montantTotal > 0 ? ((paie.montantPaye / paie.montantTotal) * 100)|number_format(0) : '0' }}%</div>
                     <div class="doughnut-label">Payé</div>
                 </div>
             </div>

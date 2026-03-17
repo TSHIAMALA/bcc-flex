@@ -1,0 +1,211 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Validation des Données{% endblock %}
+{% block header_title %}Prévisualisation{% endblock %}
+{% block header_subtitle %}Vérifiez les données extraites avant enregistrement{% endblock %}
+
+{% block body %}
+<div class="mb-20" style="display: flex; gap: 15px; align-items: center;">
+    <a href="{{ path('app_import_text') }}" class="btn btn-secondary">
+        <i class="fas fa-edit"></i> Modifier le texte
+    </a>
+    <form action="{{ path('app_import_text_confirm') }}" method="post" style="margin: 0;">
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle"></i> Valider et Enregistrer
+        </button>
+    </form>
+</div>
+
+<div class="row">
+    <!-- Date & General -->
+    <div class="col-md-12 mb-20">
+        <div class="card">
+            <div class="card-header highlight">
+                <h3 class="card-title"><i class="fas fa-calendar-day"></i> Période de la Conjoncture</h3>
+            </div>
+            <div class="card-body grid-2">
+                <div>
+                    <label class="text-muted">Date de Situation</label>
+                    <h4>{{ data.date_situation|default('Non détectée') }}</h4>
+                </div>
+                <div>
+                    <label class="text-muted">Date Applicable</label>
+                    <h4>{{ data.date_applicable|default(data.date_situation) }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="kpi-header-grid mb-30" style="grid-template-columns: repeat(2, 1fr);">
+    <!-- Marché des changes -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-exchange-alt"></i> Marché des changes</h3>
+        </div>
+        <div class="card-body">
+            <table class="preview-table">
+                <tbody>
+                    <tr><td>Cours Indicatif</td><td class="text-right font-bold">{{ data.marche_changes.cours_indicatif|default('-') }}</td></tr>
+                    <tr><td>Parallèle Achat</td><td class="text-right font-bold">{{ data.marche_changes.parallele_achat|default('-') }}</td></tr>
+                    <tr><td>Parallèle Vente</td><td class="text-right font-bold">{{ data.marche_changes.parallele_vente|default('-') }}</td></tr>
+                    <tr><td>Écart Indic/Parallèle</td><td class="text-right font-bold">{{ data.marche_changes.ecart_indic_parallele|default('-') }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Réserves -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-gem"></i> Réserves Financières</h3>
+        </div>
+        <div class="card-body">
+            <table class="preview-table">
+                <tbody>
+                    <tr><td>Réserves Int. (USD)</td><td class="text-right font-bold">{{ data.reserves.int_usd|default('-') }}</td></tr>
+                    <tr><td>Avoirs Externes (USD)</td><td class="text-right font-bold">{{ data.reserves.ext_usd|default('-') }}</td></tr>
+                    <tr><td>Réserves Banques (CDF)</td><td class="text-right font-bold">{{ data.reserves.b_cdf|default('-') }}</td></tr>
+                    <tr><td>Avoirs libres (CDF)</td><td class="text-right font-bold">{{ data.reserves.lib_cdf|default('-') }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Finances Publiques -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-university"></i> Finances Publiques</h3>
+        </div>
+        <div class="card-body">
+             <table class="preview-table">
+                <tbody>
+                    <tr><td>Recettes Totales</td><td class="text-right font-bold">{{ data.finances.recettes_tot|default('-') }}</td></tr>
+                    <tr><td>Recettes Fiscales</td><td class="text-right font-bold">{{ data.finances.recettes_fisc|default('-') }}</td></tr>
+                    <tr><td>Autres Recettes</td><td class="text-right font-bold">{{ data.finances.recettes_aut|default('-') }}</td></tr>
+                    <tr><td>Dépenses Totales</td><td class="text-right font-bold">{{ data.finances.depenses_tot|default('-') }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Trésorerie -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-wallet"></i> Trésorerie de l'État</h3>
+        </div>
+        <div class="card-body">
+             <table class="preview-table">
+                <tbody>
+                    <tr><td>Solde Avant Fin</td><td class="text-right font-bold">{{ data.tresorerie.avant|default('-') }}</td></tr>
+                    <tr><td>Solde Après Fin</td><td class="text-right font-bold">{{ data.tresorerie.apres|default('-') }}</td></tr>
+                    <tr><td>Solde Cumul Annuel</td><td class="text-right font-bold">{{ data.tresorerie.cumul|default('-') }}</td></tr>
+                    <tr><td>Solde CGT</td><td class="text-right font-bold">{{ data.tresorerie.cgt|default('-') }}</td></tr>
+                    <tr><td>Dépenses d'urgence</td><td class="text-right font-bold">{{ data.tresorerie.dep_urg|default('-') }}</td></tr>
+                    <tr><td>Excédent</td><td class="text-right font-bold">{{ data.tresorerie.exc|default('-') }}</td></tr>
+                    <tr><td>Ressources / Titres</td><td class="text-right font-bold">{{ data.tresorerie.res_tit|default('-') }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-handshake"></i> Transactions USD</h3>
+        </div>
+        <div class="card-body">
+             <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Banque</th>
+                        <th class="text-right">Cours</th>
+                        <th class="text-right">Volume USD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in data.transactions|default([]) %}
+                    <tr>
+                        <td>
+                            <span class="taux-badge {{ tx.type == 'ACHAT' ? 'success' : 'danger' }}">{{ tx.type }}</span>
+                        </td>
+                        <td><strong>{{ tx.banque }}</strong></td>
+                        <td class="text-right">{{ tx.cours }}</td>
+                        <td class="text-right">{{ tx.volume|number_format(2, ',', ' ') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Aucune transaction détectée</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Autres -->
+    <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-plus-circle"></i> Autres indicateurs extraits</h3>
+        </div>
+        <div class="card-body grid-2">
+            <div>
+                <h4 class="mb-10 text-primary">Titres Publics</h4>
+                <table class="preview-table">
+                    <tbody>
+                        <tr><td>Encours OTINDEX</td><td class="text-right font-bold">{{ data.titres.ot_idx|default('-') }}</td></tr>
+                        <tr><td>Encours BTIndex</td><td class="text-right font-bold">{{ data.titres.bt_idx|default('-') }}</td></tr>
+                        <tr><td>Encours OT USD</td><td class="text-right font-bold">{{ data.titres.ot_usd|default('-') }}</td></tr>
+                        <tr><td>Encours BT USD</td><td class="text-right font-bold">{{ data.titres.bt_usd|default('-') }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                 <h4 class="mb-10 text-primary">Paie État</h4>
+                <table class="preview-table">
+                    <tbody>
+                        <tr><td>Montant Total</td><td class="text-right font-bold">{{ data.paie.tot|default('-') }}</td></tr>
+                        <tr><td>Montant Payé</td><td class="text-right font-bold">{{ data.paie.paye|default('-') }}</td></tr>
+                        <tr><td>Montant Restant</td><td class="text-right font-bold">{{ data.paie.reste|default('-') }}</td></tr>
+                    </tbody>
+                </table>
+                <br>
+                <h4 class="mb-10 text-primary">Encours BCC</h4>
+                <table class="preview-table">
+                    <tbody>
+                        <tr><td>Encours OT BCC</td><td class="text-right font-bold">{{ data.encours.ot|default('-') }}</td></tr>
+                        <tr><td>Encours B BCC</td><td class="text-right font-bold">{{ data.encours.b|default('-') }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: var(--transition); text-decoration: none; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #059669; transform: translateY(-2px); box-shadow: var(--shadow); }
+.btn-secondary { background: #e2e8f0; color: var(--text-primary); }
+
+.card-body { padding: 25px; }
+.text-right { text-align: right; }
+.font-bold { font-weight: 700; color: var(--text-primary); }
+.text-muted { color: var(--text-secondary); display: block; margin-bottom: 5px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.preview-table { width: 100%; border-collapse: collapse; }
+.preview-table td { padding: 12px 0; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); border-top: 1px solid var(--border-color); }
+.preview-table tr:first-child td { border-top: none; }
+.preview-table tr:last-child td { border-bottom: none; }
+
+.card-header.highlight { background: var(--bcc-gradient); color: white; border-radius: 12px 12px 0 0; }
+.card-header.highlight .card-title { color: white; }
+
+.text-primary { color: var(--bcc-primary); }
+.taux-badge.danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+body.dark-mode .btn-secondary { background: #334155; color: white; }
+body.dark-mode .preview-table td { border-color: #334155; }
+</style>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import par Copier-Coller{% endblock %}
+{% block header_title %}Import par Texte{% endblock %}
+{% block header_subtitle %}Collez les données brutes des indicateurs de conjoncture{% endblock %}
+
+{% block body %}
+<div class="mb-20">
+    <a href="{{ path('app_import') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour à l'import classique
+    </a>
+</div>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert-box alert-{{ label == 'error' ? 'danger' : 'success' }} mb-30">
+            <i class="fas fa-{{ label == 'error' ? 'exclamation-circle' : 'check-circle' }} alert-icon"></i>
+            <div class="alert-content">
+                <p>{{ message }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-paste"></i>
+            Coller le texte de la conjoncture
+        </h3>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-20">
+            Copiez le texte complet de la situation des indicateurs reconnue et collez-le dans la zone ci-dessous, puis cliquez sur "Analyser le texte". L'application va extraire toutes les données disponibles.
+        </p>
+
+        <form action="{{ path('app_import_text') }}" method="post">
+            <div class="form-group mb-20">
+                <textarea name="import_text" class="form-control" rows="15" placeholder="*SITUATION DES INDICATEURS DE CONJONCTURE AU..." required style="font-family: monospace;"></textarea>
+            </div>
+
+            <div class="form-actions text-right">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-magic"></i>
+                    Analyser le texte
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: var(--transition); text-decoration: none; }
+.btn-primary { background: var(--bcc-gradient); color: white; }
+.btn-secondary { background: #e2e8f0; color: var(--text-primary); }
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.card-body { padding: 25px; }
+.form-control { width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; resize: vertical; line-height: 1.5; }
+.form-control:focus { outline: none; border-color: var(--bcc-primary); box-shadow: 0 0 0 3px rgba(59, 111, 171, 0.1); }
+.text-right { text-align: right; }
+
+body.dark-mode .btn-secondary { background: #334155; color: white; }
+body.dark-mode .form-control { background: #1e293b; border-color: #334155; color: white; }
+</style>
+{% endblock %}

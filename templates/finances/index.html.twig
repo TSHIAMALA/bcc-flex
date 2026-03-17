@@ -6,7 +6,7 @@
 
 {% block body %}
 {% set tauxExecution = (latestFin is not null and latestFin.recettesTotales > 0) ? min(100, (latestFin.recettesTotales / (latestFin.recettesTotales + 50)) * 100) : 0 %}
-{% set tauxPaie = paie ? (paie.montantPaye / paie.montantTotal) * 100 : 0 %}
+{% set tauxPaie = (paie and paie.montantTotal is not null and paie.montantTotal > 0) ? (paie.montantPaye / paie.montantTotal) * 100 : 0 %}
 
 <!-- Date Filter Bar -->
 <div class="filter-bar mb-20">

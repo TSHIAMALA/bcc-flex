@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Service\TextImportParserService;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class ImportController extends AbstractController
 {
@@ -29,6 +31,234 @@ class ImportController extends AbstractController
         return $this->render('import/index.html.twig', [
             'recentImports' => $recentImports,
         ]);
+    }
+
+    #[Route('/import/text', name: 'app_import_text', methods: ['GET', 'POST'])]
+    public function importText(Request $request, TextImportParserService $parser, SessionInterface $session): Response
+    {
+        if ($request->isMethod('POST')) {
+            $text = $request->request->get('import_text');
+            if (empty($text)) {
+                $this->addFlash('error', 'Veuillez coller le texte à importer.');
+                return $this->redirectToRoute('app_import_text');
+            }
+
+            // Parse text
+            $parsedData = $parser->parseText($text);
+            
+            // Debug if needed or check if parsing failed
+            if (empty($parsedData['date_situation'])) {
+                $this->addFlash('error', 'Impossible de détecter la date de situation. Assurez-vous que le format est correct.');
+                return $this->redirectToRoute('app_import_text');
+            }
+
+            // Save in session for preview
+            $session->set('import_preview_data', $parsedData);
+            
+            return $this->redirectToRoute('app_import_text_preview');
+        }
+
+        return $this->render('import/text_import.html.twig');
+    }
+
+    #[Route('/import/text/preview', name: 'app_import_text_preview', methods: ['GET'])]
+    public function importTextPreview(SessionInterface $session): Response
+    {
+        $data = $session->get('import_preview_data');
+        
+        if (!$data) {
+            $this->addFlash('error', 'Aucune donnée à prévisualiser.');
+            return $this->redirectToRoute('app_import_text');
+        }
+
+        return $this->render('import/text_preview.html.twig', [
+            'data' => $data,
+        ]);
+    }
+
+    #[Route('/import/text/confirm', name: 'app_import_text_confirm', methods: ['POST'])]
+    public function importTextConfirm(
+        SessionInterface $session,
+        EntityManagerInterface $em,
+        ConjonctureJourRepository $conjonctureRepository,
+        EventDispatcherInterface $eventDispatcher
+    ): Response {
+        $data = $session->get('import_preview_data');
+        
+        if (!$data) {
+            $this->addFlash('error', 'La session d\'import a expiré. Veuillez recommencer.');
+            return $this->redirectToRoute('app_import_text');
+        }
+
+        try {
+            // Find or create conjoncture
+            $dateSit = new \DateTime($data['date_situation']);
+            $conj = $conjonctureRepository->findOneBy(['date_situation' => $dateSit]);
+            
+            if (!$conj) {
+                $conj = new ConjonctureJour();
+                $conj->setDateSituation($dateSit);
+                $this->addFlash('success', 'Nouvelle conjoncture créée pour le ' . $data['date_situation']);
+            } else {
+                $this->addFlash('warning', 'Conjoncture existante mise à jour pour le ' . $data['date_situation']);
+            }
+            
+            if (!empty($data['date_applicable'])) {
+                $conj->setDateApplicable(new \DateTime($data['date_applicable']));
+            } else {
+                // Si pas de date applicable détectée, on met la même que la situation
+                $conj->setDateApplicable($dateSit);
+            }
+
+            $em->persist($conj);
+            
+            // 1. Marché des changes
+            if (!empty($data['marche_changes'])) {
+                $mc = $em->getRepository(\App\Entity\MarcheChanges::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$mc) {
+                    $mc = new \App\Entity\MarcheChanges();
+                    $mc->setConjoncture($conj);
+                    $em->persist($mc);
+                }
+                if (isset($data['marche_changes']['cours_indicatif'])) $mc->setCoursIndicatif($data['marche_changes']['cours_indicatif']);
+                if (isset($data['marche_changes']['parallele_achat'])) $mc->setParalleleAchat($data['marche_changes']['parallele_achat']);
+                if (isset($data['marche_changes']['parallele_vente'])) $mc->setParalleleVente($data['marche_changes']['parallele_vente']);
+                if (isset($data['marche_changes']['ecart_indic_parallele'])) $mc->setEcartIndicParallele($data['marche_changes']['ecart_indic_parallele']);
+            }
+
+            // 2. Transactions
+            if (!empty($data['transactions'])) {
+                foreach ($data['transactions'] as $tx) {
+                    if (empty($tx['banque'])) continue;
+                    
+                    $banque = $em->getRepository(\App\Entity\Banques::class)->findOneBy(['nom' => $tx['banque']]);
+                    if (!$banque) {
+                        $banque = new \App\Entity\Banques();
+                        $banque->setNom($tx['banque']);
+                        $em->persist($banque);
+                        $em->flush(); // Nécessaire pour l'utiliser ensuite
+                    }
+
+                    $txd = $em->getRepository(\App\Entity\TransactionsUsd::class)->findOneBy([
+                        'conjoncture' => $conj, 
+                        'type_transaction' => $tx['type'], 
+                        'banque' => $banque
+                    ]);
+                    
+                    if (!$txd) {
+                        $txd = new \App\Entity\TransactionsUsd();
+                        $txd->setConjoncture($conj);
+                        $txd->setBanque($banque);
+                        $txd->setTypeTransaction($tx['type']);
+                        $em->persist($txd);
+                    }
+                    if (isset($tx['cours'])) $txd->setCours($tx['cours']);
+                    if (isset($tx['volume'])) $txd->setVolumeUsd($tx['volume']);
+                }
+            }
+
+            // 3. Reserves
+            if (!empty($data['reserves'])) {
+                $rf = $em->getRepository(\App\Entity\ReservesFinancieres::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$rf) {
+                    $rf = new \App\Entity\ReservesFinancieres();
+                    $rf->setConjoncture($conj);
+                    $em->persist($rf);
+                }
+                if (isset($data['reserves']['int_usd'])) $rf->setReservesInternationalesUsd($data['reserves']['int_usd']);
+                if (isset($data['reserves']['ext_usd'])) $rf->setAvoirsExternesUsd($data['reserves']['ext_usd']);
+                if (isset($data['reserves']['b_cdf'])) $rf->setReservesBanquesCdf($data['reserves']['b_cdf']);
+                if (isset($data['reserves']['lib_cdf'])) $rf->setAvoirsLibresCdf($data['reserves']['lib_cdf']);
+            }
+
+            // 4. Encours
+            if (!empty($data['encours'])) {
+                $eb = $em->getRepository(\App\Entity\EncoursBcc::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$eb) {
+                    $eb = new \App\Entity\EncoursBcc();
+                    $eb->setConjoncture($conj);
+                    $em->persist($eb);
+                }
+                if (isset($data['encours']['ot'])) $eb->setEncoursOtBcc($data['encours']['ot']);
+                if (isset($data['encours']['b'])) $eb->setEncoursBBcc($data['encours']['b']);
+            }
+
+            // 5. Finances Publiques
+            if (!empty($data['finances'])) {
+                $fp = $em->getRepository(\App\Entity\FinancesPubliques::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$fp) {
+                    $fp = new \App\Entity\FinancesPubliques();
+                    $fp->setConjoncture($conj);
+                    $em->persist($fp);
+                }
+                if (isset($data['finances']['recettes_tot'])) $fp->setRecettesTotales($data['finances']['recettes_tot']);
+                if (isset($data['finances']['recettes_fisc'])) $fp->setRecettesFiscales($data['finances']['recettes_fisc']);
+                if (isset($data['finances']['recettes_aut'])) $fp->setAutresRecettes($data['finances']['recettes_aut']);
+                if (isset($data['finances']['depenses_tot'])) $fp->setDepensesTotales($data['finances']['depenses_tot']);
+            }
+
+            // 6. Tresorerie
+            if (!empty($data['tresorerie'])) {
+                $te = $em->getRepository(\App\Entity\TresorerieEtat::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$te) {
+                    $te = new \App\Entity\TresorerieEtat();
+                    $te->setConjoncture($conj);
+                    $em->persist($te);
+                }
+                if (isset($data['tresorerie']['avant'])) $te->setSoldeAvantFin($data['tresorerie']['avant']);
+                if (isset($data['tresorerie']['apres'])) $te->setSoldeApresFin($data['tresorerie']['apres']);
+                if (isset($data['tresorerie']['cumul'])) $te->setSoldeCumuleAnnee($data['tresorerie']['cumul']);
+                if (isset($data['tresorerie']['cgt'])) $te->setSoldeCgt($data['tresorerie']['cgt']);
+                if (isset($data['tresorerie']['dep_urg'])) $te->setDepensesUrgence($data['tresorerie']['dep_urg']);
+                if (isset($data['tresorerie']['exc'])) $te->setExcedent($data['tresorerie']['exc']);
+                if (isset($data['tresorerie']['res_tit'])) $te->setReserveSousTitres($data['tresorerie']['res_tit']);
+            }
+
+            // 7. Titres Publics
+            if (!empty($data['titres'])) {
+                 $tp = $em->getRepository(\App\Entity\TitresPublics::class)->findOneBy(['conjoncture' => $conj]);
+                 if (!$tp) {
+                     $tp = new \App\Entity\TitresPublics();
+                     $tp->setConjoncture($conj);
+                     $em->persist($tp);
+                 }
+                 if (isset($data['titres']['ot_idx'])) $tp->setEncoursOtindex($data['titres']['ot_idx']);
+                 if (isset($data['titres']['bt_idx'])) $tp->setEncoursBtindex($data['titres']['bt_idx']);
+                 if (isset($data['titres']['ot_usd'])) $tp->setEncoursOtUsd($data['titres']['ot_usd']);
+                 if (isset($data['titres']['bt_usd'])) $tp->setEncoursBtUsd($data['titres']['bt_usd']);
+            }
+
+            // 8. Paie Etat
+            if (!empty($data['paie'])) {
+                $pe = $em->getRepository(\App\Entity\PaieEtat::class)->findOneBy(['conjoncture' => $conj]);
+                if (!$pe) {
+                    $pe = new \App\Entity\PaieEtat();
+                    $pe->setConjoncture($conj);
+                    $em->persist($pe);
+                }
+                if (isset($data['paie']['tot'])) $pe->setMontantTotal($data['paie']['tot']);
+                if (isset($data['paie']['paye'])) $pe->setMontantPaye($data['paie']['paye']);
+                if (isset($data['paie']['reste'])) $pe->setMontantRestant($data['paie']['reste']);
+            }
+            
+            $em->flush();
+
+            // Notify event
+            $eventDispatcher->dispatch(
+                new ConjonctureDataUpdatedEvent($conj, 'text_import'),
+                ConjonctureDataUpdatedEvent::NAME
+            );
+
+            // Clear session
+            $session->remove('import_preview_data');
+
+            $this->addFlash('success', 'Toutes les données extraites ont été enregistrées avec succès!');
+            
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de l\'enregistrement : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_import');
     }
 
     #[Route('/import/upload', name: 'app_import_upload', methods: ['POST'])]

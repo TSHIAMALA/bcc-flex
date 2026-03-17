@@ -67,11 +67,14 @@
 <div class="grid-2">
     <!-- Upload Form -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <h3 class="card-title">
                 <i class="fas fa-cloud-upload-alt"></i>
                 Importer des Données
             </h3>
+            <a href="{{ path('app_import_text') }}" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">
+                <i class="fas fa-paste"></i> Copier/Coller Texte
+            </a>
         </div>
         <form action="{{ path('app_import_upload') }}" method="post" enctype="multipart/form-data" class="import-form">
             <div class="form-group">
