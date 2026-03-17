@@ -1,698 +1,1331 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Indicateurs de Période{% endblock %}
+{% block title %}Indicateurs de Période
+{% endblock %}
 
-{% block header_title %}Indicateurs de Période{% endblock %}
-{% block header_subtitle %}Agrégats & Orientation Politique Monétaire{% endblock %}
+{% block header_title %}Indicateurs de Période
+{% endblock %}
+{% block header_subtitle %}Agrégats & Orientation Politique Monétaire
+{% endblock %}
 
 {% block stylesheets %}
-<style>
-/* ── Tone de page ─────────────────────────────────────────────────────── */
-.page-content { background: #f0f4f8; }
+	<style>
+		/* ── Tone de page ─────────────────────────────────────────────────────── */
+		.page-content {
+			background: #f0f4f8;
+		}
+		[data-theme="dark"] .page-content,
+		body.dark-mode .page-content {
+			background: #0f172a;
+		}
 
-/* ── Sélecteur de période ────────────────────────────────────────────── */
-.periode-card {
-    background: linear-gradient(135deg, #1e4b7a 0%, #2d6da6 100%);
-    border-radius: 16px;
-    padding: 1.5rem 2rem;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 20px rgba(30,75,122,.35);
-}
-.periode-card label { font-weight: 600; font-size: .85rem; letter-spacing: .04em; opacity: .85; }
-.periode-card input[type="date"] {
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.35);
-    color: #fff;
-    border-radius: 8px;
-    padding: .45rem .9rem;
-    font-size: .9rem;
-    outline: none;
-    transition: background .2s;
-}
-.periode-card input[type="date"]:focus { background: rgba(255,255,255,.25); }
-.periode-card input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-.btn-appliquer {
-    background: #f7e034;
-    color: #1e4b7a;
-    font-weight: 700;
-    border: none;
-    border-radius: 8px;
-    padding: .5rem 1.4rem;
-    cursor: pointer;
-    font-size: .9rem;
-    transition: all .2s;
-}
-.btn-appliquer:hover { background: #ffe900; transform: translateY(-1px); }
+		/* ── Sélecteur de période ────────────────────────────────────────────── */
+		.periode-card {
+			background: linear-gradient(135deg, #1e4b7a 0%, #2d6da6 100%);
+			border-radius: 16px;
+			padding: 1.5rem 2rem;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 1rem;
+			margin-bottom: 1.5rem;
+			box-shadow: 0 4px 20px rgba(30, 75, 122, 0.35);
+		}
+		.periode-card label {
+			font-weight: 600;
+			font-size: 0.85rem;
+			letter-spacing: 0.04em;
+			opacity: .85;
+		}
+		.periode-card input[type="date"] {
+			background: rgba(255, 255, 255, 0.15);
+			border: 1px solid rgba(255, 255, 255, 0.35);
+			color: #fff;
+			border-radius: 8px;
+			padding: 0.45rem 0.9rem;
+			font-size: 0.9rem;
+			outline: none;
+			transition: background 0.2s;
+		}
+		.periode-card input[type="date"]:focus {
+			background: rgba(255, 255, 255, 0.25);
+		}
+		.periode-card input[type="date"]::-webkit-calendar-picker-indicator {
+			filter: invert(1);
+		}
+		.btn-appliquer {
+			background: #f7e034;
+			color: #1e4b7a;
+			font-weight: 700;
+			border: none;
+			border-radius: 8px;
+			padding: 0.5rem 1.4rem;
+			cursor: pointer;
+			font-size: 0.9rem;
+			transition: all 0.2s;
+		}
+		.btn-appliquer:hover {
+			background: #ffe900;
+			transform: translateY(-1px);
+		}
 
-.btn-export {
-    background: rgba(255,255,255,.18);
-    color: #fff;
-    font-weight: 600;
-    border: 1px solid rgba(255,255,255,.4);
-    border-radius: 8px;
-    padding: .5rem 1.2rem;
-    cursor: pointer;
-    font-size: .85rem;
-    text-decoration: none;
-    transition: all .2s;
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-}
-.btn-export:hover { background: rgba(255,255,255,.3); color: #fff; }
+		.btn-export {
+			background: rgba(255, 255, 255, 0.18);
+			color: #fff;
+			font-weight: 600;
+			border: 1px solid rgba(255, 255, 255, 0.4);
+			border-radius: 8px;
+			padding: 0.5rem 1.2rem;
+			cursor: pointer;
+			font-size: 0.85rem;
+			text-decoration: none;
+			transition: all 0.2s;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+		}
+		.btn-export:hover {
+			background: rgba(255, 255, 255, 0.3);
+			color: #fff;
+		}
 
-/* ── Bandeau Taux Directeur ──────────────────────────────────────────── */
-.taux-banner {
-    border-radius: 16px;
-    padding: 1.6rem 2rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    box-shadow: 0 4px 24px rgba(0,0,0,.12);
-}
-.taux-banner.success  { background: linear-gradient(135deg,#d4edda,#c3e6cb); border-left: 5px solid #38a169; }
-.taux-banner.info     { background: linear-gradient(135deg,#cfe2ff,#b6d4fe); border-left: 5px solid #4a89dc; }
-.taux-banner.warning  { background: linear-gradient(135deg,#fff3cd,#ffeaa7); border-left: 5px solid #dd6b20; }
-.taux-banner.danger   { background: linear-gradient(135deg,#f8d7da,#f5c6cb); border-left: 5px solid #c53030; }
-.taux-banner.secondary{ background: linear-gradient(135deg,#e9ecef,#dee2e6); border-left: 5px solid #adb5bd; }
+		/* ── Bandeau Taux Directeur ──────────────────────────────────────────── */
+		.taux-banner {
+			border-radius: 16px;
+			padding: 1.6rem 2rem;
+			margin-bottom: 1.5rem;
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 1.5rem;
+			flex-wrap: wrap;
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+		}
+		.taux-banner.success {
+			background: linear-gradient(135deg,#d4edda,#c3e6cb);
+			border-left: 5px solid #38a169;
+		}
+		.taux-banner.info {
+			background: linear-gradient(135deg,#cfe2ff,#b6d4fe);
+			border-left: 5px solid #4a89dc;
+		}
+		.taux-banner.warning {
+			background: linear-gradient(135deg,#fff3cd,#ffeaa7);
+			border-left: 5px solid #dd6b20;
+		}
+		.taux-banner.danger {
+			background: linear-gradient(135deg,#f8d7da,#f5c6cb);
+			border-left: 5px solid #c53030;
+		}
+		.taux-banner.secondary {
+			background: linear-gradient(135deg,#e9ecef,#dee2e6);
+			border-left: 5px solid #adb5bd;
+		}
 
-.taux-gauge {
-    font-size: 3.2rem;
-    font-weight: 800;
-    line-height: 1;
-    color: #1e4b7a;
-}
-.taux-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; opacity: .7; font-weight: 600; }
-.taux-reco-label {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: .25rem;
-}
-.taux-reco-justif { font-size: .88rem; line-height: 1.55; opacity: .85; max-width: 65ch; }
+		.taux-gauge {
+			font-size: 3.2rem;
+			font-weight: 800;
+			line-height: 1;
+			color: #1e4b7a;
+		}
+		.taux-label {
+			font-size: 0.78rem;
+			text-transform: uppercase;
+			letter-spacing: 0.06em;
+			opacity: .7;
+			font-weight: 600;
+		}
+		.taux-reco-label {
+			font-size: 1.25rem;
+			font-weight: 700;
+			margin-bottom: 0.25rem;
+		}
+		.taux-reco-justif {
+			font-size: 0.88rem;
+			line-height: 1.55;
+			opacity: .85;
+			max-width: 65ch;
+		}
 
-/* ── KPI Cards ──────────────────────────────────────────────────────── */
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
-@media (max-width:  600px) { .kpi-grid { grid-template-columns: 1fr; } }
-.kpi-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 1.25rem 1.5rem 1.35rem;
-    box-shadow: 0 2px 14px rgba(0,0,0,.07);
-    border-top: 4px solid #ddd;
-    transition: transform .18s, box-shadow .18s;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.11); }
-.kpi-card.signal-green  { border-top-color: #38a169; }
-.kpi-card.signal-yellow { border-top-color: #d69e2e; }
-.kpi-card.signal-orange { border-top-color: #dd6b20; }
-.kpi-card.signal-red    { border-top-color: #c53030; }
-.kpi-card.signal-secondary { border-top-color: #adb5bd; }
-/* Pill signal */
-.kpi-pill {
-    display: inline-block;
-    font-size: .68rem;
-    font-weight: 700;
-    letter-spacing: .05em;
-    padding: .16rem .52rem;
-    border-radius: 20px;
-    margin-bottom: .55rem;
-    width: fit-content;
-}
-.pill-green    { background: #d4edda; color: #155724; }
-.pill-yellow   { background: #fff3cd; color: #856404; }
-.pill-orange   { background: #ffe5cc; color: #8a4700; }
-.pill-red      { background: #f8d7da; color: #721c24; }
-.pill-secondary{ background: #e9ecef; color: #6c757d; }
-/* Valeur principale */
-.kpi-value     { font-size: 2rem; font-weight: 800; color: #1a3254; line-height: 1.05; letter-spacing: -.02em; }
-.kpi-subvalue  { font-size: .75rem; color: #8a9ab5; margin-top: .18rem; font-weight: 500; }
-/* Titre pilier */
-.kpi-title     { font-size: .78rem; font-weight: 700; color: #1e4b7a; margin-top: .9rem; padding-top: .7rem; border-top: 1px solid #eef0f4; display: flex; align-items: center; gap: .3rem; }
-/* Mini-grille de sous-données */
-.kpi-data      { display: grid; grid-template-columns: 1fr 1fr; gap: .28rem .5rem; margin-top: .6rem; }
-.kpi-data-item { display: flex; flex-direction: column; }
-.kdi-label     { font-size: .63rem; font-weight: 600; color: #a0aec0; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
-.kdi-val       { font-size: .82rem; font-weight: 700; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+		/* ── KPI Cards ──────────────────────────────────────────────────────── */
+		.kpi-grid {
+			display: grid;
+			grid-template-columns: repeat(4, 1fr);
+			gap: 1rem;
+			margin-bottom: 1.5rem;
+		}
+		@media(max-width: 1100px) {
+			.kpi-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+		@media(max-width: 600px) {
+			.kpi-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+		.kpi-card {
+			background: var(--bg-card);
+			border-radius: 14px;
+			padding: 1.25rem 1.5rem 1.35rem;
+			box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+			border-top: 4px solid rgba(0, 0, 0, 0.08);
+			transition: transform 0.18s, box-shadow 0.18s;
+			display: flex;
+			flex-direction: column;
+			gap: 0;
+		}
+		.kpi-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.11);
+		}
+		.kpi-card.signal-green {
+			border-top-color: #38a169;
+		}
+		.kpi-card.signal-yellow {
+			border-top-color: #d69e2e;
+		}
+		.kpi-card.signal-orange {
+			border-top-color: #dd6b20;
+		}
+		.kpi-card.signal-red {
+			border-top-color: #c53030;
+		}
+		.kpi-card.signal-secondary {
+			border-top-color: #adb5bd;
+		}
+		/* Pill signal */
+		.kpi-pill {
+			display: inline-block;
+			font-size: 0.68rem;
+			font-weight: 700;
+			letter-spacing: 0.05em;
+			padding: 0.16rem 0.52rem;
+			border-radius: 20px;
+			margin-bottom: 0.55rem;
+			width: fit-content;
+		}
+		.pill-green {
+			background: #d4edda;
+			color: #155724;
+		}
+		.pill-yellow {
+			background: #fff3cd;
+			color: #856404;
+		}
+		.pill-orange {
+			background: #ffe5cc;
+			color: #8a4700;
+		}
+		.pill-red {
+			background: #f8d7da;
+			color: #721c24;
+		}
+		.pill-secondary {
+			background: #e9ecef;
+			color: #6c757d;
+		}
+		/* Valeur principale */
+		.kpi-value {
+			font-size: 2rem;
+			font-weight: 800;
+			color: var(--text-primary);
+			line-height: 1.05;
+			letter-spacing: -0.02em;
+		}
+		.kpi-subvalue {
+			font-size: 0.75rem;
+			color: var(--text-secondary);
+			margin-top: 0.18rem;
+			font-weight: 500;
+		}
+		/* Titre pilier */
+		.kpi-title {
+			font-size: 0.78rem;
+			font-weight: 700;
+			color: var(--text-primary);
+			margin-top: 0.9rem;
+			padding-top: 0.7rem;
+			border-top: 1px solid rgba(0, 0, 0, 0.08);
+			display: flex;
+			align-items: center;
+			gap: 0.3rem;
+		}
+		/* Mini-grille de sous-données */
+		.kpi-data {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.28rem 0.5rem;
+			margin-top: 0.6rem;
+		}
+		.kpi-data-item {
+			display: flex;
+			flex-direction: column;
+		}
+		.kdi-label {
+			font-size: 0.63rem;
+			font-weight: 600;
+			color: var(--text-secondary);
+			letter-spacing: 0.04em;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+		.kdi-val {
+			font-size: 0.82rem;
+			font-weight: 700;
+			color: var(--text-primary);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 
-/* ── Graphiques ─────────────────────────────────────────────────────── */
-.charts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px,1fr)); gap: 1.2rem; margin-bottom: 1.5rem; }
-.chart-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 1.2rem 1.4rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,.07);
-}
-.chart-card h3 { font-size: .9rem; font-weight: 700; color: #1e4b7a; margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem; }
-.chart-wrapper { position: relative; height: 220px; }
+		/* ── Graphiques ─────────────────────────────────────────────────────── */
+		.charts-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+			gap: 1.2rem;
+			margin-bottom: 1.5rem;
+		}
+		.chart-card {
+			background: var(--bg-card);
+			border-radius: 14px;
+			padding: 1.2rem 1.4rem;
+			box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+		}
+		.chart-card h3 {
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: var(--text-primary);
+			margin-bottom: 1rem;
+			display: flex;
+			align-items: center;
+			gap: 0.4rem;
+		}
+		.chart-wrapper {
+			position: relative;
+			height: 220px;
+		}
 
-/* ── Tableau résumé ─────────────────────────────────────────────────── */
-.summary-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 1.4rem;
-    box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    margin-bottom: 1.5rem;
-    overflow-x: auto;
-}
-.summary-card h3 { font-size: .95rem; font-weight: 700; color: #1e4b7a; margin-bottom: 1rem; }
-.summary-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
-.summary-table th {
-    background: #1e4b7a;
-    color: #fff;
-    padding: .55rem .8rem;
-    text-align: left;
-    font-size: .78rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    white-space: nowrap;
-}
-.summary-table td { padding: .5rem .8rem; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
-.summary-table tr:hover td { background: #f7fbff; }
+		/* ── Tableau résumé ─────────────────────────────────────────────────── */
+		.summary-card {
+			background: var(--bg-card);
+			border-radius: 14px;
+			padding: 1.4rem;
+			box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+			margin-bottom: 1.5rem;
+			overflow-x: auto;
+		}
+		.summary-card h3 {
+			font-size: 0.95rem;
+			font-weight: 700;
+			color: var(--text-primary);
+			margin-bottom: 1rem;
+		}
+		.summary-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: 0.83rem;
+		}
+		.summary-table th {
+			background: #1e4b7a;
+			color: #fff;
+			padding: 0.55rem 0.8rem;
+			text-align: left;
+			font-size: 0.78rem;
+			font-weight: 600;
+			letter-spacing: 0.04em;
+			white-space: nowrap;
+		}
+		.summary-table td {
+			padding: 0.5rem 0.8rem;
+			border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+			white-space: nowrap;
+		}
+		.summary-table tr:hover td {
+			background: rgba(0, 0, 0, 0.04);
+		}
 
-/* signal inline badges */
-.badge { padding: .22rem .55rem; border-radius: 20px; font-size: .7rem; font-weight: 700; display: inline-block; }
-.badge-green    { background: #d4edda; color: #155724; }
-.badge-yellow   { background: #fff3cd; color: #856404; }
-.badge-orange   { background: #ffe5cc; color: #8a4700; }
-.badge-red      { background: #f8d7da; color: #721c24; }
-.badge-secondary{ background: #e9ecef; color: #6c757d; }
+		/* signal inline badges */
+		.badge {
+			padding: 0.22rem 0.55rem;
+			border-radius: 20px;
+			font-size: 0.7rem;
+			font-weight: 700;
+			display: inline-block;
+		}
+		.badge-green {
+			background: #d4edda;
+			color: #155724;
+		}
+		.badge-yellow {
+			background: #fff3cd;
+			color: #856404;
+		}
+		.badge-orange {
+			background: #ffe5cc;
+			color: #8a4700;
+		}
+		.badge-red {
+			background: #f8d7da;
+			color: #721c24;
+		}
+		.badge-secondary {
+			background: #e9ecef;
+			color: #6c757d;
+		}
 
-/* ── No-data ────────────────────────────────────────────────────────── */
-.no-data { text-align: center; padding: 3rem 1rem; color: #bbb; font-size: .95rem; }
-.no-data i { font-size: 2.5rem; display: block; margin-bottom: .7rem; }
-</style>
+		/* ── No-data ────────────────────────────────────────────────────────── */
+		.no-data {
+			text-align: center;
+			padding: 3rem 1rem;
+			color: #bbb;
+			font-size: 0.95rem;
+		}
+		.no-data i {
+			font-size: 2.5rem;
+			display: block;
+			margin-bottom: 0.7rem;
+		}
+
+		/* Dark mode tweaks */
+		[data-theme="dark"] .summary-table th,
+		body.dark-mode .summary-table th {
+			background: rgba(255, 255, 255, 0.1);
+			color: var(--text-secondary);
+		}
+
+		[data-theme="dark"] .summary-table tr:hover td,
+		body.dark-mode .summary-table tr:hover td {
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		[data-theme="dark"] .taux-banner,
+		body.dark-mode .taux-banner {
+			background: rgba(30, 41, 59, 0.85);
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+			color: var(--text-primary);
+		}
+
+		[data-theme="dark"] .taux-banner .taux-gauge,
+		body.dark-mode .taux-banner .taux-gauge {
+			color: var(--text-primary);
+		}
+
+		[data-theme="dark"] .taux-banner .taux-label,
+		body.dark-mode .taux-banner .taux-label,
+		[data-theme="dark"] .taux-banner .taux-reco-label,
+		body.dark-mode .taux-banner .taux-reco-label,
+		[data-theme="dark"] .taux-banner .taux-reco-justif,
+		body.dark-mode .taux-banner .taux-reco-justif {
+			color: var(--text-secondary);
+		}
+	</style>
 {% endblock %}
 
 {% block body %}
 
-{# ── Sélecteur de période ──────────────────────────────────────────────── #}
-<form method="get" action="{{ path('app_indicateurs_periode') }}" class="periode-card">
-    <div>
-        <label>Du</label>
-        <input type="date" name="dateDebut" value="{{ dateDebut }}" required>
-    </div>
-    <div>
-        <label>Au</label>
-        <input type="date" name="dateFin" value="{{ dateFin }}" required>
-    </div>
-    <button type="submit" class="btn-appliquer">
-        <i class="fas fa-filter" style="margin-right:.35rem"></i>Appliquer
-    </button>
-    <a href="{{ path('app_indicateurs_periode_slide', {dateDebut: dateDebut, dateFin: dateFin}) }}"
-       style="background:#ed8004" class="btn-export" target="_blank">
-        <i class="fas fa-file-powerpoint" ;"></i>Exporter le Slide
-    </a>
-    <span style="margin-left:auto; opacity:.7; font-size:.82rem">
-        Période : {{ dateDebut|date('d/m/Y') }} → {{ dateFin|date('d/m/Y') }}
-        {% if change.nb_jours is defined and change.nb_jours %}
-            &nbsp;·&nbsp; {{ change.nb_jours }} jours observés
-        {% endif %}
-    </span>
-</form>
+	{# ── Sélecteur de période ──────────────────────────────────────────────── #}
+	<form method="get" action="{{ path('app_indicateurs_periode') }}" class="periode-card">
+		<div>
+			<label>Du</label>
+			<input type="date" name="dateDebut" value="{{ dateDebut }}" required>
+		</div>
+		<div>
+			<label>Au</label>
+			<input type="date" name="dateFin" value="{{ dateFin }}" required>
+		</div>
+		<button type="submit" class="btn-appliquer">
+			<i class="fas fa-filter" style="margin-right:.35rem"></i>Appliquer
+		</button>
+		<a href="{{ path('app_indicateurs_periode_slide', {dateDebut: dateDebut, dateFin: dateFin}) }}" style="background:#ed8004" class="btn-export" target="_blank">
+			<i class="fas fa-file-powerpoint" ;"></i>Exporter le Slide
+		</a>
+		<span style="margin-left:auto; opacity:.7; font-size:.82rem">
+			Période :
+			{{ dateDebut|date('d/m/Y') }}
+			→
+			{{ dateFin|date('d/m/Y') }}
+			{% if change.nb_jours is defined and change.nb_jours %}
+				&nbsp;·&nbsp;
+				{{ change.nb_jours }}
+				jours observés
+			{% endif %}
+		</span>
+	</form>
 
-{# ── Bandeau Taux Directeur ────────────────────────────────────────────── #}
-<div class="taux-banner {{ recoTaux.classe }}">
-    <div>
-        <div class="taux-label">Taux Directeur BCC Actuel</div>
-        <div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }} %</div>
-        {% if tauxDirecteurPrec != tauxDirecteur %}
-            <div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
-                {% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼{% endif %}
-                Précédent : {{ tauxDirecteurPrec|number_format(1, ',', ' ') }} %
-            </div>
-        {% else %}
-            <div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
-        {% endif %}
-    </div>
-    <div style="flex:1; min-width:200px;">
-        <div class="taux-reco-label">{{ recoTaux.emoji }} Recommandation : {{ recoTaux.action }}</div>
-        <div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
-        <div class="taux-reco-justif">{{ recoTaux.justification }}</div>
-    </div>
-    <div style="text-align:center; opacity:.6;">
-        {% set signalMap = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
-        <div style="font-size:2rem; margin-bottom:.25rem;">
-            {{ signalMap[signalGlobal] ?? '⚪' }}
-        </div>
-        <div style="font-size:.75rem; font-weight:600; letter-spacing:.05em;">SIGNAL GLOBAL</div>
-    </div>
-</div>
+	{# ── Bandeau Taux Directeur ────────────────────────────────────────────── #}
+	<div class="top-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch;">
 
-{# ── Grille KPI des 4 Piliers ──────────────────────────────────────────── #}
-{% set pillLabels = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
-<div class="kpi-grid">
+		<div class="taux-banner {{ recoTaux.classe }}" style="margin-bottom: 0;">
+			<div>
+				<div class="taux-label">Taux Directeur BCC Actuel</div>
+				<div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }}
+					%</div>
+				{% if tauxDirecteurPrec != tauxDirecteur %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
+						{% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼
+						{% endif %}
+						Précédent :
+						{{ tauxDirecteurPrec|number_format(1, ',', ' ') }}
+						%
+					</div>
+				{% else %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
+				{% endif %}
+			</div>
+			<div style="flex:1; min-width:200px;">
+				<div class="taux-reco-label">{{ recoTaux.emoji }}
+					Recommandation :
+					{{ recoTaux.action }}</div>
+				<div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
+				<div class="taux-reco-justif">{{ recoTaux.justification }}</div>
+			</div>
+		</div>
 
-    {# ─ Pilier 1 : Marché des Changes ─ #}
-    <div class="kpi-card signal-{{ signalChange }}">
-        <span class="kpi-pill pill-{{ signalChange }}">{{ pillLabels[signalChange] ?? 'N/D' }}</span>
-        <div class="kpi-value">
-            {% if ecartMoy is not null %}{{ ecartMoy|number_format(2, ',', ' ') }} %{% else %}N/D{% endif %}
-        </div>
-        <div class="kpi-subvalue">Écart moy. indicatif / parallèle</div>
-        <div class="kpi-data">
-            <div class="kpi-data-item">
-                <span class="kdi-label">Cours indicatif moy.</span>
-                <span class="kdi-val">
-                    {% if change.cours_indicatif_moy is defined and change.cours_indicatif_moy %}
-                        {{ change.cours_indicatif_moy|number_format(2, ',', ' ') }} CDF
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Cours parallèle moy.</span>
-                <span class="kdi-val">
-                    {% if change.mid_parallele_moy is defined and change.mid_parallele_moy %}
-                        {{ change.mid_parallele_moy|number_format(2, ',', ' ') }} CDF
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Écart nominal moy.</span>
-                <span class="kdi-val">
-                    {% if change.mid_parallele_moy is defined and change.cours_indicatif_moy is defined and change.cours_indicatif_moy %}
-                        {{ (change.mid_parallele_moy - change.cours_indicatif_moy)|number_format(2, ',', ' ') }} CDF
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Étendue (min → max)</span>
-                <span class="kdi-val">
-                    {% if ecartMin is not null and ecartMax is not null %}
-                        {{ ecartMin|number_format(1, ',', ' ') }} → {{ ecartMax|number_format(1, ',', ' ') }} %
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-        </div>
-        <div class="kpi-title">🏦 Pilier 1 — Marché des Changes</div>
-    </div>
+		<div class="signal-global-card" style="background: var(--bg-card, #fff); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(15,23,42,0.05);">
+			{% set signalMap = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
+			{% set textMap = {green:'Normal', yellow:'Vigilance', orange:'Alerte', red:'Critique', secondary:'N/D'} %}
 
-    {# ─ Pilier 2 : Position Extérieure ─ #}
-    <div class="kpi-card signal-green">
-        <span class="kpi-pill pill-green">🟢 Ancre Externe</span>
-        <div class="kpi-value">
-            {% if reservesIntMoy is not null %}{{ (reservesIntMoy / 1000)|number_format(2, ',', ' ') }} Md${% else %}N/D{% endif %}
-        </div>
-        <div class="kpi-subvalue">Réserves int. moyennes (Mds USD)</div>
-        <div class="kpi-data">
-            <div class="kpi-data-item">
-                <span class="kdi-label">Min période</span>
-                <span class="kdi-val">
-                    {% if reserves.reserves_int_min is defined and reserves.reserves_int_min %}
-                        {{ (reserves.reserves_int_min / 1000)|number_format(2, ',', ' ') }} Md$
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Max période</span>
-                <span class="kdi-val">
-                    {% if reserves.reserves_int_max is defined and reserves.reserves_int_max %}
-                        {{ (reserves.reserves_int_max / 1000)|number_format(2, ',', ' ') }} Md$
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Avoirs extérieurs moy.</span>
-                <span class="kdi-val">
-                    {% if reserves.avoirs_ext_moy is defined and reserves.avoirs_ext_moy %}
-                        {{ (reserves.avoirs_ext_moy / 1000)|number_format(2, ',', ' ') }} Md$
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Jours observés</span>
-                <span class="kdi-val">
-                    {% if reserves.nb_jours is defined %}{{ reserves.nb_jours }} j{% else %}—{% endif %}
-                </span>
-            </div>
-        </div>
-        <div class="kpi-title">🌍 Pilier 2 — Position Extérieure</div>
-    </div>
+			{# Mapping text signal to score mathematically #}
+			{% set signalScore = signalGlobal == 'red' ? 85 : (signalGlobal == 'orange' ? 65 : (signalGlobal == 'yellow' ? 45 : (signalGlobal == 'green' ? 15 : 0))) %}
 
-    {# ─ Pilier 3 : Liquidité & Stérilisation ─ #}
-    <div class="kpi-card signal-{{ signalLiquidite }}">
-        <span class="kpi-pill pill-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span>
-        <div class="kpi-value">
-            {% if avLibresMoy is not null %}{{ avLibresMoy|number_format(0, ',', ' ') }}{% else %}N/D{% endif %}
-        </div>
-        <div class="kpi-subvalue">Avoirs libres moy. (Mds CDF)</div>
-        <div class="kpi-data">
-            <div class="kpi-data-item">
-                <span class="kdi-label">Pic avoirs libres</span>
-                <span class="kdi-val">
-                    {% if avLibresMax is not null %}{{ avLibresMax|number_format(0, ',', ' ') }} Mds{% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Stérilisation moy.</span>
-                <span class="kdi-val">
-                    {% if sterilisationMoy is not null %}{{ sterilisationMoy|number_format(0, ',', ' ') }} Mds{% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Couverture stéril.</span>
-                <span class="kdi-val">
-                    {% if sterilisationMoy is not null and avLibresMoy is not null and avLibresMoy > 0 %}
-                        {{ (sterilisationMoy / avLibresMoy * 100)|number_format(1, ',', ' ') }} %
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Seuil alerte</span>
-                <span class="kdi-val">800 / 1 200 Mds</span>
-            </div>
-        </div>
-        <div class="kpi-title">💧 Pilier 3 — Liquidité & Stérilisation</div>
-    </div>
+			<div style="position: relative; margin-bottom: 1rem; width: 100%;">
+				<div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+					<div style="font-size:.75rem; font-weight:700; opacity:.6; text-transform:uppercase; letter-spacing:1px; color: var(--text-primary, #1f2937);">Indice de Tension Global</div>
+					<button onclick="toggleItmInfo(event)" style="background:none; border:none; cursor:pointer; color: var(--text-secondary, #64748b); font-size:1rem; padding:0; display:flex;" title="Comprendre le calcul">
+						<i class="fas fa-question-circle"></i>
+					</button>
+				</div>
 
-    {# ─ Pilier 4 : Budget & Trésorerie ─ #}
-    <div class="kpi-card signal-{{ signalTresorerie }}">
-        <span class="kpi-pill pill-{{ signalTresorerie }}">{{ pillLabels[signalTresorerie] ?? 'N/D' }}</span>
-        <div class="kpi-value">
-            {% if soldeMoy is not null %}{{ soldeMoy|number_format(0, ',', ' ') }}{% else %}N/D{% endif %}
-        </div>
-        <div class="kpi-subvalue">Solde moyen journalier (Mds CDF)</div>
-        <div class="kpi-data">
-            <div class="kpi-data-item">
-                <span class="kdi-label">Solde cumulé</span>
-                <span class="kdi-val">
-                    {% if finances.solde_cumul is defined and finances.solde_cumul is not null %}
-                        {{ finances.solde_cumul|number_format(0, ',', ' ') }} Mds
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Recettes cumulées</span>
-                <span class="kdi-val">
-                    {% if finances.recettes_cumul is defined and finances.recettes_cumul %}
-                        {{ finances.recettes_cumul|number_format(0, ',', ' ') }} Mds
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Dépenses cumulées</span>
-                <span class="kdi-val">
-                    {% if finances.depenses_cumul is defined and finances.depenses_cumul %}
-                        {{ finances.depenses_cumul|number_format(0, ',', ' ') }} Mds
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-            <div class="kpi-data-item">
-                <span class="kdi-label">Solde min / max</span>
-                <span class="kdi-val">
-                    {% if finances.solde_min is defined and finances.solde_min is not null %}
-                        {{ finances.solde_min|number_format(0, ',', ' ') }} / {{ finances.solde_max|number_format(0, ',', ' ') }}
-                    {% else %}—{% endif %}
-                </span>
-            </div>
-        </div>
-        <div class="kpi-title">🏛️ Pilier 4 — Budget & Trésorerie</div>
-    </div>
+				<!-- Panneau d'information masqué par défaut -->
+				<div id="itmInfoPanel" style="display: none; position: absolute; z-index: 50; top: 1.8rem; left: 50%; transform: translateX(-50%); width: 280px; background: var(--bg-card, #fff); border: 1px solid rgba(15,23,42,0.1); border-radius: 12px; padding: 1.2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: left;">
+					<div style="font-size: .8rem; color: var(--text-primary); margin-bottom: .8rem; line-height: 1.4;">
+						<strong>L'Indice de Tension Global</strong>
+						est un indicateur composite calculé sur base de quatre paramètres pondérés :
+					</div>
+					<ul style="list-style-type: none; padding-left: 0; margin: 0; font-size: .75rem; color: var(--text-secondary); line-height: 1.5;">
+						<li style="margin-bottom: .4rem;">
+							<strong>35%</strong>
+							- Écart de change indicatif / parallèle (Moy)</li>
+						<li style="margin-bottom: .4rem;">
+							<strong>25%</strong>
+							- Surliquidité bancaire (Avoirs libres)</li>
+						<li style="margin-bottom: .4rem;">
+							<strong>20%</strong>
+							- Réserves internationales (Moy)</li>
+						<li>
+							<strong>20%</strong>
+							- Solde budgétaire (Moy)</li>
+					</ul>
+					<button onclick="toggleItmInfo(event)" style="margin-top: 1.2rem; width: 100%; padding: .4rem; border: none; border-radius: 6px; background: rgba(15,23,42,0.05); cursor: pointer; color: var(--text-primary); font-size: .75rem; font-weight: 600; transition: background 0.2s;">Fermer</button>
+				</div>
+			</div>
 
-</div>
+			<div class="signal-global-gauge" style="margin:0 auto; width:100%; max-width:320px; height:auto;">
+				<svg
+					viewbox="0 0 200 130" style="width:100%; height:100%; display:block;">
+					<!-- Definitions for gradients -->
+					<defs>
+						<linearGradient id="gGreen" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#10b981"/>
+							<stop offset="100%" stop-color="#34d399"/>
+						</linearGradient>
+						<linearGradient id="gYellow" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#84cc16"/>
+							<stop offset="100%" stop-color="#f59e0b"/>
+						</linearGradient>
+						<linearGradient id="gOrange" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#f59e0b"/>
+							<stop offset="100%" stop-color="#f97316"/>
+						</linearGradient>
+						<linearGradient id="gRed" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#f97316"/>
+							<stop offset="100%" stop-color="#ef4444"/>
+						</linearGradient>
+					</defs>
+					<path d="M 20 105 A 80 80 0 0 1 50 45" fill="none" stroke="url(#gGreen)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 52 43 A 80 80 0 0 1 100 25" fill="none" stroke="url(#gYellow)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 102 25 A 80 80 0 0 1 148 43" fill="none" stroke="url(#gOrange)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 150 45 A 80 80 0 0 1 180 105" fill="none" stroke="url(#gRed)" stroke-width="18" stroke-linecap="butt"/>
+					<g transform="rotate({{ -90 + (signalScore * 1.8) }}, 100, 105)">
+						<polygon points="100,40 96,105 104,105" fill="var(--text-primary, #1f2937)"/>
+						<circle cx="100" cy="105" r="10" fill="var(--text-primary, #1f2937)"/>
+						<circle cx="100" cy="105" r="6" fill="var(--bg-card, #fff)"/>
+					</g>
+				</svg>
+			</div>
 
-{# ── Graphiques ────────────────────────────────────────────────────────── #}
-<div class="charts-grid">
+			<div style="margin-top:-5px; font-weight:800; font-size:1.3rem; color: var(--text-primary, #1f2937);">
+				{{ signalMap[signalGlobal]|slice(0, 1) }}
+				{{ textMap[signalGlobal] ?? 'N/D' }}
+			</div>
 
-    <div class="chart-card">
-        <h3><i class="fas fa-chart-line" style="color:#2d6da6"></i> Évolution Écart de Change</h3>
-        <div class="chart-wrapper"><canvas id="chartChange"></canvas></div>
-    </div>
+			<div style="width: 100%; margin-top: 1.5rem; text-align: left;">
+				<div style="font-size: .75rem; font-weight: 700; color: var(--text-primary); margin-bottom: .8rem; opacity: .8;">Décomposition par Composante</div>
 
-    <div class="chart-card">
-        <h3><i class="fas fa-globe" style="color:#2d6da6"></i> Réserves Internationales (Mds $)</h3>
-        <div class="chart-wrapper"><canvas id="chartReserves"></canvas></div>
-    </div>
+				{% set signalColors = {'green': '#10b981', 'yellow': '#84cc16', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
+				{% set indicators = [
+                {'name': 'Écart de change', 'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D', 'signal': signalChange, 'score': signalChange == 'red' ? 85 : (signalChange == 'orange' ? 65 : (signalChange == 'yellow' ? 45 : 15)) },
+                {'name': 'Réserves Internationales', 'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D', 'signal': signalReserves ?? 'green', 'score': (signalReserves ?? 'green') == 'red' ? 85 : ((signalReserves ?? 'green') == 'orange' ? 65 : ((signalReserves ?? 'green') == 'yellow' ? 45 : 15)) },
+                {'name': 'Surliquidité bancaire', 'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalLiquidite, 'score': signalLiquidite == 'red' ? 85 : (signalLiquidite == 'orange' ? 65 : (signalLiquidite == 'yellow' ? 45 : 15)) },
+                {'name': 'Solde budgétaire', 'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalTresorerie, 'score': signalTresorerie == 'red' ? 85 : (signalTresorerie == 'orange' ? 65 : (signalTresorerie == 'yellow' ? 45 : 15)) }
+            ] %}
 
-    <div class="chart-card">
-        <h3><i class="fas fa-tint" style="color:#2d6da6"></i> Avoirs Libres (Mds CDF)</h3>
-        <div class="chart-wrapper"><canvas id="chartLiquidite"></canvas></div>
-    </div>
+				{% for ind in indicators %}
+					<div style="margin-bottom: .8rem;">
+						<div style="display: flex; justify-content: space-between; font-size: .75rem; font-weight: 600; color: var(--text-primary); margin-bottom: .3rem;">
+							<span>{{ ind.name }}</span>
+							<span style="color: {{ signalColors[ind.signal] ?? '#94a3b8' }};">{{ ind.val }}</span>
+						</div>
+						<div style="width: 100%; background: var(--bg-body, #e2e8f0); height: 6px; border-radius: 3px; overflow: hidden; display: flex;">
+							<div style="width: {{ ind.score }}%; background: {{ signalColors[ind.signal] ?? '#94a3b8' }}; height: 100%; border-radius: 3px;"></div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
 
-    <div class="chart-card">
-        <h3><i class="fas fa-balance-scale" style="color:#2d6da6"></i> Solde Budgétaire (Mds CDF)</h3>
-        <div class="chart-wrapper"><canvas id="chartBudget"></canvas></div>
-    </div>
+	</div>
+	<style>
+		@media(max-width: 900px) {
+			.signal-global-card {
+				grid-column: span 1;
+			}
+			.taux-banner {
+				grid-column: span 1;
+			}
+			.top-dashboard-grid {
+				grid-template-columns: 1fr !important;
+			}
+		}
+	</style>
 
-</div>
+	{# ── Grille KPI des 4 Piliers ──────────────────────────────────────────── #}
+	{% set pillLabels = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
+	<div
+		class="kpi-grid">
 
-{# ── Tableau synthèse détaillé ─────────────────────────────────────────── #}
-<div class="summary-card">
-    <h3><i class="fas fa-table" style="color:#2d6da6; margin-right:.4rem"></i>Synthèse des Indicateurs sur la Période</h3>
-    <table class="summary-table">
-        <thead>
-            <tr>
-                <th>Pilier</th>
-                <th>Indicateur</th>
-                <th>Moy. Période</th>
-                <th>Min</th>
-                <th>Max</th>
-                <th>Signal</th>
-                <th style="text-align:center">Taux Directeur</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="font-weight:600;color:#1e4b7a">🏦 Change</td>
-                <td>Écart indicatif/parallèle (%)</td>
-                <td>{% if ecartMoy is not null %}{{ ecartMoy|number_format(2,',',' ') }} %{% else %}—{% endif %}</td>
-                <td>{% if ecartMin is not null %}{{ ecartMin|number_format(2,',',' ') }} %{% else %}—{% endif %}</td>
-                <td>{% if ecartMax is not null %}{{ ecartMax|number_format(2,',',' ') }} %{% else %}—{% endif %}</td>
-                <td><span class="badge badge-{{ signalChange }}">{{ pillLabels[signalChange] ?? 'N/D' }}</span></td>
-                <td style="text-align:center; font-size:.78rem; color:#666">
-                    {% if ecartMoy is not null and ecartMoy <= 2 %}✅ Favorable{% elseif ecartMoy is not null and ecartMoy <= 3 %}⚠️ Prudence{% elseif ecartMoy is not null %}🛑 Bloquer baisse{% else %}—{% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td style="font-weight:600;color:#1e4b7a">🌍 Réserves</td>
-                <td>Réserves internationales (Md$)</td>
-                <td>{% if reservesIntMoy is not null %}{{ (reservesIntMoy/1000)|number_format(2,',',' ') }}{% else %}—{% endif %}</td>
-                <td>{% if reserves.reserves_int_min is defined and reserves.reserves_int_min %}{{ (reserves.reserves_int_min/1000)|number_format(2,',',' ') }}{% else %}—{% endif %}</td>
-                <td>{% if reserves.reserves_int_max is defined and reserves.reserves_int_max %}{{ (reserves.reserves_int_max/1000)|number_format(2,',',' ') }}{% else %}—{% endif %}</td>
-                <td><span class="badge badge-green">🟢 Ancre</span></td>
-                <td style="text-align:center; font-size:.78rem; color:#666">✅ Neutre</td>
-            </tr>
-            <tr>
-                <td style="font-weight:600;color:#1e4b7a">💧 Liquidité</td>
-                <td>Avoirs libres (Mds CDF)</td>
-                <td>{% if avLibresMoy is not null %}{{ avLibresMoy|number_format(0,',',' ') }}{% else %}—{% endif %}</td>
-                <td>—</td>
-                <td>{% if avLibresMax is not null %}{{ avLibresMax|number_format(0,',',' ') }}{% else %}—{% endif %}</td>
-                <td><span class="badge badge-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span></td>
-                <td style="text-align:center; font-size:.78rem; color:#666">
-                    {% if avLibresMax is not null and avLibresMax > 1200 %}🛑 Contrôler{% elseif avLibresMax is not null and avLibresMax > 800 %}⚠️ Surveiller{% else %}✅ Maîtrisée{% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td style="font-weight:600;color:#1e4b7a">🏛️ Budget</td>
-                <td>Solde trésorerie (Mds CDF)</td>
-                <td>{% if soldeMoy is not null %}{{ soldeMoy|number_format(0,',',' ') }}{% else %}—{% endif %}</td>
-                <td>{% if finances.solde_min is defined and finances.solde_min %}{{ finances.solde_min|number_format(0,',',' ') }}{% else %}—{% endif %}</td>
-                <td>{% if finances.solde_max is defined and finances.solde_max %}{{ finances.solde_max|number_format(0,',',' ') }}{% else %}—{% endif %}</td>
-                <td><span class="badge badge-{{ signalTresorerie }}">{{ pillLabels[signalTresorerie] ?? 'N/D' }}</span></td>
-                <td style="text-align:center; font-size:.78rem; color:#666">
-                    {% if soldeMoy is not null and soldeMoy < -100 %}🛑 Tension{% elseif soldeMoy is not null and soldeMoy < 0 %}⚠️ Surveiller{% else %}✅ Neutre{% endif %}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+		{# ─ Pilier 1 : Marché des Changes ─ #}
+		<div class="kpi-card signal-{{ signalChange }}">
+			<span class="kpi-pill pill-{{ signalChange }}">{{ pillLabels[signalChange] ?? 'N/D' }}</span>
+			<div class="kpi-value">
+				{% if ecartMoy is not null %}
+					{{ ecartMoy|number_format(2, ',', ' ') }}
+					%{% else %}N/D
+				{% endif %}
+			</div>
+			<div class="kpi-subvalue">Écart moy. indicatif / parallèle</div>
+			<div class="kpi-data">
+				<div class="kpi-data-item">
+					<span class="kdi-label">Cours indicatif moy.</span>
+					<span class="kdi-val">
+						{% if change.cours_indicatif_moy is defined and change.cours_indicatif_moy %}
+							{{ change.cours_indicatif_moy|number_format(2, ',', ' ') }}
+							CDF
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Cours parallèle moy.</span>
+					<span class="kdi-val">
+						{% if change.mid_parallele_moy is defined and change.mid_parallele_moy %}
+							{{ change.mid_parallele_moy|number_format(2, ',', ' ') }}
+							CDF
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Écart nominal moy.</span>
+					<span class="kdi-val">
+						{% if change.mid_parallele_moy is defined and change.cours_indicatif_moy is defined and change.cours_indicatif_moy %}
+							{{ (change.mid_parallele_moy - change.cours_indicatif_moy)|number_format(2, ',', ' ') }}
+							CDF
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Étendue (min → max)</span>
+					<span class="kdi-val">
+						{% if ecartMin is not null and ecartMax is not null %}
+							{{ ecartMin|number_format(1, ',', ' ') }}
+							→
+							{{ ecartMax|number_format(1, ',', ' ') }}
+							%
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+			</div>
+			<div class="kpi-title">🏦 Pilier 1 — Marché des Changes</div>
+		</div>
 
-{# ── Note pédagogique ──────────────────────────────────────────────────── #}
-<div style="background:#fff; border-radius:14px; padding:1.4rem; box-shadow:0 2px 12px rgba(0,0,0,.07); border-left:4px solid #2d6da6; margin-bottom:1.5rem;">
-    <h3 style="font-size:.92rem; font-weight:700; color:#1e4b7a; margin-bottom:.6rem;">
-        <i class="fas fa-lightbulb" style="margin-right:.4rem; color:#f7e034;"></i>
-        Principe de décision — Taux Directeur & Politique Monétaire
-    </h3>
-    <p style="font-size:.83rem; color:#555; line-height:1.65; margin:0;">
-        Dans le cadre de notre écosystème monétaire pluriel, le taux directeur est avant tout un
-        <strong>signal de crédibilité</strong>. Sa baisse, même en période de désinflation, peut alimenter
-        des anticipations de dépréciation si le marché parallèle n'est pas encore aligné avec
-        le taux indicatif. <strong>Règle opérationnelle :</strong> le taux ne baisse que lorsque
-        l'écart de change est stabilisé en zone verte (&lt; 2 %) ET que la surliquidité est
-        maîtrisée par la stérilisation (B-BCC). En zone orange ou rouge, le maintien du taux
-        directeur est la première ligne de défense de l'ancre nominale.
-    </p>
-</div>
+		{# ─ Pilier 2 : Position Extérieure ─ #}
+		<div class="kpi-card signal-green">
+			<span class="kpi-pill pill-green">🟢 Ancre Externe</span>
+			<div class="kpi-value">
+				{% if reservesIntMoy is not null %}
+					{{ (reservesIntMoy / 1000)|number_format(2, ',', ' ') }}
+					Md${% else %}N/D
+				{% endif %}
+			</div>
+			<div class="kpi-subvalue">Réserves int. moyennes (Mds USD)</div>
+			<div class="kpi-data">
+				<div class="kpi-data-item">
+					<span class="kdi-label">Min période</span>
+					<span class="kdi-val">
+						{% if reserves.reserves_int_min is defined and reserves.reserves_int_min %}
+							{{ (reserves.reserves_int_min / 1000)|number_format(2, ',', ' ') }}
+							Md$
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Max période</span>
+					<span class="kdi-val">
+						{% if reserves.reserves_int_max is defined and reserves.reserves_int_max %}
+							{{ (reserves.reserves_int_max / 1000)|number_format(2, ',', ' ') }}
+							Md$
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Avoirs extérieurs moy.</span>
+					<span class="kdi-val">
+						{% if reserves.avoirs_ext_moy is defined and reserves.avoirs_ext_moy %}
+							{{ (reserves.avoirs_ext_moy / 1000)|number_format(2, ',', ' ') }}
+							Md$
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Jours observés</span>
+					<span class="kdi-val">
+						{% if reserves.nb_jours is defined %}
+							{{ reserves.nb_jours }}
+							j{% else %}—
+						{% endif %}
+					</span>
+				</div>
+			</div>
+			<div class="kpi-title">🌍 Pilier 2 — Position Extérieure</div>
+		</div>
+
+		{# ─ Pilier 3 : Liquidité & Stérilisation ─ #}
+		<div class="kpi-card signal-{{ signalLiquidite }}">
+			<span class="kpi-pill pill-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span>
+			<div class="kpi-value">
+				{% if avLibresMoy is not null %}
+					{{ avLibresMoy|number_format(0, ',', ' ') }}{% else %}N/D
+				{% endif %}
+			</div>
+			<div class="kpi-subvalue">Avoirs libres moy. (Mds CDF)</div>
+			<div class="kpi-data">
+				<div class="kpi-data-item">
+					<span class="kdi-label">Pic avoirs libres</span>
+					<span class="kdi-val">
+						{% if avLibresMax is not null %}
+							{{ avLibresMax|number_format(0, ',', ' ') }}
+							Mds{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Stérilisation moy.</span>
+					<span class="kdi-val">
+						{% if sterilisationMoy is not null %}
+							{{ sterilisationMoy|number_format(0, ',', ' ') }}
+							Mds{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Couverture stéril.</span>
+					<span class="kdi-val">
+						{% if sterilisationMoy is not null and avLibresMoy is not null and avLibresMoy > 0 %}
+							{{ (sterilisationMoy / avLibresMoy * 100)|number_format(1, ',', ' ') }}
+							%
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Seuil alerte</span>
+					<span class="kdi-val">800 / 1 200 Mds</span>
+				</div>
+			</div>
+			<div class="kpi-title">💧 Pilier 3 — Liquidité & Stérilisation</div>
+		</div>
+
+		{# ─ Pilier 4 : Budget & Trésorerie ─ #}
+		<div class="kpi-card signal-{{ signalTresorerie }}">
+			<span class="kpi-pill pill-{{ signalTresorerie }}">{{ pillLabels[signalTresorerie] ?? 'N/D' }}</span>
+			<div class="kpi-value">
+				{% if soldeMoy is not null %}
+					{{ soldeMoy|number_format(0, ',', ' ') }}{% else %}N/D
+				{% endif %}
+			</div>
+			<div class="kpi-subvalue">Solde moyen journalier (Mds CDF)</div>
+			<div class="kpi-data">
+				<div class="kpi-data-item">
+					<span class="kdi-label">Solde cumulé</span>
+					<span class="kdi-val">
+						{% if finances.solde_cumul is defined and finances.solde_cumul is not null %}
+							{{ finances.solde_cumul|number_format(0, ',', ' ') }}
+							Mds
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Recettes cumulées</span>
+					<span class="kdi-val">
+						{% if finances.recettes_cumul is defined and finances.recettes_cumul %}
+							{{ finances.recettes_cumul|number_format(0, ',', ' ') }}
+							Mds
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Dépenses cumulées</span>
+					<span class="kdi-val">
+						{% if finances.depenses_cumul is defined and finances.depenses_cumul %}
+							{{ finances.depenses_cumul|number_format(0, ',', ' ') }}
+							Mds
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+				<div class="kpi-data-item">
+					<span class="kdi-label">Solde min / max</span>
+					<span class="kdi-val">
+						{% if finances.solde_min is defined and finances.solde_min is not null %}
+							{{ finances.solde_min|number_format(0, ',', ' ') }}
+							/
+							{{ finances.solde_max|number_format(0, ',', ' ') }}
+							{% else %}—
+						{% endif %}
+					</span>
+				</div>
+			</div>
+			<div class="kpi-title">🏛️ Pilier 4 — Budget & Trésorerie</div>
+		</div>
+
+	</div>
+
+	{# ── Graphiques ────────────────────────────────────────────────────────── #}
+	<div class="charts-grid">
+
+		<div class="chart-card">
+			<h3>
+				<i class="fas fa-chart-line" style="color:#2d6da6"></i>
+				Évolution Écart de Change</h3>
+			<div class="chart-wrapper">
+				<canvas id="chartChange"></canvas>
+			</div>
+		</div>
+
+		<div class="chart-card">
+			<h3>
+				<i class="fas fa-globe" style="color:#2d6da6"></i>
+				Réserves Internationales (Mds $)</h3>
+			<div class="chart-wrapper">
+				<canvas id="chartReserves"></canvas>
+			</div>
+		</div>
+
+		<div class="chart-card">
+			<h3>
+				<i class="fas fa-tint" style="color:#2d6da6"></i>
+				Avoirs Libres (Mds CDF)</h3>
+			<div class="chart-wrapper">
+				<canvas id="chartLiquidite"></canvas>
+			</div>
+		</div>
+
+		<div class="chart-card">
+			<h3>
+				<i class="fas fa-balance-scale" style="color:#2d6da6"></i>
+				Solde Budgétaire (Mds CDF)</h3>
+			<div class="chart-wrapper">
+				<canvas id="chartBudget"></canvas>
+			</div>
+		</div>
+
+	</div>
+
+	{# ── Tableau synthèse détaillé ─────────────────────────────────────────── #}
+	<div class="summary-card">
+		<h3>
+			<i class="fas fa-table" style="color:#2d6da6; margin-right:.4rem"></i>Synthèse des Indicateurs sur la Période</h3>
+		<table class="summary-table">
+			<thead>
+				<tr>
+					<th>Pilier</th>
+					<th>Indicateur</th>
+					<th>Moy. Période</th>
+					<th>Min</th>
+					<th>Max</th>
+					<th>Signal</th>
+					<th style="text-align:center">Taux Directeur</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td style="font-weight:600;color:#1e4b7a">🏦 Change</td>
+					<td>Écart indicatif/parallèle (%)</td>
+					<td>
+						{% if ecartMoy is not null %}
+							{{ ecartMoy|number_format(2,',',' ') }}
+							%{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if ecartMin is not null %}
+							{{ ecartMin|number_format(2,',',' ') }}
+							%{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if ecartMax is not null %}
+							{{ ecartMax|number_format(2,',',' ') }}
+							%{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						<span class="badge badge-{{ signalChange }}">{{ pillLabels[signalChange] ?? 'N/D' }}</span>
+					</td>
+					<td style="text-align:center; font-size:.78rem; color:#666">
+						{% if ecartMoy is not null and ecartMoy <= 2 %}✅ Favorable{% elseif ecartMoy is not null and ecartMoy <= 3 %}⚠️ Prudence{% elseif ecartMoy is not null %}🛑 Bloquer baisse{% else %}—
+						{% endif %}
+					</td>
+				</tr>
+				<tr>
+					<td style="font-weight:600;color:#1e4b7a">🌍 Réserves</td>
+					<td>Réserves internationales (Md$)</td>
+					<td>
+						{% if reservesIntMoy is not null %}
+							{{ (reservesIntMoy/1000)|number_format(2,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if reserves.reserves_int_min is defined and reserves.reserves_int_min %}
+							{{ (reserves.reserves_int_min/1000)|number_format(2,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if reserves.reserves_int_max is defined and reserves.reserves_int_max %}
+							{{ (reserves.reserves_int_max/1000)|number_format(2,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						<span class="badge badge-green">🟢 Ancre</span>
+					</td>
+					<td style="text-align:center; font-size:.78rem; color:#666">✅ Neutre</td>
+				</tr>
+				<tr>
+					<td style="font-weight:600;color:#1e4b7a">💧 Liquidité</td>
+					<td>Avoirs libres (Mds CDF)</td>
+					<td>
+						{% if avLibresMoy is not null %}
+							{{ avLibresMoy|number_format(0,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>—</td>
+					<td>
+						{% if avLibresMax is not null %}
+							{{ avLibresMax|number_format(0,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						<span class="badge badge-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span>
+					</td>
+					<td style="text-align:center; font-size:.78rem; color:#666">
+						{% if avLibresMax is not null and avLibresMax > 1200 %}🛑 Contrôler{% elseif avLibresMax is not null and avLibresMax > 800 %}⚠️ Surveiller{% else %}✅ Maîtrisée
+						{% endif %}
+					</td>
+				</tr>
+				<tr>
+					<td style="font-weight:600;color:#1e4b7a">🏛️ Budget</td>
+					<td>Solde trésorerie (Mds CDF)</td>
+					<td>
+						{% if soldeMoy is not null %}
+							{{ soldeMoy|number_format(0,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if finances.solde_min is defined and finances.solde_min %}
+							{{ finances.solde_min|number_format(0,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						{% if finances.solde_max is defined and finances.solde_max %}
+							{{ finances.solde_max|number_format(0,',',' ') }}{% else %}—
+						{% endif %}
+					</td>
+					<td>
+						<span class="badge badge-{{ signalTresorerie }}">{{ pillLabels[signalTresorerie] ?? 'N/D' }}</span>
+					</td>
+					<td style="text-align:center; font-size:.78rem; color:#666">
+						{% if soldeMoy is not null and soldeMoy < -100 %}🛑 Tension{% elseif soldeMoy is not null and soldeMoy < 0 %}⚠️ Surveiller{% else %}✅ Neutre
+						{% endif %}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	{# ── Note pédagogique ──────────────────────────────────────────────────── #}
+	<div style="background:#fff; border-radius:14px; padding:1.4rem; box-shadow:0 2px 12px rgba(0,0,0,.07); border-left:4px solid #2d6da6; margin-bottom:1.5rem;">
+		<h3 style="font-size:.92rem; font-weight:700; color:#1e4b7a; margin-bottom:.6rem;">
+			<i class="fas fa-lightbulb" style="margin-right:.4rem; color:#f7e034;"></i>
+			Principe de décision — Taux Directeur & Politique Monétaire
+		</h3>
+		<p style="font-size:.83rem; color:#555; line-height:1.65; margin:0;">
+			Dans le cadre de notre écosystème monétaire pluriel, le taux directeur est avant tout un
+			<strong>signal de crédibilité</strong>. Sa baisse, même en période de désinflation, peut alimenter
+																        des anticipations de dépréciation si le marché parallèle n'est pas encore aligné avec
+																        le taux indicatif.
+			<strong>Règle opérationnelle :</strong>
+			le taux ne baisse que lorsque
+												        l'écart de change est stabilisé en zone verte (&lt; 2 %) ET que la surliquidité est
+												        maîtrisée par la stérilisation (B-BCC). En zone orange ou rouge, le maintien du taux
+												        directeur est la première ligne de défense de l'ancre nominale.
+		</p>
+	</div>
 
 {% endblock %}
 
 {% block javascripts %}
-<script>
-// ── Données graphiques (préparées par le controller PHP) ──────────────────
-const evolutionChange   = {{ chartChange|json_encode|raw }};
+	<script>
+		// ── Données graphiques (préparées par le controller PHP) ──────────────────
+const evolutionChange = {{ chartChange|json_encode|raw }};
 const evolutionReserves = {{ chartReserves|json_encode|raw }};
 const evolutionFinances = {{ chartFinances|json_encode|raw }};
 
 Chart.defaults.font.family = 'Inter, sans-serif';
-Chart.defaults.font.size   = 11;
+Chart.defaults.font.size = 11;
 
 const SEUIL_ORANGE = 3.0;
-const SEUIL_ROUGE  = 5.0;
-const TAUX_DIR     = {{ tauxDirecteur|json_encode|raw }};
+const SEUIL_ROUGE = 5.0;
+const TAUX_DIR = {{ tauxDirecteur|json_encode|raw }};
 
 // Couleur signal
 function ecartColor(v) {
-    if (v === null) return 'rgba(180,180,180,.5)';
-    if (v > SEUIL_ROUGE)   return 'rgba(197,48,48,.6)';
-    if (v > SEUIL_ORANGE)  return 'rgba(221,107,32,.6)';
-    if (v > 2)             return 'rgba(214,158,46,.6)';
-    return 'rgba(56,161,105,.6)';
+if (v === null) 
+return 'rgba(180,180,180,.5)';
+
+
+
+if (v > SEUIL_ROUGE) 
+return 'rgba(197,48,48,.6)';
+
+
+
+if (v > SEUIL_ORANGE) 
+return 'rgba(221,107,32,.6)';
+
+
+
+if (v > 2) 
+return 'rgba(214,158,46,.6)';
+
+
+
+return 'rgba(56,161,105,.6)';
 }
 
 // ── Graphique 1 : Écart change ───────────────────────────────────────────
 if (evolutionChange.length > 0) {
-    const ctx1 = document.getElementById('chartChange').getContext('2d');
-    const ecartData = evolutionChange.map(r => r.ecart);
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: evolutionChange.map(r => r.date),
-            datasets: [
-                {
-                    label: 'Écart % indicatif/parallèle',
-                    data: ecartData,
-                    borderColor: ecartData.map(ecartColor),
-                    backgroundColor: 'rgba(45,109,166,.08)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    tension: .35,
-                    fill: true,
-                    segment: {
-                        borderColor: ctx => {
-                            const v = ctx.p1.parsed.y;
-                            if (v > SEUIL_ROUGE)  return 'rgba(197,48,48,.9)';
-                            if (v > SEUIL_ORANGE) return 'rgba(221,107,32,.9)';
-                            if (v > 2)            return 'rgba(214,158,46,.9)';
-                            return 'rgba(56,161,105,.9)';
-                        }
-                    }
-                }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                annotation: {
-                    annotations: {
-                        lineOrange: { type: 'line', yMin: SEUIL_ORANGE, yMax: SEUIL_ORANGE, borderColor: 'rgba(221,107,32,.5)', borderWidth: 1, borderDash: [4,4], label: { content: '3%', display:true, font:{size:9} } },
-                        lineRouge:  { type: 'line', yMin: SEUIL_ROUGE,  yMax: SEUIL_ROUGE,  borderColor: 'rgba(197,48,48,.5)',  borderWidth: 1, borderDash: [4,4], label: { content: '5%', display:true, font:{size:9} } },
-                    }
-                }
-            },
-            scales: {
-                y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => v + ' %' } },
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 45 } }
-            }
-        }
-    });
+const ctx1 = document.getElementById('chartChange').getContext('2d');
+const ecartData = evolutionChange.map(r => r.ecart);
+new Chart(ctx1, {
+type: 'line',
+data: {
+labels: evolutionChange.map(r => r.date),
+datasets: [
+{
+label: 'Écart % indicatif/parallèle',
+data: ecartData,
+borderColor: ecartData.map(ecartColor),
+backgroundColor: 'rgba(45,109,166,.08)',
+borderWidth: 2,
+pointRadius: 3,
+tension: .35,
+fill: true,
+segment: {
+borderColor: ctx => {
+const v = ctx.p1.parsed.y;
+if (v > SEUIL_ROUGE) 
+return 'rgba(197,48,48,.9)';
+
+
+
+if (v > SEUIL_ORANGE) 
+return 'rgba(221,107,32,.9)';
+
+
+
+if (v > 2) 
+return 'rgba(214,158,46,.9)';
+
+
+
+return 'rgba(56,161,105,.9)';
+}
+}
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: {
+display: false
+},
+annotation: {
+annotations: {
+lineOrange: {
+type: 'line',
+yMin: SEUIL_ORANGE,
+yMax: SEUIL_ORANGE,
+borderColor: 'rgba(221,107,32,.5)',
+borderWidth: 1,
+borderDash: [
+4, 4
+],
+label: {
+content: '3%',
+display: true,
+font: {
+size: 9
+}
+}
+},
+lineRouge: {
+type: 'line',
+yMin: SEUIL_ROUGE,
+yMax: SEUIL_ROUGE,
+borderColor: 'rgba(197,48,48,.5)',
+borderWidth: 1,
+borderDash: [
+4, 4
+],
+label: {
+content: '5%',
+display: true,
+font: {
+size: 9
+}
+}
+}
+}
+}
+},
+scales: {
+y: {
+grid: {
+color: 'rgba(0,0,0,.05)'
+},
+ticks: {
+callback: v => v + ' %'
+}
+},
+x: {
+grid: {
+display: false
+},
+ticks: {
+maxTicksLimit: 12,
+maxRotation: 45
+}
+}
+}
+}
+});
 } else {
-    document.getElementById('chartChange').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-chart-line"></i>Aucune donnée de change sur la période</div>';
+document.getElementById('chartChange').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-chart-line"></i>Aucune donnée de change sur la période</div>';
 }
 
 // ── Graphique 2 : Réserves ──────────────────────────────────────────────
 if (evolutionReserves.length > 0) {
-    const ctx2 = document.getElementById('chartReserves').getContext('2d');
-    new Chart(ctx2, {
-        type: 'line',
-        data: {
-            labels: evolutionReserves.map(r => r.date),
-            datasets: [{
-                label: 'Réserves int. (Md$)',
-                data: evolutionReserves.map(r => r.res),
-                borderColor: '#2d6da6',
-                backgroundColor: 'rgba(45,109,166,.1)',
-                borderWidth: 2,
-                pointRadius: 2,
-                tension: .35,
-                fill: true
-            
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => v + ' Md$' } },
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 45 } }
-            }
-        }
-    });
+const ctx2 = document.getElementById('chartReserves').getContext('2d');
+new Chart(ctx2, {
+type: 'line',
+data: {
+labels: evolutionReserves.map(r => r.date),
+datasets: [
+{
+label: 'Réserves int. (Md$)',
+data: evolutionReserves.map(r => r.res),
+borderColor: '#2d6da6',
+backgroundColor: 'rgba(45,109,166,.1)',
+borderWidth: 2,
+pointRadius: 2,
+tension: .35,
+fill: true
+
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: {
+display: false
+}
+},
+scales: {
+y: {
+grid: {
+color: 'rgba(0,0,0,.05)'
+},
+ticks: {
+callback: v => v + ' Md$'
+}
+},
+x: {
+grid: {
+display: false
+},
+ticks: {
+maxTicksLimit: 12,
+maxRotation: 45
+}
+}
+}
+}
+});
 } else {
-    document.getElementById('chartReserves').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-globe"></i>Aucune donnée de réserves</div>';
+document.getElementById('chartReserves').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-globe"></i>Aucune donnée de réserves</div>';
 }
 
 // ── Graphique 3 : Avoirs libres ──────────────────────────────────────────
 const avData = evolutionReserves.filter(r => r.av !== null);
 if (avData.length > 0) {
-    const ctx3 = document.getElementById('chartLiquidite').getContext('2d');
-    new Chart(ctx3, {
-        type: 'bar',
-        data: {
-            labels: avData.map(r => r.date),
-            datasets: [{
-                label: 'Avoirs libres (Mds CDF)',
-                data: avData.map(r => r.av),
-                backgroundColor: avData.map(r => r.av > 1200 ? 'rgba(197,48,48,.65)' : r.av > 800 ? 'rgba(221,107,32,.65)' : 'rgba(56,161,105,.65)'),
-                borderRadius: 3
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: 'rgba(0,0,0,.05)' } },
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 45 } }
-            }
-        }
-    });
+const ctx3 = document.getElementById('chartLiquidite').getContext('2d');
+new Chart(ctx3, {
+type: 'bar',
+data: {
+labels: avData.map(r => r.date),
+datasets: [
+{
+label: 'Avoirs libres (Mds CDF)',
+data: avData.map(r => r.av),
+backgroundColor: avData.map(r => r.av > 1200 ? 'rgba(197,48,48,.65)' : r.av > 800 ? 'rgba(221,107,32,.65)' : 'rgba(56,161,105,.65)'),
+borderRadius: 3
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: {
+display: false
+}
+},
+scales: {
+y: {
+grid: {
+color: 'rgba(0,0,0,.05)'
+}
+},
+x: {
+grid: {
+display: false
+},
+ticks: {
+maxTicksLimit: 12,
+maxRotation: 45
+}
+}
+}
+}
+});
 } else {
-    document.getElementById('chartLiquidite').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-tint"></i>Aucune donnée de liquidité</div>';
+document.getElementById('chartLiquidite').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-tint"></i>Aucune donnée de liquidité</div>';
 }
 
 // ── Graphique 4 : Solde budgétaire ──────────────────────────────────────
 const soldeData = evolutionFinances.filter(r => r.solde !== null);
 if (soldeData.length > 0) {
-    const ctx4 = document.getElementById('chartBudget').getContext('2d');
-    new Chart(ctx4, {
-        type: 'bar',
-        data: {
-            labels: soldeData.map(r => r.date),
-            datasets: [{
-                label: 'Solde budgétaire (Mds CDF)',
-                data: soldeData.map(r => r.solde),
-                backgroundColor: soldeData.map(r => r.solde < -100 ? 'rgba(197,48,48,.65)' : r.solde < 0 ? 'rgba(214,158,46,.65)' : 'rgba(56,161,105,.65)'),
-                borderRadius: 3
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => v + ' M' } },
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 45 } }
-            }
-        }
-    });
-} else {
-    document.getElementById('chartBudget').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-balance-scale"></i>Aucune donnée budgétaire</div>';
+const ctx4 = document.getElementById('chartBudget').getContext('2d');
+new Chart(ctx4, {
+type: 'bar',
+data: {
+labels: soldeData.map(r => r.date),
+datasets: [
+{
+label: 'Solde budgétaire (Mds CDF)',
+data: soldeData.map(r => r.solde),
+backgroundColor: soldeData.map(r => r.solde < -100 ? 'rgba(197,48,48,.65)' : r.solde < 0 ? 'rgba(214,158,46,.65)' : 'rgba(56,161,105,.65)'),
+borderRadius: 3
 }
-</script>
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: {
+display: false
+}
+},
+scales: {
+y: {
+grid: {
+color: 'rgba(0,0,0,.05)'
+},
+ticks: {
+callback: v => v + ' M'
+}
+},
+x: {
+grid: {
+display: false
+},
+ticks: {
+maxTicksLimit: 12,
+maxRotation: 45
+}
+}
+}
+}
+});
+} else {
+document.getElementById('chartBudget').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-balance-scale"></i>Aucune donnée budgétaire</div>';
+}
+
+// ── Info ITM ─────────────────────────────────────────────────────────────
+function toggleItmInfo(e) {
+if (e) 
+e.stopPropagation();
+
+const panel = document.getElementById('itmInfoPanel');
+if (panel) {
+panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+}
+
+// Fermer le panneau si on clique en dehors
+document.addEventListener('click', function (e) {
+const panel = document.getElementById('itmInfoPanel');
+if (panel && panel.style.display === 'block') {
+const btn = e.target.closest('button[onclick="toggleItmInfo(event)"]');
+if (! panel.contains(e.target) && ! btn) {
+panel.style.display = 'none';
+}
+}
+});
+	</script>
 {% endblock %}

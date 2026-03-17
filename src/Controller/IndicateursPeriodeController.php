@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class IndicateursPeriodeController extends AbstractController
 {
-    #[Route('/indicateurs-periode', name: 'app_indicateurs_periode')]
+    #[Route('/', name: 'app_indicateurs_periode')]
     public function index(
         Request $request,
         ConjonctureJourRepository $conjonctureRepo,
@@ -64,13 +64,15 @@ class IndicateursPeriodeController extends AbstractController
         $ecartMax = isset($change['ecart_pct_max']) ? (float) $change['ecart_pct_max'] : null;
         $avLibMoy = isset($reserves['avoirs_libres_moy']) ? (float) $reserves['avoirs_libres_moy'] : null;
         $avLibMax = isset($reserves['avoirs_libres_max']) ? (float) $reserves['avoirs_libres_max'] : null;
+        $reservesIntMoy = isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null;
         $soldeMoy = isset($finances['solde_moy']) ? (float) $finances['solde_moy'] : null;
         $sterilMoy = isset($encours['sterilisation_totale_moy']) ? (float) $encours['sterilisation_totale_moy'] : null;
 
         $signalChange = $this->computeSignalChange($ecartMoy, $ecartMax);
         $signalLiq = $this->computeSignalLiquidite($avLibMax);
         $signalTreso = $this->computeSignalTresorerie($soldeMoy);
-        $signalGlobal = $this->pireSignal([$signalChange, $signalLiq, $signalTreso]);
+        $signalReserves = $this->computeSignalReserves($reservesIntMoy);
+        $signalGlobal = $this->pireSignal([$signalChange, $signalLiq, $signalTreso, $signalReserves]);
 
         // ── Recommandation Taux Directeur ─────────────────────────────────
         $recoTaux = $this->recommandationTauxDirecteur(
@@ -133,6 +135,7 @@ class IndicateursPeriodeController extends AbstractController
             'signalChange' => $signalChange,
             'signalLiquidite' => $signalLiq,
             'signalTresorerie' => $signalTreso,
+            'signalReserves' => $signalReserves,
             'signalGlobal' => $signalGlobal,
             // taux directeur
             'tauxDirecteur' => $tauxDirecteur,
@@ -195,11 +198,13 @@ class IndicateursPeriodeController extends AbstractController
         $ecartMax = isset($change['ecart_pct_max']) ? (float) $change['ecart_pct_max'] : null;
         $avLibMax = isset($reserves['avoirs_libres_max']) ? (float) $reserves['avoirs_libres_max'] : null;
         $soldeMoy = isset($finances['solde_moy']) ? (float) $finances['solde_moy'] : null;
+        $reservesIntMoy = isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null;
 
         $signalChange = $this->computeSignalChange($ecartMoy, $ecartMax);
         $signalLiq = $this->computeSignalLiquidite($avLibMax);
         $signalTreso = $this->computeSignalTresorerie($soldeMoy);
-        $signalGlobal = $this->pireSignal([$signalChange, $signalLiq, $signalTreso]);
+        $signalReserves = $this->computeSignalReserves($reserves['reserves_int_moy'] ?? null);
+        $signalGlobal = $this->pireSignal([$signalChange, $signalLiq, $signalTreso, $signalReserves]);
         $recoTaux = $this->recommandationTauxDirecteur($tauxDirecteur, $ecartMoy, $avLibMax, $soldeMoy);
 
         $data = [
@@ -222,6 +227,7 @@ class IndicateursPeriodeController extends AbstractController
             'signalChange' => $signalChange,
             'signalLiquidite' => $signalLiq,
             'signalTresorerie' => $signalTreso,
+            'signalReserves' => $signalReserves,
             'signalGlobal' => $signalGlobal,
             'recoTaux' => $recoTaux,
         ];
@@ -264,6 +270,19 @@ class IndicateursPeriodeController extends AbstractController
             return 'red';
         if ($avLibresMax > 800)
             return 'orange';
+        return 'green';
+    }
+
+    private function computeSignalReserves(?float $reservesIntMoy): string
+    {
+        if ($reservesIntMoy === null)
+            return 'secondary';
+        if ($reservesIntMoy < 2500)
+            return 'red';
+        if ($reservesIntMoy < 4000)
+            return 'orange';
+        if ($reservesIntMoy < 5000)
+            return 'yellow';
         return 'green';
     }
 

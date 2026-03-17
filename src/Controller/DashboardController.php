@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class DashboardController extends AbstractController
 {
-    #[Route('/', name: 'app_dashboard')]
+    #[Route('/dashboard', name: 'app_dashboard')]
     public function index(
         Request $request,
         KPIJournalierRepository $kpiRepository,
