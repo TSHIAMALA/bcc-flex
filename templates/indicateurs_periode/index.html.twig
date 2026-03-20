@@ -522,7 +522,7 @@
 				</div>
 			</div>
 
-			<div class="signal-global-gauge" style="margin:0 auto; width:100%; max-width:320px; height:auto;">
+			<div class="signal-global-gauge" style="margin:0 auto; width:100%; max-width:210px; height:auto;">
 				<svg
 					viewbox="0 0 200 130" style="width:100%; height:100%; display:block;">
 					<!-- Definitions for gradients -->
@@ -556,13 +556,13 @@
 				</svg>
 			</div>
 
-			<div style="margin-top:-5px; font-weight:800; font-size:1.3rem; color: var(--text-primary, #1f2937);">
+			<div style="margin-top:-8px; font-weight:800; font-size:1.1rem; color: var(--text-primary, #1f2937);">
 				{{ signalMap[signalGlobal]|slice(0, 1) }}
 				{{ textMap[signalGlobal] ?? 'N/D' }}
 			</div>
 
-			<div style="width: 100%; margin-top: 1.5rem; text-align: left;">
-				<div style="font-size: .75rem; font-weight: 700; color: var(--text-primary); margin-bottom: .8rem; opacity: .8;">Décomposition par Composante</div>
+			<div style="width: 100%; margin-top: .8rem; text-align: left;">
+				<div style="font-size: .68rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; opacity: .7; text-transform: uppercase; letter-spacing: .04em;">Décomposition par Composante</div>
 
 				{% set signalColors = {'green': '#10b981', 'yellow': '#84cc16', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
 				{% set indicators = [
@@ -573,8 +573,8 @@
             ] %}
 
 				{% for ind in indicators %}
-					<div style="margin-bottom: .8rem;">
-						<div style="display: flex; justify-content: space-between; font-size: .75rem; font-weight: 600; color: var(--text-primary); margin-bottom: .3rem;">
+					<div style="margin-bottom: .45rem;">
+						<div style="display: flex; justify-content: space-between; font-size: .7rem; font-weight: 600; color: var(--text-primary); margin-bottom: .2rem;">
 							<span>{{ ind.name }}</span>
 							<span style="color: {{ signalColors[ind.signal] ?? '#94a3b8' }};">{{ ind.val }}</span>
 						</div>
