@@ -857,33 +857,7 @@
 	</div>
 
 		{# ── Bandeau Taux Directeur ────────────────────────────────────────────── #}
-	<div class="top-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch;">
-
-		<div class="taux-banner {{ recoTaux.classe }}" style="margin-bottom: 0;">
-			<div>
-				<div class="taux-label">Taux Directeur BCC Actuel</div>
-				<div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }}
-					%</div>
-				{% if tauxDirecteurPrec != tauxDirecteur %}
-					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
-						{% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼
-						{% endif %}
-						Précédent :
-						{{ tauxDirecteurPrec|number_format(1, ',', ' ') }}
-						%
-					</div>
-				{% else %}
-					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
-				{% endif %}
-			</div>
-			<div style="flex:1; min-width:200px;">
-				<div class="taux-reco-label">{{ recoTaux.emoji }}
-					Recommandation :
-					{{ recoTaux.action }}</div>
-				<div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
-				<div class="taux-reco-justif">{{ recoTaux.justification }}</div>
-			</div>
-		</div>
+	<div class="top-dashboard-grid" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch;">
 
 		<div class="signal-global-card" style="background: var(--bg-card, #fff); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(15,23,42,0.05);">
 			{% set signalMap = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
@@ -963,28 +937,45 @@
 				{{ textMap[signalGlobal] ?? 'N/D' }}
 			</div>
 
-			<div style="width: 100%; margin-top: 1.5rem; text-align: left;">
-				<div style="font-size: .75rem; font-weight: 700; color: var(--text-primary); margin-bottom: .8rem; opacity: .8;">Décomposition par Composante</div>
+			{# ── Indicateurs clés ── #}
+			{% set signalColors = {'green': '#10b981', 'yellow': '#ecc94b', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
+			{% set signalBg = {'green': 'rgba(16,185,129,.12)', 'yellow': 'rgba(236,201,75,.15)', 'orange': 'rgba(245,158,11,.15)', 'red': 'rgba(239,68,68,.12)', 'secondary': 'rgba(148,163,184,.12)'} %}
+			{% set indicators = [
+				{'label': 'Écart de change',         'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D',                                   'signal': signalChange},
+				{'label': 'Réserves int.',            'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D',                          'signal': signalReserves ?? 'green'},
+				{'label': 'Surliquidité bancaire',   'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D',                                       'signal': signalLiquidite},
+				{'label': 'Solde budgétaire',         'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D',                                 'signal': signalTresorerie}
+			] %}
 
-				{% set signalColors = {'green': '#10b981', 'yellow': '#84cc16', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
-				{% set indicators = [
-                {'name': 'Écart de change', 'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D', 'signal': signalChange, 'score': signalChange == 'red' ? 85 : (signalChange == 'orange' ? 65 : (signalChange == 'yellow' ? 45 : 15)) },
-                {'name': 'Réserves Internationales', 'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D', 'signal': signalReserves ?? 'green', 'score': (signalReserves ?? 'green') == 'red' ? 85 : ((signalReserves ?? 'green') == 'orange' ? 65 : ((signalReserves ?? 'green') == 'yellow' ? 45 : 15)) },
-                {'name': 'Surliquidité bancaire', 'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalLiquidite, 'score': signalLiquidite == 'red' ? 85 : (signalLiquidite == 'orange' ? 65 : (signalLiquidite == 'yellow' ? 45 : 15)) },
-                {'name': 'Solde budgétaire', 'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalTresorerie, 'score': signalTresorerie == 'red' ? 85 : (signalTresorerie == 'orange' ? 65 : (signalTresorerie == 'yellow' ? 45 : 15)) }
-            ] %}
-
+			<div style="width:100%; margin-top:1.2rem; display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
 				{% for ind in indicators %}
-					<div style="margin-bottom: .8rem;">
-						<div style="display: flex; justify-content: space-between; font-size: .75rem; font-weight: 600; color: var(--text-primary); margin-bottom: .3rem;">
-							<span>{{ ind.name }}</span>
-							<span style="color: {{ signalColors[ind.signal] ?? '#94a3b8' }};">{{ ind.val }}</span>
-						</div>
-						<div style="width: 100%; background: var(--bg-body, #e2e8f0); height: 6px; border-radius: 3px; overflow: hidden; display: flex;">
-							<div style="width: {{ ind.score }}%; background: {{ signalColors[ind.signal] ?? '#94a3b8' }}; height: 100%; border-radius: 3px;"></div>
-						</div>
-					</div>
+				<div style="background:{{ signalBg[ind.signal] ?? 'rgba(148,163,184,.12)' }}; border:1px solid {{ signalColors[ind.signal] ?? '#94a3b8' }}33; border-left:3px solid {{ signalColors[ind.signal] ?? '#94a3b8' }}; border-radius:8px; padding:.55rem .75rem; display:flex; flex-direction:column; gap:.2rem;">
+					<span style="font-size:.68rem; font-weight:600; color:var(--text-secondary,#64748b); text-transform:uppercase; letter-spacing:.4px; line-height:1.2;">{{ ind.label }}</span>
+					<span style="font-size:.95rem; font-weight:800; color:{{ signalColors[ind.signal] ?? '#94a3b8' }}; font-variant-numeric:tabular-nums;">{{ ind.val }}</span>
+				</div>
 				{% endfor %}
+			</div>
+
+
+		</div>
+
+		<div class="taux-banner {{ recoTaux.classe }}" style="margin-bottom: 0;">
+			<div>
+				<div class="taux-label">Taux Directeur BCC Actuel</div>
+				<div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }} %</div>
+				{% if tauxDirecteurPrec != tauxDirecteur %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
+						{% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼{% endif %}
+						Précédent : {{ tauxDirecteurPrec|number_format(1, ',', ' ') }} %
+					</div>
+				{% else %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
+				{% endif %}
+			</div>
+			<div style="flex:1; min-width:200px;">
+				<div class="taux-reco-label">{{ recoTaux.emoji }} Recommandation : {{ recoTaux.action }}</div>
+				<div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
+				<div class="taux-reco-justif">{{ recoTaux.justification }}</div>
 			</div>
 		</div>
 
