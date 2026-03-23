@@ -18,19 +18,33 @@
 				<span>Dashboard</span>
 			</a> #}
 
-			<a href="{{ path('app_indicateurs_periode') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_indicateurs_periode' ? 'active' : '' }}">
-				<i class="fas fa-chart-bar"></i>
-				<span>Vue d'ensemble</span>
+		
+
+			<a href="{{ path('app_marche') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_marche' ? 'active' : '' }}">
+				<i class="fas fa-exchange-alt"></i>
+				<span>Marché des Changes</span>
 			</a>
 
 		</div>
 
 		<div class="nav-section">
 			<div class="nav-section-title">Modules</div>
-			<a href="{{ path('app_marche') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_marche' ? 'active' : '' }}">
-				<i class="fas fa-exchange-alt"></i>
-				<span>Marché des Changes</span>
+			<a href="{{ path('app_fiche_journaliere') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_fiche_journaliere' ? 'active' : '' }}">
+			<i class="fas fa-file-contract"></i>
+			<span>Fiche Quotidienne</span>
+
+			{# <a href="{{ path('app_alertes') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_alertes' ? 'active' : '' }}">
+												                <i class="fas fa-bell"></i>
+												                <span>Alertes & Surveillance</span>
+			</a> #}
+
 			</a>
+				<a href="{{ path('app_indicateurs_periode') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_indicateurs_periode' ? 'active' : '' }}">
+				<i class="fas fa-chart-bar"></i>
+				<span>Fiche période</span>
+			</a>
+
+			
 			<a href="{{ path('app_finances') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_finances' ? 'active' : '' }}">
 				<i class="fas fa-wallet"></i>
 				<span>Finances Publiques</span>
@@ -47,14 +61,7 @@
 			<span>Banques</span>
 		</a>
 
-		<a href="{{ path('app_fiche_journaliere') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_fiche_journaliere' ? 'active' : '' }}">
-			<i class="fas fa-file-contract"></i>
-			<span>Fiche Quotidienne</span>
-
-			{# <a href="{{ path('app_alertes') }}" class="nav-item {{ app.request.attributes.get('_route') == 'app_alertes' ? 'active' : '' }}">
-												                <i class="fas fa-bell"></i>
-												                <span>Alertes & Surveillance</span>
-				</a> #}
+	
 		</div>
 
 		<div class="nav-section">

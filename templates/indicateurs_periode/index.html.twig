@@ -454,152 +454,7 @@
 		</span>
 	</form>
 
-	{# ── Bandeau Taux Directeur ────────────────────────────────────────────── #}
-	<div class="top-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch;">
 
-		<div class="taux-banner {{ recoTaux.classe }}" style="margin-bottom: 0;">
-			<div>
-				<div class="taux-label">Taux Directeur BCC Actuel</div>
-				<div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }}
-					%</div>
-				{% if tauxDirecteurPrec != tauxDirecteur %}
-					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
-						{% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼
-						{% endif %}
-						Précédent :
-						{{ tauxDirecteurPrec|number_format(1, ',', ' ') }}
-						%
-					</div>
-				{% else %}
-					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
-				{% endif %}
-			</div>
-			<div style="flex:1; min-width:200px;">
-				<div class="taux-reco-label">{{ recoTaux.emoji }}
-					Recommandation :
-					{{ recoTaux.action }}</div>
-				<div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
-				<div class="taux-reco-justif">{{ recoTaux.justification }}</div>
-			</div>
-		</div>
-
-		<div class="signal-global-card" style="background: var(--bg-card, #fff); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(15,23,42,0.05);">
-			{% set signalMap = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
-			{% set textMap = {green:'Normal', yellow:'Vigilance', orange:'Alerte', red:'Critique', secondary:'N/D'} %}
-
-			{# Mapping text signal to score mathematically #}
-			{% set signalScore = signalGlobal == 'red' ? 85 : (signalGlobal == 'orange' ? 65 : (signalGlobal == 'yellow' ? 45 : (signalGlobal == 'green' ? 15 : 0))) %}
-
-			<div style="position: relative; margin-bottom: 1rem; width: 100%;">
-				<div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
-					<div style="font-size:.75rem; font-weight:700; opacity:.6; text-transform:uppercase; letter-spacing:1px; color: var(--text-primary, #1f2937);">Indice de Tension Global</div>
-					<button onclick="toggleItmInfo(event)" style="background:none; border:none; cursor:pointer; color: var(--text-secondary, #64748b); font-size:1rem; padding:0; display:flex;" title="Comprendre le calcul">
-						<i class="fas fa-question-circle"></i>
-					</button>
-				</div>
-
-				<!-- Panneau d'information masqué par défaut -->
-				<div id="itmInfoPanel" style="display: none; position: absolute; z-index: 50; top: 1.8rem; left: 50%; transform: translateX(-50%); width: 280px; background: var(--bg-card, #fff); border: 1px solid rgba(15,23,42,0.1); border-radius: 12px; padding: 1.2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: left;">
-					<div style="font-size: .8rem; color: var(--text-primary); margin-bottom: .8rem; line-height: 1.4;">
-						<strong>L'Indice de Tension Global</strong>
-						est un indicateur composite calculé sur base de quatre paramètres pondérés :
-					</div>
-					<ul style="list-style-type: none; padding-left: 0; margin: 0; font-size: .75rem; color: var(--text-secondary); line-height: 1.5;">
-						<li style="margin-bottom: .4rem;">
-							<strong>35%</strong>
-							- Écart de change indicatif / parallèle (Moy)</li>
-						<li style="margin-bottom: .4rem;">
-							<strong>25%</strong>
-							- Surliquidité bancaire (Avoirs libres)</li>
-						<li style="margin-bottom: .4rem;">
-							<strong>20%</strong>
-							- Réserves internationales (Moy)</li>
-						<li>
-							<strong>20%</strong>
-							- Solde budgétaire (Moy)</li>
-					</ul>
-					<button onclick="toggleItmInfo(event)" style="margin-top: 1.2rem; width: 100%; padding: .4rem; border: none; border-radius: 6px; background: rgba(15,23,42,0.05); cursor: pointer; color: var(--text-primary); font-size: .75rem; font-weight: 600; transition: background 0.2s;">Fermer</button>
-				</div>
-			</div>
-
-			<div class="signal-global-gauge" style="margin:0 auto; width:100%; max-width:210px; height:auto;">
-				<svg
-					viewbox="0 0 200 130" style="width:100%; height:100%; display:block;">
-					<!-- Definitions for gradients -->
-					<defs>
-						<linearGradient id="gGreen" x1="0%" y1="0%" x2="100%">
-							<stop offset="0%" stop-color="#10b981"/>
-							<stop offset="100%" stop-color="#34d399"/>
-						</linearGradient>
-						<linearGradient id="gYellow" x1="0%" y1="0%" x2="100%">
-							<stop offset="0%" stop-color="#84cc16"/>
-							<stop offset="100%" stop-color="#f59e0b"/>
-						</linearGradient>
-						<linearGradient id="gOrange" x1="0%" y1="0%" x2="100%">
-							<stop offset="0%" stop-color="#f59e0b"/>
-							<stop offset="100%" stop-color="#f97316"/>
-						</linearGradient>
-						<linearGradient id="gRed" x1="0%" y1="0%" x2="100%">
-							<stop offset="0%" stop-color="#f97316"/>
-							<stop offset="100%" stop-color="#ef4444"/>
-						</linearGradient>
-					</defs>
-					<path d="M 20 105 A 80 80 0 0 1 50 45" fill="none" stroke="url(#gGreen)" stroke-width="18" stroke-linecap="butt"/>
-					<path d="M 52 43 A 80 80 0 0 1 100 25" fill="none" stroke="url(#gYellow)" stroke-width="18" stroke-linecap="butt"/>
-					<path d="M 102 25 A 80 80 0 0 1 148 43" fill="none" stroke="url(#gOrange)" stroke-width="18" stroke-linecap="butt"/>
-					<path d="M 150 45 A 80 80 0 0 1 180 105" fill="none" stroke="url(#gRed)" stroke-width="18" stroke-linecap="butt"/>
-					<g transform="rotate({{ -90 + (signalScore * 1.8) }}, 100, 105)">
-						<polygon points="100,40 96,105 104,105" fill="var(--text-primary, #1f2937)"/>
-						<circle cx="100" cy="105" r="10" fill="var(--text-primary, #1f2937)"/>
-						<circle cx="100" cy="105" r="6" fill="var(--bg-card, #fff)"/>
-					</g>
-				</svg>
-			</div>
-
-			<div style="margin-top:-8px; font-weight:800; font-size:1.1rem; color: var(--text-primary, #1f2937);">
-				{{ signalMap[signalGlobal]|slice(0, 1) }}
-				{{ textMap[signalGlobal] ?? 'N/D' }}
-			</div>
-
-			<div style="width: 100%; margin-top: .8rem; text-align: left;">
-				<div style="font-size: .68rem; font-weight: 700; color: var(--text-primary); margin-bottom: .5rem; opacity: .7; text-transform: uppercase; letter-spacing: .04em;">Décomposition par Composante</div>
-
-				{% set signalColors = {'green': '#10b981', 'yellow': '#84cc16', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
-				{% set indicators = [
-                {'name': 'Écart de change', 'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D', 'signal': signalChange, 'score': signalChange == 'red' ? 85 : (signalChange == 'orange' ? 65 : (signalChange == 'yellow' ? 45 : 15)) },
-                {'name': 'Réserves Internationales', 'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D', 'signal': signalReserves ?? 'green', 'score': (signalReserves ?? 'green') == 'red' ? 85 : ((signalReserves ?? 'green') == 'orange' ? 65 : ((signalReserves ?? 'green') == 'yellow' ? 45 : 15)) },
-                {'name': 'Surliquidité bancaire', 'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalLiquidite, 'score': signalLiquidite == 'red' ? 85 : (signalLiquidite == 'orange' ? 65 : (signalLiquidite == 'yellow' ? 45 : 15)) },
-                {'name': 'Solde budgétaire', 'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalTresorerie, 'score': signalTresorerie == 'red' ? 85 : (signalTresorerie == 'orange' ? 65 : (signalTresorerie == 'yellow' ? 45 : 15)) }
-            ] %}
-
-				{% for ind in indicators %}
-					<div style="margin-bottom: .45rem;">
-						<div style="display: flex; justify-content: space-between; font-size: .7rem; font-weight: 600; color: var(--text-primary); margin-bottom: .2rem;">
-							<span>{{ ind.name }}</span>
-							<span style="color: {{ signalColors[ind.signal] ?? '#94a3b8' }};">{{ ind.val }}</span>
-						</div>
-						<div style="width: 100%; background: var(--bg-body, #e2e8f0); height: 6px; border-radius: 3px; overflow: hidden; display: flex;">
-							<div style="width: {{ ind.score }}%; background: {{ signalColors[ind.signal] ?? '#94a3b8' }}; height: 100%; border-radius: 3px;"></div>
-						</div>
-					</div>
-				{% endfor %}
-			</div>
-		</div>
-
-	</div>
-	<style>
-		@media(max-width: 900px) {
-			.signal-global-card {
-				grid-column: span 1;
-			}
-			.taux-banner {
-				grid-column: span 1;
-			}
-			.top-dashboard-grid {
-				grid-template-columns: 1fr !important;
-			}
-		}
-	</style>
 
 	{# ── Grille KPI des 4 Piliers ──────────────────────────────────────────── #}
 	{% set pillLabels = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
@@ -1000,6 +855,153 @@
 												        directeur est la première ligne de défense de l'ancre nominale.
 		</p>
 	</div>
+
+		{# ── Bandeau Taux Directeur ────────────────────────────────────────────── #}
+	<div class="top-dashboard-grid" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: stretch;">
+
+		<div class="taux-banner {{ recoTaux.classe }}" style="margin-bottom: 0;">
+			<div>
+				<div class="taux-label">Taux Directeur BCC Actuel</div>
+				<div class="taux-gauge">{{ tauxDirecteur|number_format(1, ',', ' ') }}
+					%</div>
+				{% if tauxDirecteurPrec != tauxDirecteur %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">
+						{% if tauxDirecteur > tauxDirecteurPrec %}▲{% else %}▼
+						{% endif %}
+						Précédent :
+						{{ tauxDirecteurPrec|number_format(1, ',', ' ') }}
+						%
+					</div>
+				{% else %}
+					<div style="font-size:.78rem; margin-top:.25rem; opacity:.65;">→ Inchangé</div>
+				{% endif %}
+			</div>
+			<div style="flex:1; min-width:200px;">
+				<div class="taux-reco-label">{{ recoTaux.emoji }}
+					Recommandation :
+					{{ recoTaux.action }}</div>
+				<div style="font-weight:600; margin-bottom:.4rem; font-size:.92rem;">{{ recoTaux.label }}</div>
+				<div class="taux-reco-justif">{{ recoTaux.justification }}</div>
+			</div>
+		</div>
+
+		<div class="signal-global-card" style="background: var(--bg-card, #fff); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06); text-align: center; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(15,23,42,0.05);">
+			{% set signalMap = {green:'🟢 Normal', yellow:'🟡 Vigilance', orange:'🟠 Alerte', red:'🔴 Critique', secondary:'⚪ N/D'} %}
+			{% set textMap = {green:'Normal', yellow:'Vigilance', orange:'Alerte', red:'Critique', secondary:'N/D'} %}
+
+			{# Mapping text signal to score mathematically #}
+			{% set signalScore = signalGlobal == 'red' ? 85 : (signalGlobal == 'orange' ? 65 : (signalGlobal == 'yellow' ? 45 : (signalGlobal == 'green' ? 15 : 0))) %}
+
+			<div style="position: relative; margin-bottom: 1rem; width: 100%;">
+				<div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+					<div style="font-size:.75rem; font-weight:700; opacity:.6; text-transform:uppercase; letter-spacing:1px; color: var(--text-primary, #1f2937);">Indice de Tension Global</div>
+					<button onclick="toggleItmInfo(event)" style="background:none; border:none; cursor:pointer; color: var(--text-secondary, #64748b); font-size:1rem; padding:0; display:flex;" title="Comprendre le calcul">
+						<i class="fas fa-question-circle"></i>
+					</button>
+				</div>
+
+				<!-- Panneau d'information masqué par défaut -->
+				<div id="itmInfoPanel" style="display: none; position: absolute; z-index: 50; top: 1.8rem; left: 50%; transform: translateX(-50%); width: 280px; background: var(--bg-card, #fff); border: 1px solid rgba(15,23,42,0.1); border-radius: 12px; padding: 1.2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: left;">
+					<div style="font-size: .8rem; color: var(--text-primary); margin-bottom: .8rem; line-height: 1.4;">
+						<strong>L'Indice de Tension Global</strong>
+						est un indicateur composite calculé sur base de quatre paramètres pondérés :
+					</div>
+					<ul style="list-style-type: none; padding-left: 0; margin: 0; font-size: .75rem; color: var(--text-secondary); line-height: 1.5;">
+						<li style="margin-bottom: .4rem;">
+							<strong>35%</strong>
+							- Écart de change indicatif / parallèle (Moy)</li>
+						<li style="margin-bottom: .4rem;">
+							<strong>25%</strong>
+							- Surliquidité bancaire (Avoirs libres)</li>
+						<li style="margin-bottom: .4rem;">
+							<strong>20%</strong>
+							- Réserves internationales (Moy)</li>
+						<li>
+							<strong>20%</strong>
+							- Solde budgétaire (Moy)</li>
+					</ul>
+					<button onclick="toggleItmInfo(event)" style="margin-top: 1.2rem; width: 100%; padding: .4rem; border: none; border-radius: 6px; background: rgba(15,23,42,0.05); cursor: pointer; color: var(--text-primary); font-size: .75rem; font-weight: 600; transition: background 0.2s;">Fermer</button>
+				</div>
+			</div>
+
+			<div class="signal-global-gauge" style="margin:0 auto; width:100%; max-width:320px; height:auto;">
+				<svg
+					viewbox="0 0 200 130" style="width:100%; height:100%; display:block;">
+					<!-- Definitions for gradients -->
+					<defs>
+						<linearGradient id="gGreen" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#10b981"/>
+							<stop offset="100%" stop-color="#34d399"/>
+						</linearGradient>
+						<linearGradient id="gYellow" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#84cc16"/>
+							<stop offset="100%" stop-color="#f59e0b"/>
+						</linearGradient>
+						<linearGradient id="gOrange" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#f59e0b"/>
+							<stop offset="100%" stop-color="#f97316"/>
+						</linearGradient>
+						<linearGradient id="gRed" x1="0%" y1="0%" x2="100%">
+							<stop offset="0%" stop-color="#f97316"/>
+							<stop offset="100%" stop-color="#ef4444"/>
+						</linearGradient>
+					</defs>
+					<path d="M 20 105 A 80 80 0 0 1 50 45" fill="none" stroke="url(#gGreen)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 52 43 A 80 80 0 0 1 100 25" fill="none" stroke="url(#gYellow)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 102 25 A 80 80 0 0 1 148 43" fill="none" stroke="url(#gOrange)" stroke-width="18" stroke-linecap="butt"/>
+					<path d="M 150 45 A 80 80 0 0 1 180 105" fill="none" stroke="url(#gRed)" stroke-width="18" stroke-linecap="butt"/>
+					<g transform="rotate({{ -90 + (signalScore * 1.8) }}, 100, 105)">
+						<polygon points="100,40 96,105 104,105" fill="var(--text-primary, #1f2937)"/>
+						<circle cx="100" cy="105" r="10" fill="var(--text-primary, #1f2937)"/>
+						<circle cx="100" cy="105" r="6" fill="var(--bg-card, #fff)"/>
+					</g>
+				</svg>
+			</div>
+
+			<div style="margin-top:-5px; font-weight:800; font-size:1.3rem; color: var(--text-primary, #1f2937);">
+				{{ signalMap[signalGlobal]|slice(0, 1) }}
+				{{ textMap[signalGlobal] ?? 'N/D' }}
+			</div>
+
+			<div style="width: 100%; margin-top: 1.5rem; text-align: left;">
+				<div style="font-size: .75rem; font-weight: 700; color: var(--text-primary); margin-bottom: .8rem; opacity: .8;">Décomposition par Composante</div>
+
+				{% set signalColors = {'green': '#10b981', 'yellow': '#84cc16', 'orange': '#f59e0b', 'red': '#ef4444', 'secondary': '#94a3b8'} %}
+				{% set indicators = [
+                {'name': 'Écart de change', 'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D', 'signal': signalChange, 'score': signalChange == 'red' ? 85 : (signalChange == 'orange' ? 65 : (signalChange == 'yellow' ? 45 : 15)) },
+                {'name': 'Réserves Internationales', 'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D', 'signal': signalReserves ?? 'green', 'score': (signalReserves ?? 'green') == 'red' ? 85 : ((signalReserves ?? 'green') == 'orange' ? 65 : ((signalReserves ?? 'green') == 'yellow' ? 45 : 15)) },
+                {'name': 'Surliquidité bancaire', 'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalLiquidite, 'score': signalLiquidite == 'red' ? 85 : (signalLiquidite == 'orange' ? 65 : (signalLiquidite == 'yellow' ? 45 : 15)) },
+                {'name': 'Solde budgétaire', 'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D', 'signal': signalTresorerie, 'score': signalTresorerie == 'red' ? 85 : (signalTresorerie == 'orange' ? 65 : (signalTresorerie == 'yellow' ? 45 : 15)) }
+            ] %}
+
+				{% for ind in indicators %}
+					<div style="margin-bottom: .8rem;">
+						<div style="display: flex; justify-content: space-between; font-size: .75rem; font-weight: 600; color: var(--text-primary); margin-bottom: .3rem;">
+							<span>{{ ind.name }}</span>
+							<span style="color: {{ signalColors[ind.signal] ?? '#94a3b8' }};">{{ ind.val }}</span>
+						</div>
+						<div style="width: 100%; background: var(--bg-body, #e2e8f0); height: 6px; border-radius: 3px; overflow: hidden; display: flex;">
+							<div style="width: {{ ind.score }}%; background: {{ signalColors[ind.signal] ?? '#94a3b8' }}; height: 100%; border-radius: 3px;"></div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+	</div>
+	<style>
+		@media(max-width: 900px) {
+			.signal-global-card {
+				grid-column: span 1;
+			}
+			.taux-banner {
+				grid-column: span 1;
+			}
+			.top-dashboard-grid {
+				grid-template-columns: 1fr !important;
+			}
+		}
+	</style>
 
 {% endblock %}
 

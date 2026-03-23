@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class MarcheController extends AbstractController
 {
-    #[Route('/marche', name: 'app_marche')]
+    #[Route('/', name: 'app_marche')]
     public function index(
         Request $request,
         MarcheChangesRepository $marcheRepository,

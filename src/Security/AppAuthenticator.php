@@ -56,7 +56,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator implements Authent
             return new RedirectResponse($targetPath);
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('app_indicateurs_periode'));
+        return new RedirectResponse($this->urlGenerator->generate('app_marche'));
     }
 
     protected function getLoginUrl(Request $request): string

@@ -22,7 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 class IndicateursPeriodeController extends AbstractController
 {
-    #[Route('/', name: 'app_indicateurs_periode')]
+    #[Route('/fiche-periodique', name: 'app_indicateurs_periode')]
     public function index(
         Request $request,
         ConjonctureJourRepository $conjonctureRepo,
