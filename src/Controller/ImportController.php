@@ -198,6 +198,10 @@ class ImportController extends AbstractController
                 if (isset($data['finances']['recettes_fisc'])) $fp->setRecettesFiscales($data['finances']['recettes_fisc']);
                 if (isset($data['finances']['recettes_aut'])) $fp->setAutresRecettes($data['finances']['recettes_aut']);
                 if (isset($data['finances']['depenses_tot'])) $fp->setDepensesTotales($data['finances']['depenses_tot']);
+                
+                if ($fp->getSolde() === null && $fp->getRecettesTotales() !== null && $fp->getDepensesTotales() !== null) {
+                    $fp->setSolde((string)((float)$fp->getRecettesTotales() - (float)$fp->getDepensesTotales()));
+                }
             }
 
             // 6. Tresorerie
@@ -566,6 +570,8 @@ class ImportController extends AbstractController
         }
         if (isset($row['solde'])) {
             $finances->setSolde($this->parseNumber($row['solde']));
+        } elseif ($finances->getRecettesTotales() !== null && $finances->getDepensesTotales() !== null) {
+            $finances->setSolde((string)((float)$finances->getRecettesTotales() - (float)$finances->getDepensesTotales()));
         }
         
         $em->persist($finances);

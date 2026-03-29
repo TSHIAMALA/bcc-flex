@@ -120,9 +120,13 @@ class IndicateursPeriodeController extends AbstractController
         $chartFinances = [];
         foreach ($evolutionFinances as $r) {
             $cj = $r->getConjoncture();
+            $rt = $r->getRecettesTotales() !== null ? (float) $r->getRecettesTotales() : null;
+            $dt = $r->getDepensesTotales() !== null ? (float) $r->getDepensesTotales() : null;
+            $solde = $r->getSolde() !== null ? (float) $r->getSolde() : ($rt !== null && $dt !== null ? $rt - $dt : null);
+            
             $chartFinances[] = [
                 'date' => $cj?->getDateSituation()?->format('d/m') ?? '',
-                'solde' => $r->getSolde() !== null ? round((float) $r->getSolde(), 0) : null,
+                'solde' => $solde !== null ? round($solde, 0) : null,
             ];
         }
 

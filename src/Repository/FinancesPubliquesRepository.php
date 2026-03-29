@@ -65,10 +65,10 @@ class FinancesPubliquesRepository extends ServiceEntityRepository
                 SUM(CAST(f.depenses_totales AS DECIMAL(18,2)))          AS depenses_cumul,
                 AVG(CAST(f.recettes_totales AS DECIMAL(18,2)))          AS recettes_moy,
                 AVG(CAST(f.depenses_totales AS DECIMAL(18,2)))          AS depenses_moy,
-                AVG(CAST(f.solde AS DECIMAL(18,2)))                     AS solde_moy,
-                MIN(CAST(f.solde AS DECIMAL(18,2)))                     AS solde_min,
-                MAX(CAST(f.solde AS DECIMAL(18,2)))                     AS solde_max,
-                SUM(CAST(f.solde AS DECIMAL(18,2)))                     AS solde_cumul
+                AVG(COALESCE(CAST(f.solde AS DECIMAL(18,2)), CAST(f.recettes_totales AS DECIMAL(18,2)) - CAST(f.depenses_totales AS DECIMAL(18,2)))) AS solde_moy,
+                MIN(COALESCE(CAST(f.solde AS DECIMAL(18,2)), CAST(f.recettes_totales AS DECIMAL(18,2)) - CAST(f.depenses_totales AS DECIMAL(18,2)))) AS solde_min,
+                MAX(COALESCE(CAST(f.solde AS DECIMAL(18,2)), CAST(f.recettes_totales AS DECIMAL(18,2)) - CAST(f.depenses_totales AS DECIMAL(18,2)))) AS solde_max,
+                SUM(COALESCE(CAST(f.solde AS DECIMAL(18,2)), CAST(f.recettes_totales AS DECIMAL(18,2)) - CAST(f.depenses_totales AS DECIMAL(18,2)))) AS solde_cumul
             FROM finances_publiques f
             INNER JOIN conjoncture_jour c ON f.conjoncture_id = c.id
             WHERE c.date_situation BETWEEN :dateDebut AND :dateFin
