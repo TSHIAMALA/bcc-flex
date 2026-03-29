@@ -91,10 +91,10 @@ class IndicateursCalculService
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // 2. LIQUIDITÉ & STÉRILISATION
+    // 2. MARCHÉ MONÉTAIRE
     // ─────────────────────────────────────────────────────────────────────
 
-    public function getTotalSterilisation(?EncoursBcc $encours): ?float
+    public function getTotalEncoursBons(?EncoursBcc $encours): ?float
     {
         if (!$encours)
             return null;
@@ -103,15 +103,31 @@ class IndicateursCalculService
         return $ot + $b;
     }
 
-    public function getRatioSterilisation(?EncoursBcc $encours, ?ReservesFinancieres $reserves): ?float
+    public function getRatioEncoursBons(?EncoursBcc $encours, ?ReservesFinancieres $reserves): ?float
     {
-        $total = $this->getTotalSterilisation($encours);
+        $total = $this->getTotalEncoursBons($encours);
         if ($total === null || !$reserves || $reserves->getAvoirsLibresCdf() === null)
             return null;
         $avoirsLibres = (float) $reserves->getAvoirsLibresCdf();
         if ($avoirsLibres == 0)
             return null;
         return $total / $avoirsLibres;
+    }
+
+    public function getSignalMarcheMonetaire(?EncoursBcc $encours, ?ReservesFinancieres $reserves): string
+    {
+        if (!$reserves || $reserves->getAvoirsLibresCdf() === null) {
+            return 'secondary';
+        }
+        $alo = (float) $reserves->getAvoirsLibresCdf();
+        if ($alo > 800) {
+            return 'red';
+        } elseif ($alo > 400) {
+            return 'orange';
+        } elseif ($alo < 100) {
+            return 'yellow';
+        }
+        return 'green';
     }
 
     // ─────────────────────────────────────────────────────────────────────

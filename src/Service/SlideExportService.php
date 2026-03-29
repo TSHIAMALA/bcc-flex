@@ -12,7 +12,7 @@ use PhpOffice\PhpPresentation\Shape\RichText;
 use PhpOffice\PhpPresentation\Slide\Layout;
 
 /**
- * GÃ©nÃ¨re un fichier PowerPoint .pptx pour la Fiche JournaliÃ¨re BCC.
+ * Génère un fichier PowerPoint .pptx pour la Fiche Journalière BCC.
  */
 class SlideExportService
 {
@@ -28,21 +28,21 @@ class SlideExportService
         'yellow' => ['bg' => 'fff3cd', 'fg' => '856404', 'border' => 'ecc94b', 'label' => 'ðŸŸ¡ Zone de Vigilance'],
         'orange' => ['bg' => 'ffe5cc', 'fg' => '8a4700', 'border' => 'dd6b20', 'label' => 'ðŸŸ  Zone d\'Alerte'],
         'red' => ['bg' => 'f8d7da', 'fg' => '721c24', 'border' => 'c53030', 'label' => 'ðŸ”´ Zone Critique'],
-        'secondary' => ['bg' => 'e9ecef', 'fg' => '6c757d', 'border' => 'adb5bd', 'label' => 'âšª Sans donnÃ©es'],
+        'secondary' => ['bg' => 'e9ecef', 'fg' => '6c757d', 'border' => 'adb5bd', 'label' => 'âšª Sans données'],
     ];
 
     /**
-     * GÃ©nÃ¨re le PPTX et retourne le chemin vers le fichier temporaire.
+     * Génère le PPTX et retourne le chemin vers le fichier temporaire.
      */
     public function generate(array $data): string
     {
         $prs = new PhpPresentation();
         $prs->getDocumentProperties()
-            ->setTitle('Fiche JournaliÃ¨re BCC')
-            ->setDescription('Fiche Quotidienne de DÃ©cision â€” StabilitÃ© MonÃ©taire')
+            ->setTitle('Fiche Journalière BCC')
+            ->setDescription('Fiche Quotidienne de Décision â€” Stabilité Monétaire')
             ->setCompany('Banque Centrale du Congo');
 
-        // Supprimer la diapositive vide crÃ©Ã©e automatiquement
+        // Supprimer la diapositive vide créée automatiquement
         $prs->removeSlideByIndex(0);
 
         $this->buildSlide1Cover($prs, $data);
@@ -96,7 +96,7 @@ class SlideExportService
         // Main title
         $tb = $this->addTextBox(
             $slide,
-            'Note JournaliÃ¨re de Conjoncture â€” StabilitÃ© MonÃ©taire',
+            'Note Journalière de Conjoncture â€” Stabilité Monétaire',
             50,
             200,
             860,
@@ -137,7 +137,7 @@ class SlideExportService
 
         $this->addTextBox(
             $slide,
-            'ScÃ©nario recommandÃ© : ' . ($scenario['label'] ?? 'N/D'),
+            'Scénario recommandé : ' . ($scenario['label'] ?? 'N/D'),
             175,
             348,
             610,
@@ -166,7 +166,7 @@ class SlideExportService
         $this->addFilledRect($slide, 50, 445, 860, 105, self::BCC_LIGHT, self::BCC_BLUE);
         $this->addTextBox(
             $slide,
-            'SynthÃ¨se Cabinet',
+            'Synthèse Cabinet',
             75,
             452,
             810,
@@ -191,7 +191,7 @@ class SlideExportService
         // Footer
         $this->addTextBox(
             $slide,
-            'Document confidentiel â€” Usage interne Cabinet du Gouverneur Â· BCC-Flex Â· Reproduction interdite Â· ' . (new \DateTime())->format('d/m/Y'),
+            'Document confidentiel â€” Usage interne Cabinet du Gouverneur · BCC-Flex · Reproduction interdite · ' . (new \DateTime())->format('d/m/Y'),
             50,
             560,
             860,
@@ -218,7 +218,7 @@ class SlideExportService
         $dateStr = isset($data['date']) ? $data['date']->format('d/m/Y') : 'N/D';
         $this->addTextBox(
             $slide,
-            'Tableau de Bord â€” 4 Piliers de StabilitÃ© MonÃ©taire',
+            'Tableau de Bord â€” 4 Piliers de Stabilité Monétaire',
             20,
             14,
             700,
@@ -242,27 +242,27 @@ class SlideExportService
         // 4 pillar cards
         $pillars = [
             [
-                'title' => 'Pilier I â€” MarchÃ© des Changes & ParitÃ©s',
+                'title' => 'Pilier I â€” Marché des Changes & Parités',
                 'value' => $data['ecartPct'] !== null ? number_format($data['ecartPct'], 2, ',', ' ') . ' %' : 'N/D',
-                'sub' => 'Ã‰cart moyen indicatif / parallÃ¨le',
+                'sub' => 'Ã‰cart moyen indicatif / parallèle',
                 'signal' => $data['signalChange'] ?? 'secondary',
                 'details' => [
                     ['Taux indicatif', $data['marche'] ? number_format((float) $data['marche']->getCoursIndicatif(), 4, ',', ' ') . ' CDF' : 'N/D'],
-                    ['ParallÃ¨le A/V', $data['marche'] ? number_format((float) $data['marche']->getParalleleAchat(), 2, ',') . ' / ' . number_format((float) $data['marche']->getParalleleVente(), 2, ',') : 'N/D'],
+                    ['Parallèle A/V', $data['marche'] ? number_format((float) $data['marche']->getParalleleAchat(), 2, ',') . ' / ' . number_format((float) $data['marche']->getParalleleVente(), 2, ',') : 'N/D'],
                     ['Ã‰cart absolu', $data['marche'] ? number_format((float) $data['marche']->getEcartIndicParallele(), 2, ',') . ' CDF' : 'N/D'],
                     ['Ã‰cart max %', $data['ecartMaxPct'] !== null ? number_format($data['ecartMaxPct'], 2, ',') . ' %' : 'N/D'],
-                    ['Spread parallÃ¨le', $data['spreadPct'] !== null ? number_format($data['spreadPct'], 2, ',') . ' %' : 'N/D'],
+                    ['Spread parallèle', $data['spreadPct'] !== null ? number_format($data['spreadPct'], 2, ',') . ' %' : 'N/D'],
                 ],
             ],
             [
-                'title' => 'Pilier II â€” Position ExtÃ©rieure & RÃ©serves',
+                'title' => 'Pilier II â€” Position Extérieure & Réserves',
                 'value' => ($data['reserves'] && $data['reserves']->getReservesInternationalesUsd())
                     ? number_format((float) $data['reserves']->getReservesInternationalesUsd() / 1000, 2, ',', ' ') . ' Md$'
                     : 'N/D',
-                'sub' => 'RÃ©serves internationales',
+                'sub' => 'Réserves internationales',
                 'signal' => $data['signalReserves'] ?? 'secondary',
                 'details' => [
-                    ['RÃ©serves int. (Mios $)', $data['reserves'] ? number_format((float) $data['reserves']->getReservesInternationalesUsd(), 2, ',', ' ') : 'N/D'],
+                    ['Réserves int. (Mios $)', $data['reserves'] ? number_format((float) $data['reserves']->getReservesInternationalesUsd(), 2, ',', ' ') : 'N/D'],
                     ['Avoirs ext. (Mios $)', $data['reserves'] ? number_format((float) $data['reserves']->getAvoirsExternesUsd(), 2, ',', ' ') : 'N/D'],
                     [
                         'Couverture / 5 Md$',
@@ -273,21 +273,21 @@ class SlideExportService
                 ],
             ],
             [
-                'title' => 'Pilier III â€” LiquiditÃ© Bancaire & StÃ©rilisation',
+                'title' => 'Pilier III â€” Liquidité Bancaire & Stérilisation',
                 'value' => ($data['reserves'] && $data['reserves']->getAvoirsLibresCdf())
                     ? number_format((float) $data['reserves']->getAvoirsLibresCdf(), 0, ',', ' ')
                     : 'N/D',
                 'sub' => 'Avoirs libres (Mds CDF)',
                 'signal' => $data['signalLiquidite'] ?? 'secondary',
                 'details' => [
-                    ['RÃ©s. banques (CDF)', $data['reserves'] ? number_format((float) $data['reserves']->getReservesBanquesCdf(), 0, ',', ' ') : 'N/D'],
+                    ['Rés. banques (CDF)', $data['reserves'] ? number_format((float) $data['reserves']->getReservesBanquesCdf(), 0, ',', ' ') : 'N/D'],
                     ['Encours OT-BCC', $data['encours'] ? number_format((float) $data['encours']->getEncoursOtBcc(), 2, ',') : 'N/D'],
                     ['Encours B-BCC', $data['encours'] ? number_format((float) $data['encours']->getEncoursBBcc(), 2, ',') : 'N/D'],
-                    ['Ratio stÃ©rilisation', $data['ratioSteri'] !== null ? number_format($data['ratioSteri'], 2, ',') : 'N/D'],
+                    ['Ratio stérilisation', $data['ratioSteri'] !== null ? number_format($data['ratioSteri'], 2, ',') : 'N/D'],
                 ],
             ],
             [
-                'title' => 'Pilier IV â€” Finances Publiques & TrÃ©sorerie',
+                'title' => 'Pilier IV â€” Finances Publiques & Trésorerie',
                 'value' => ($data['tresorerie'] && $data['tresorerie']->getSoldeAvantFin())
                     ? number_format((float) $data['tresorerie']->getSoldeAvantFin(), 0, ',', ' ')
                     : 'N/D',
@@ -295,10 +295,10 @@ class SlideExportService
                 'signal' => $data['signalTresorerie'] ?? 'secondary',
                 'details' => [
                     ['Recettes totales', $data['finances'] ? number_format((float) $data['finances']->getRecettesTotales(), 2, ',', ' ') : 'N/D'],
-                    ['DÃ©penses totales', $data['finances'] ? number_format((float) $data['finances']->getDepensesTotales(), 2, ',', ' ') : 'N/D'],
-                    ['Solde aprÃ¨s fin', $data['tresorerie'] ? number_format((float) $data['tresorerie']->getSoldeApresFin(), 2, ',', ' ') : 'N/D'],
-                    ['Paie exÃ©cutÃ©e', $data['tauxPaie'] !== null ? number_format($data['tauxPaie'], 1, ',') . ' %' : 'N/D'],
-                    ['Reste Ã  payer', $data['paie'] ? number_format((float) $data['paie']->getMontantRestant(), 2, ',', ' ') . ' Mds' : 'N/D'],
+                    ['Dépenses totales', $data['finances'] ? number_format((float) $data['finances']->getDepensesTotales(), 2, ',', ' ') : 'N/D'],
+                    ['Solde après fin', $data['tresorerie'] ? number_format((float) $data['tresorerie']->getSoldeApresFin(), 2, ',', ' ') : 'N/D'],
+                    ['Paie exécutée', $data['tauxPaie'] !== null ? number_format($data['tauxPaie'], 1, ',') . ' %' : 'N/D'],
+                    ['Reste à payer', $data['paie'] ? number_format((float) $data['paie']->getMontantRestant(), 2, ',', ' ') . ' Mds' : 'N/D'],
                 ],
             ],
         ];
@@ -352,7 +352,7 @@ class SlideExportService
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // SLIDE 3 â€” SynthÃ¨se & Seuils
+    // SLIDE 3 â€” Synthèse & Seuils
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private function buildSlide3Synthesis(PhpPresentation $prs, array $data): void
@@ -364,7 +364,7 @@ class SlideExportService
         $this->addFilledRect($slide, 0, 0, 960, 75, self::BCC_BLUE);
         $this->addTextBox(
             $slide,
-            'Alertes OpÃ©rationnelles & Seuils CalibrÃ©s de RÃ©fÃ©rence',
+            'Alertes Opérationnelles & Seuils Calibrés de Référence',
             20,
             12,
             700,
@@ -388,26 +388,26 @@ class SlideExportService
 
         if (in_array($signalChange, ['orange', 'red'])) {
             $ecartStr = $data['ecartPct'] !== null ? number_format($data['ecartPct'], 1, ',') . ' %' : 'N/D';
-            $attnItems[] = ['ðŸŸ  DÃ©salignement du Taux de Change', "Ã‰cart indicatif/parallÃ¨le de $ecartStr â€” dÃ©passe le seuil de vigilance. VÃ©rifier la cohÃ©rence du taux directeur et envisager une intervention.", 'ffe5cc', '8a4700'];
+            $attnItems[] = ['ðŸŸ  Désalignement du Taux de Change', "Ã‰cart indicatif/parallèle de $ecartStr â€” dépasse le seuil de vigilance. Vérifier la cohérence du taux directeur et envisager une intervention.", 'ffe5cc', '8a4700'];
         }
         if (in_array($signalLiquidite, ['orange', 'red'])) {
             $avStr = ($data['reserves'] && $data['reserves']->getAvoirsLibresCdf())
                 ? number_format((float) $data['reserves']->getAvoirsLibresCdf(), 0, ',', ' ') . ' Mds CDF'
                 : 'N/D';
-            $attnItems[] = ['ðŸ’§ ExcÃ¨s Structurel de LiquiditÃ© Bancaire', "Avoirs libres Ã  $avStr â€” exposition au risque de change. Intensifier les opÃ©rations d'absorption (B-BCC/OT-BCC).", 'cfe2ff', '084298'];
+            $attnItems[] = ['ðŸ’§ Excès Structurel de Liquidité Bancaire', "Avoirs libres à $avStr â€” exposition au risque de change. Intensifier les opérations d'absorption (B-BCC/OT-BCC).", 'cfe2ff', '084298'];
         }
         if (in_array($signalTresorerie, ['yellow', 'orange', 'red'])) {
             $soldeStr = ($data['tresorerie'] && $data['tresorerie']->getSoldeAvantFin())
                 ? number_format((float) $data['tresorerie']->getSoldeAvantFin(), 0, ',', ' ') . ' Mds'
                 : 'N/D';
-            $attnItems[] = ['ðŸ›ï¸ Tension de TrÃ©sorerie de l\'Ã‰tat', "Solde de trÃ©sorerie Ã  $soldeStr â€” risque de monÃ©tisation. Coordonner le calendrier de paiements avec la BCC.", 'fff3cd', '856404'];
+            $attnItems[] = ['ðŸ›ï¸ Tension de Trésorerie de l\'Ã‰tat', "Solde de trésorerie à $soldeStr â€” risque de monétisation. Coordonner le calendrier de paiements avec la BCC.", 'fff3cd', '856404'];
         }
         if (in_array($signalPaie, ['orange', 'red'])) {
             $resteStr = $data['paie'] ? number_format((float) $data['paie']->getMontantRestant(), 0, ',', ' ') . ' Mds' : 'N/D';
-            $attnItems[] = ['ðŸ’¼ Pression Salariale DiffÃ©rÃ©e â€” Risque de LiquiditÃ©', "ArriÃ©rÃ©s de paie de $resteStr non dÃ©caissÃ©s â€” risque d'injection monÃ©taire non stÃ©rilisÃ©e Ã  anticiper.", 'f8d7da', '721c24'];
+            $attnItems[] = ['ðŸ’¼ Pression Salariale Différée â€” Risque de Liquidité', "Arriérés de paie de $resteStr non décaissés â€” risque d'injection monétaire non stérilisée à anticiper.", 'f8d7da', '721c24'];
         }
         if (empty($attnItems)) {
-            $attnItems[] = ['âœ… Indicateurs dans les Normes â€” Maintien de la Vigilance', 'L\'ensemble des indicateurs se situent dans les zones de rÃ©fÃ©rence. La discipline monÃ©taire en vigueur peut Ãªtre maintenue sous surveillance continue.', 'd4edda', '155724'];
+            $attnItems[] = ['âœ… Indicateurs dans les Normes â€” Maintien de la Vigilance', 'L\'ensemble des indicateurs se situent dans les zones de référence. La discipline monétaire en vigueur peut être maintenue sous surveillance continue.', 'd4edda', '155724'];
         }
 
         $itemY = 112;
@@ -424,10 +424,10 @@ class SlideExportService
         $this->addTextBox($slide, 'SEUILS D\'ALERTE DE RÃ‰FÃ‰RENCE', 490, 88, 450, 20, 9, '888888', true);
 
         $rows = [
-            ['Ã‰cart moyen indic./parallÃ¨le', 'â‰¤ 2%', '2â€“3%', '3â€“5%', '> 5%'],
+            ['Ã‰cart moyen indic./parallèle', 'â‰¤ 2%', '2â€“3%', '3â€“5%', '> 5%'],
             ['Ã‰cart max (borne haute)', 'â‰¤ 3%', 'â€”', '3â€“6%', '> 6%'],
             ['Avoirs libres (Mds CDF)', '< 800', 'â€”', '800â€“1 200', '> 1 200'],
-            ['Solde trÃ©sorerie avant fin', '> 0', '0 Ã  âˆ’100', 'â€”', '< âˆ’100'],
+            ['Solde trésorerie avant fin', '> 0', '0 à âˆ’100', 'â€”', '< âˆ’100'],
             ['Reste paie / total', 'â€”', '< 20%', '20â€“50%', '> 50%'],
         ];
 
@@ -480,7 +480,7 @@ class SlideExportService
         $this->addFilledRect($slide, 0, 565, 960, 25, 'eeeeee');
         $this->addTextBox(
             $slide,
-            'BCC-Flex Â· Document gÃ©nÃ©rÃ© le ' . (new \DateTime())->format('d/m/Y Ã  H:i') . ' Â· Document confidentiel â€” Usage interne Cabinet du Gouverneur',
+            'BCC-Flex · Document généré le ' . (new \DateTime())->format('d/m/Y à H:i') . ' · Document confidentiel â€” Usage interne Cabinet du Gouverneur',
             20,
             569,
             920,
@@ -568,18 +568,18 @@ class SlideExportService
     }
 
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // POLITIQUE MONÃ‰TAIRE â€” Indicateurs de PÃ©riode
+    // POLITIQUE MONÃ‰TAIRE â€” Indicateurs de Période
     // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
-     * GÃ©nÃ¨re un PPTX de 4 slides "Politique MonÃ©taire" sur pÃ©riode libre.
+     * Génère un PPTX de 4 slides "Politique Monétaire" sur période libre.
      */
     public function generatePolitiqueMonetaire(array $data): string
     {
         $prs = new PhpPresentation();
         $prs->getDocumentProperties()
-            ->setTitle('Indicateurs de PÃ©riode â€” Politique MonÃ©taire')
-            ->setDescription('Orientations de politique monÃ©taire â€” BCC Cabinet')
+            ->setTitle('Indicateurs de Période â€” Politique Monétaire')
+            ->setDescription('Orientations de politique monétaire â€” BCC Cabinet')
             ->setCompany('Banque Centrale du Congo');
         $prs->removeSlideByIndex(0);
 
@@ -619,9 +619,9 @@ class SlideExportService
 
         $this->addTextBox($slide, 'BANQUE CENTRALE DU CONGO â€” Cabinet du Gouverneur', 50, 172, 860, 28, 12, self::BCC_WHITE, false, false, 'center')
             ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $tb = $this->addTextBox($slide, 'Note d\'Orientation de Politique MonÃ©taire', 50, 200, 860, 66, 29, self::BCC_WHITE, true, false, 'center');
+        $tb = $this->addTextBox($slide, 'Note d\'Orientation de Politique Monétaire', 50, 200, 860, 66, 29, self::BCC_WHITE, true, false, 'center');
         $tb->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $this->addTextBox($slide, 'Analyse de PÃ©riode : ' . $periode, 50, 270, 860, 38, 15, self::BCC_GOLD, true, false, 'center')
+        $this->addTextBox($slide, 'Analyse de Période : ' . $periode, 50, 270, 860, 38, 15, self::BCC_GOLD, true, false, 'center')
             ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         $this->addFilledRect($slide, 300, 313, 360, 3, 'FFFFFF');
@@ -646,12 +646,12 @@ class SlideExportService
                 ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
-        // SynthÃ¨se
+        // Synthèse
         $this->addFilledRect($slide, 50, 426, 860, 104, self::BCC_LIGHT, self::BCC_BLUE);
-        $this->addTextBox($slide, "SynthÃ¨se de la Situation", 70, 435, 820, 18, 10, self::BCC_BLUE, true);
+        $this->addTextBox($slide, "Synthèse de la Situation", 70, 435, 820, 18, 10, self::BCC_BLUE, true);
         $this->addTextBox($slide, $reco['justification'] ?? '', 70, 452, 820, 70, 10, self::BCC_BLUE_DARK, false, true);
 
-        $this->addTextBox($slide, 'Document confidentiel â€” Usage interne Cabinet du Gouverneur Â· BCC-Flex Â· ' . (new \DateTime())->format('d/m/Y'), 50, 556, 860, 20, 9, 'aaaaaa', false, false, 'center')
+        $this->addTextBox($slide, 'Document confidentiel â€” Usage interne Cabinet du Gouverneur · BCC-Flex · ' . (new \DateTime())->format('d/m/Y'), 50, 556, 860, 20, 9, 'aaaaaa', false, false, 'center')
             ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
@@ -663,8 +663,8 @@ class SlideExportService
 
         $dp = $this->fmtD($data['dateDebut'] ?? null);
         $df = $this->fmtD($data['dateFin'] ?? null);
-        $this->addTextBox($slide, 'Analyse des 4 Piliers de StabilitÃ© MonÃ©taire', 20, 12, 700, 32, 17, self::BCC_WHITE, true);
-        $this->addTextBox($slide, "PÃ©riode $dp â€” $df", 20, 46, 700, 22, 11, self::BCC_GOLD);
+        $this->addTextBox($slide, 'Analyse des 4 Piliers de Stabilité Monétaire', 20, 12, 700, 32, 17, self::BCC_WHITE, true);
+        $this->addTextBox($slide, "Période $dp â€” $df", 20, 46, 700, 22, 11, self::BCC_GOLD);
 
         $ch = $data['change'] ?? [];
         $rv = $data['reserves'] ?? [];
@@ -675,9 +675,9 @@ class SlideExportService
 
         $pillars = [
             [
-                'title' => 'Pilier I â€” MarchÃ© des Changes & ParitÃ©s',
+                'title' => 'Pilier I â€” Marché des Changes & Parités',
                 'value' => $data['ecartMoy'] !== null ? $n($data['ecartMoy']) . ' %' : 'N/D',
-                'sub' => 'Ã‰cart moyen indicatif / parallÃ¨le',
+                'sub' => 'Ã‰cart moyen indicatif / parallèle',
                 'signal' => $data['signalChange'] ?? 'secondary',
                 'details' => [
                     ['Ã‰cart moyen %', $n($data['ecartMoy']) . ' %'],
@@ -687,26 +687,27 @@ class SlideExportService
                 ],
             ],
             [
-                'title' => 'Pilier II â€” Position ExtÃ©rieure & RÃ©serves',
+                'title' => 'Pilier II â€” Position Extérieure & Réserves',
                 'value' => $data['reservesIntMoy'] !== null ? $n($data['reservesIntMoy'] / 1000) . ' Md$' : 'N/D',
-                'sub' => 'RÃ©serves int. moyennes (Md$)',
+                'sub' => 'Réserves int. moyennes (Md$)',
                 'signal' => 'green',
                 'details' => [
-                    ['RÃ©serves int. moy. (Md$)', $data['reservesIntMoy'] !== null ? $n($data['reservesIntMoy'] / 1000) . ' Md$' : 'N/D'],
+                    ['Réserves int. moy. (Md$)', $data['reservesIntMoy'] !== null ? $n($data['reservesIntMoy'] / 1000) . ' Md$' : 'N/D'],
                     ['Avoirs ext. moy. (Md$)', isset($rv['avoirs_ext_moy']) ? $n($rv['avoirs_ext_moy'] / 1000) . ' Md$' : 'N/D'],
-                    ['Min. RÃ©serves', isset($rv['reserves_int_min']) ? $n($rv['reserves_int_min'] / 1000) . ' Md$' : 'N/D'],
-                    ['Max. RÃ©serves', isset($rv['reserves_int_max']) ? $n($rv['reserves_int_max'] / 1000) . ' Md$' : 'N/D'],
+                    ['Min. Réserves', isset($rv['reserves_int_min']) ? $n($rv['reserves_int_min'] / 1000) . ' Md$' : 'N/D'],
+                    ['Max. Réserves', isset($rv['reserves_int_max']) ? $n($rv['reserves_int_max'] / 1000) . ' Md$' : 'N/D'],
                 ],
             ],
             [
-                'title' => 'Pilier III â€” LiquiditÃ© Bancaire & StÃ©rilisation',
-                'value' => $data['avLibresMoy'] !== null ? $n($data['avLibresMoy'], 0) . ' Mds' : 'N/D',
-                'sub' => 'Avoirs libres moyens (Mds CDF)',
+                'title' => 'Pilier III â€” Liquidité Bancaire & Stérilisation',
+                'value' => $data['encoursBonsMoy'] !== null ? $n($data['encoursBonsMoy'], 0) . ' Mds' : 'N/D',
+                'sub' => 'Encours Bons BCC moy. (Mds CDF)',
                 'signal' => $data['signalLiquidite'] ?? 'secondary',
                 'details' => [
-                    ['Avoirs libres moy.', $data['avLibresMoy'] !== null ? $n($data['avLibresMoy'], 0) . ' Mds' : 'N/D'],
-                    ['Avoirs libres max.', $data['avLibresMax'] !== null ? $n($data['avLibresMax'], 0) . ' Mds' : 'N/D'],
-                    ['StÃ©rilisation moy.', $data['sterilisationMoy'] !== null ? $n($data['sterilisationMoy'], 0) . ' Mds' : 'N/D'],
+                    ['Éncours Bons moy.', $data['encoursBonsMoy'] !== null ? $n($data['encoursBonsMoy'], 0) . ' Mds' : 'N/D'],
+                    ['Taux Interbancaire', $data['tauxInterbancaireMoy'] !== null ? $n($data['tauxInterbancaireMoy'], 2) . '%' : 'N/D'],
+                    ['TMP BBCC', $data['tauxMoyenPondereMoy'] !== null ? $n($data['tauxMoyenPondereMoy'], 2) . '%' : 'N/D'],
+                    ['Billets en circ.', $data['billetsCirculationMoy'] !== null ? $n($data['billetsCirculationMoy'], 0) . ' Mds' : 'N/D'],
                 ],
             ],
             [
@@ -718,8 +719,8 @@ class SlideExportService
                     ['Solde moyen', $data['soldeMoy'] !== null ? $n($data['soldeMoy'], 0) . ' Mds' : 'N/D'],
                     ['Solde minimum', isset($fi['solde_min']) ? $n($fi['solde_min'], 0) . ' Mds' : 'N/D'],
                     ['Solde maximum', isset($fi['solde_max']) ? $n($fi['solde_max'], 0) . ' Mds' : 'N/D'],
-                    ['Recettes cumulÃ©es', isset($fi['recettes_cumul']) ? $n($fi['recettes_cumul'], 0) . ' Mds' : 'N/D'],
-                    ['DÃ©penses cumulÃ©es', isset($fi['depenses_cumul']) ? $n($fi['depenses_cumul'], 0) . ' Mds' : 'N/D'],
+                    ['Recettes cumulées', isset($fi['recettes_cumul']) ? $n($fi['recettes_cumul'], 0) . ' Mds' : 'N/D'],
+                    ['Dépenses cumulées', isset($fi['depenses_cumul']) ? $n($fi['depenses_cumul'], 0) . ' Mds' : 'N/D'],
                 ],
             ],
         ];
@@ -738,10 +739,10 @@ class SlideExportService
         $slide = $prs->createSlide();
         $this->setSlideBackgroundColor($slide, 'FFFFFF');
         $this->addFilledRect($slide, 0, 0, 960, 75, self::BCC_BLUE);
-        $this->addTextBox($slide, 'Recommandation sur le Taux Directeur â€” Analyse de PÃ©riode', 20, 10, 700, 34, 16, self::BCC_WHITE, true);
+        $this->addTextBox($slide, 'Recommandation sur le Taux Directeur â€” Analyse de Période', 20, 10, 700, 34, 16, self::BCC_WHITE, true);
         $dp = $this->fmtD($data['dateDebut'] ?? null);
         $df = $this->fmtD($data['dateFin'] ?? null);
-        $this->addTextBox($slide, "PÃ©riode $dp â€” $df", 20, 48, 700, 20, 11, self::BCC_GOLD);
+        $this->addTextBox($slide, "Période $dp â€” $df", 20, 48, 700, 20, 11, self::BCC_GOLD);
 
         $reco = $data['recoTaux'] ?? ['action' => 'N/D', 'label' => 'N/D', 'emoji' => 'ðŸ“Š', 'justification' => '', 'taux' => 0];
         $signal = $data['signalGlobal'] ?? 'secondary';
@@ -777,10 +778,10 @@ class SlideExportService
         $this->addTextBox($slide, 'Ã‰TAT DES PILIERS SUR LA PÃ‰RIODE', 30, 408, 900, 16, 9, '888888', true);
         $n = fn($v, int $dec = 1, string $suf = '') => $v !== null ? number_format((float) $v, $dec, ',', ' ') . $suf : 'N/D';
         $pillarsGrid = [
-            ['MarchÃ© des Changes', $data['signalChange'] ?? 'secondary', $data['ecartMoy'] !== null ? $n($data['ecartMoy'], 2) . '% moy' : 'N/D'],
-            ['RÃ©serves Ext.', 'green', $data['reservesIntMoy'] !== null ? $n($data['reservesIntMoy'] / 1000) . ' Md$' : 'N/D'],
-            ['LiquiditÃ© / StÃ©rilisation', $data['signalLiquidite'] ?? 'secondary', $data['avLibresMax'] !== null ? $n($data['avLibresMax'], 0) . ' max' : 'N/D'],
-            ['Budget / TrÃ©sorerie', $data['signalTresorerie'] ?? 'secondary', $data['soldeMoy'] !== null ? $n($data['soldeMoy'], 0) . ' moy' : 'N/D'],
+            ['Marché des Changes', $data['signalChange'] ?? 'secondary', $data['ecartMoy'] !== null ? $n($data['ecartMoy'], 2) . '% moy' : 'N/D'],
+            ['Réserves Ext.', 'green', $data['reservesIntMoy'] !== null ? $n($data['reservesIntMoy'] / 1000) . ' Md$' : 'N/D'],
+            ['Marché Monétaire', $data['signalLiquidite'] ?? 'secondary', $data['encoursBonsMoy'] !== null ? $n($data['encoursBonsMoy'], 0) . ' moy' : 'N/D'],
+            ['Budget / Trésorerie', $data['signalTresorerie'] ?? 'secondary', $data['soldeMoy'] !== null ? $n($data['soldeMoy'], 0) . ' moy' : 'N/D'],
         ];
         $px = [30, 258, 486, 714];
         $pw = 214;
@@ -793,7 +794,7 @@ class SlideExportService
             $this->addTextBox($slide, $c['label'], $px[$i] + 6, 472, $pw - 12, 14, 8, $c['fg']);
         }
 
-        $this->addTextBox($slide, 'BCC-Flex Â· ' . (new \DateTime())->format('d/m/Y') . ' â€” Document confidentiel â€” Usage interne Cabinet du Gouverneur', 30, 558, 900, 16, 8, '999999', false, false, 'center')
+        $this->addTextBox($slide, 'BCC-Flex · ' . (new \DateTime())->format('d/m/Y') . ' â€” Document confidentiel â€” Usage interne Cabinet du Gouverneur', 30, 558, 900, 16, 8, '999999', false, false, 'center')
             ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 
@@ -802,18 +803,18 @@ class SlideExportService
         $slide = $prs->createSlide();
         $this->setSlideBackgroundColor($slide, 'FFFFFF');
         $this->addFilledRect($slide, 0, 0, 960, 68, self::BCC_BLUE_DARK);
-        $this->addTextBox($slide, 'Cadre Analytique â€” Seuils de RÃ©fÃ©rence & RÃ¨gles de DÃ©cision MonÃ©taire', 20, 8, 900, 30, 14, self::BCC_WHITE, true);
+        $this->addTextBox($slide, 'Cadre Analytique â€” Seuils de Référence & Règles de Décision Monétaire', 20, 8, 900, 30, 14, self::BCC_WHITE, true);
         $this->addTextBox($slide, 'Cadre analytique â€” Banque Centrale du Congo', 20, 42, 700, 18, 10, self::BCC_GOLD);
 
-        // RÃ¨gle taux directeur
+        // Règle taux directeur
         $this->addTextBox($slide, 'RÃˆGLE TAUX DIRECTEUR', 20, 82, 900, 16, 9, '888888', true);
         $bgMap = ['d4edda', 'fff3cd', 'ffe5cc', 'f8d7da'];
         $fgMap = ['155724', '856404', '8a4700', '721c24'];
         $regleRows = [
             ['Ã‰cart moy. < 2% ET avoirs libres < 800 Mds CDF', 'Zone Verte', 'Assouplissement prudent envisageable'],
-            ['Ã‰cart moy. 2â€“3% ET liquiditÃ© dans la norme', 'Zone Jaune', 'NeutralitÃ© restrictive â€” Surveillance renforcÃ©e'],
-            ['Ã‰cart moy. > 3% OU avoirs libres > 800 Mds CDF', 'Zone Orange', 'Abstention de baisse â€” StÃ©rilisation prioritaire'],
-            ['Ã‰cart moy. > 5% OU avoirs libres > 1â€¯200 Mds CDF', 'Zone Rouge', 'Maintien ou resserrement â€” Action coordonnÃ©e urgente'],
+            ['Ã‰cart moy. 2â€“3% ET liquidité dans la norme', 'Zone Jaune', 'Neutralité restrictive â€” Surveillance renforcée'],
+            ['Ã‰cart moy. > 3% OU avoirs libres > 800 Mds CDF', 'Zone Orange', 'Abstention de baisse â€” Stérilisation prioritaire'],
+            ['Ã‰cart moy. > 5% OU avoirs libres > 1â€¯200 Mds CDF', 'Zone Rouge', 'Maintien ou resserrement â€” Action coordonnée urgente'],
         ];
         $ry = 102;
         foreach ($regleRows as $ri => [$cond, $zone, $action]) {
@@ -833,11 +834,11 @@ class SlideExportService
         $this->addTextBox($slide, 'SEUILS INDICATEURS PAR ZONE', 20, 248, 900, 16, 9, '888888', true);
         $headers = ['Indicateur', 'Vert', 'Jaune', 'Orange', 'Rouge'];
         $sRows = [
-            ['Ã‰cart moy. indicatif / parallÃ¨le', '< 2 %', '2â€“3 %', '3â€“5 %', '> 5 %'],
+            ['Ã‰cart moy. indicatif / parallèle', '< 2 %', '2â€“3 %', '3â€“5 %', '> 5 %'],
             ['Ã‰cart max (borne haute)', '< 3 %', 'â€”', '3â€“6 %', '> 6 %'],
             ['Avoirs libres (Mds CDF)', '< 500', '500â€“800', '800â€“1â€¯200', '> 1â€¯200'],
-            ['Solde trÃ©sorerie (Mds CDF)', '> 0', '0 Ã  -100', '-100 Ã  -200', '< -200'],
-            ['RÃ©serves int. (Md USD)', '> 4,0', '2,5â€“4,0', '1,5â€“2,5', '< 1,5'],
+            ['Solde trésorerie (Mds CDF)', '> 0', '0 à -100', '-100 à -200', '< -200'],
+            ['Réserves int. (Md USD)', '> 4,0', '2,5â€“4,0', '1,5â€“2,5', '< 1,5'],
         ];
         $cw = [185, 80, 90, 100, 92];
         $cx = [20];
@@ -862,15 +863,15 @@ class SlideExportService
 
         // Encart principe
         $this->addFilledRect($slide, 560, 248, 380, 192, self::BCC_LIGHT, self::BCC_BLUE, 1);
-        $this->addTextBox($slide, "Principe d'Arbitrage MonÃ©taire", 572, 258, 356, 18, 10, self::BCC_BLUE, true);
-        $principe = "Dans une Ã©conomie fortement dollarisÃ©e comme la RDC, le taux directeur est un signal de crÃ©dibilitÃ© dont la portÃ©e dÃ©passe le coÃ»t du refinancement. "
-            . "Sa baisse peut alimenter des anticipations de dÃ©prÃ©ciation si le marchÃ© parallÃ¨le n'est pas alignÃ©. "
-            . "La rÃ¨gle opÃ©rationnelle : le taux directeur ne baisse que si l'Ã©cart de change moyen est stabilisÃ© sous 2% "
-            . "ET que la surliquiditÃ© est maÃ®trisÃ©e par la stÃ©rilisation (B-BCC/OT-BCC). "
-            . "Toute dÃ©cision doit s'accompagner d'une communication calibrÃ©e pour ne pas raviver les anticipations de dÃ©prÃ©ciation.";
+        $this->addTextBox($slide, "Principe d'Arbitrage Monétaire", 572, 258, 356, 18, 10, self::BCC_BLUE, true);
+        $principe = "Dans une économie fortement dollarisée comme la RDC, le taux directeur est un signal de crédibilité dont la portée dépasse le coût du refinancement. "
+            . "Sa baisse peut alimenter des anticipations de dépréciation si le marché parallèle n'est pas aligné. "
+            . "La règle opérationnelle : le taux directeur ne baisse que si l'écart de change moyen est stabilisé sous 2% "
+            . "ET que la surliquidité est maîtrisée par la stérilisation (B-BCC/OT-BCC). "
+            . "Toute décision doit s'accompagner d'une communication calibrée pour ne pas raviver les anticipations de dépréciation.";
         $this->addTextBox($slide, $principe, 572, 280, 356, 148, 9, self::BCC_BLUE_DARK, false, true);
 
-        $this->addTextBox($slide, 'BCC-Flex â€” Cadre de rÃ©fÃ©rence Cabinet â€” Document confidentiel â€” Usage interne Cabinet du Gouverneur', 20, 558, 920, 16, 8, '999999', false, false, 'center')
+        $this->addTextBox($slide, 'BCC-Flex â€” Cadre de référence Cabinet â€” Document confidentiel â€” Usage interne Cabinet du Gouverneur', 20, 558, 920, 16, 8, '999999', false, false, 'center')
             ->getActiveParagraph()->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     }
 }

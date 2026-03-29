@@ -572,7 +572,7 @@
 			<div class="kpi-title">🌍 Pilier 2 — Position Extérieure</div>
 		</div>
 
-		{# ─ Pilier 3 : Liquidité & Stérilisation ─ #}
+		{# ─ Pilier 3 : Marché Monétaire ─ #}
 		<div class="kpi-card signal-{{ signalLiquidite }}">
 			<span class="kpi-pill pill-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span>
 			<div class="kpi-value">
@@ -580,42 +580,43 @@
 					{{ avLibresMoy|number_format(0, ',', ' ') }}{% else %}N/D
 				{% endif %}
 			</div>
-			<div class="kpi-subvalue">Avoirs libres moy. (Mds CDF)</div>
+			<div class="kpi-subvalue">Avoirs Libres moy. (Mds CDF)</div>
 			<div class="kpi-data">
 				<div class="kpi-data-item">
-					<span class="kdi-label">Pic avoirs libres</span>
+					<span class="kdi-label">PIC AVOIRS LIBRES</span>
 					<span class="kdi-val">
-						{% if avLibresMax is not null %}
-							{{ avLibresMax|number_format(0, ',', ' ') }}
-							Mds{% else %}—
+						{% if reserves.avoirs_max is defined and reserves.avoirs_max is not null %}
+							{{ reserves.avoirs_max|number_format(0, ',', ' ') }} Mds
+						{% else %}—
 						{% endif %}
 					</span>
 				</div>
 				<div class="kpi-data-item">
-					<span class="kdi-label">Stérilisation moy.</span>
+					<span class="kdi-label">STÉRILISATION MOY.</span>
 					<span class="kdi-val">
-						{% if sterilisationMoy is not null %}
-							{{ sterilisationMoy|number_format(0, ',', ' ') }}
-							Mds{% else %}—
+						{% if encoursBonsMoy is not null %}
+							{{ encoursBonsMoy|number_format(0, ',', ' ') }} Mds
+						{% else %}—
 						{% endif %}
 					</span>
 				</div>
 				<div class="kpi-data-item">
-					<span class="kdi-label">Couverture stéril.</span>
+					<span class="kdi-label">COUVERTURE STÉRIL.</span>
 					<span class="kdi-val">
-						{% if sterilisationMoy is not null and avLibresMoy is not null and avLibresMoy > 0 %}
-							{{ (sterilisationMoy / avLibresMoy * 100)|number_format(1, ',', ' ') }}
-							%
-							{% else %}—
+						{% if encoursBonsMoy is not null and avLibresMoy is not null and avLibresMoy > 0 %}
+							{{ ((encoursBonsMoy / avLibresMoy) * 100)|number_format(1, ',', ' ') }} %
+						{% else %}—
 						{% endif %}
 					</span>
 				</div>
 				<div class="kpi-data-item">
-					<span class="kdi-label">Seuil alerte</span>
-					<span class="kdi-val">800 / 1 200 Mds</span>
+					<span class="kdi-label">SEUIL ALERTE</span>
+					<span class="kdi-val">
+						800 / 1 200 Mds
+					</span>
 				</div>
 			</div>
-			<div class="kpi-title">💧 Pilier 3 — Liquidité & Stérilisation</div>
+			<div class="kpi-title">🏦 Pilier 3 — Marché Monétaire</div>
 		</div>
 
 		{# ─ Pilier 4 : Budget & Trésorerie ─ #}
@@ -786,24 +787,24 @@
 					<td style="text-align:center; font-size:.78rem; color:#666">✅ Neutre</td>
 				</tr>
 				<tr>
-					<td style="font-weight:600;color:#1e4b7a">💧 Liquidité</td>
-					<td>Avoirs libres (Mds CDF)</td>
+					<td style="font-weight:600;color:#1e4b7a">🏦 Marché Mon.</td>
+					<td>Encours Bons BCC (Mds CDF)</td>
 					<td>
-						{% if avLibresMoy is not null %}
-							{{ avLibresMoy|number_format(0,',',' ') }}{% else %}—
+						{% if encoursBonsMoy is not null %}
+							{{ encoursBonsMoy|number_format(0,',',' ') }}{% else %}—
 						{% endif %}
 					</td>
 					<td>—</td>
 					<td>
-						{% if avLibresMax is not null %}
-							{{ avLibresMax|number_format(0,',',' ') }}{% else %}—
+						{% if encoursBcc.encours_bons_max is defined and encoursBcc.encours_bons_max %}
+							{{ encoursBcc.encours_bons_max|number_format(0,',',' ') }}{% else %}—
 						{% endif %}
 					</td>
 					<td>
 						<span class="badge badge-{{ signalLiquidite }}">{{ pillLabels[signalLiquidite] ?? 'N/D' }}</span>
 					</td>
 					<td style="text-align:center; font-size:.78rem; color:#666">
-						{% if avLibresMax is not null and avLibresMax > 1200 %}🛑 Contrôler{% elseif avLibresMax is not null and avLibresMax > 800 %}⚠️ Surveiller{% else %}✅ Maîtrisée
+						{% if signalLiquidite == 'red' %}🛑 Action requise{% elseif signalLiquidite == 'orange' %}⚠️ Surveiller{% else %}✅ Maîtrisée
 						{% endif %}
 					</td>
 				</tr>
@@ -943,7 +944,7 @@
 			{% set indicators = [
 				{'label': 'Écart de change',         'val': ecartMoy is not null ? ecartMoy|number_format(2, ',', ' ') ~ ' %' : 'N/D',                                   'signal': signalChange},
 				{'label': 'Réserves int.',            'val': reservesIntMoy ? (reservesIntMoy/1000)|number_format(2, ',', ' ') ~ ' Md$' : 'N/D',                          'signal': signalReserves ?? 'green'},
-				{'label': 'Surliquidité bancaire',   'val': avLibresMoy ? avLibresMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D',                                       'signal': signalLiquidite},
+				{'label': 'Encours Bons BCC (Moy)',   'val': encoursBonsMoy ? encoursBonsMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D',                                       'signal': signalLiquidite},
 				{'label': 'Solde budgétaire',         'val': soldeMoy is not null ? soldeMoy|number_format(0, ',', ' ') ~ ' Mds' : 'N/D',                                 'signal': signalTresorerie}
 			] %}
 

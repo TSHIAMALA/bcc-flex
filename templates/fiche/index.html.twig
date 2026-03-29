@@ -315,11 +315,11 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
             </table>
         </div>
 
-        {# Pilier 3 : Liquidité #}
-        <div class="card pillar-card pillar-{{ signalLiquidite }} signal-top-{{ signalLiquidite }}">
-            <div class="pillar-badge">{{ fiche.signal_badge(signalLiquidite) }}</div>
-            <div class="pillar-icon"><i class="fas fa-water"></i></div>
-            <div class="pillar-title">Pilier 3 — Liquidité & Stérilisation</div>
+        {# Pilier 3 : Marché Monétaire #}
+        <div class="card pillar-card pillar-{{ signalMarcheMonetaire }} signal-top-{{ signalMarcheMonetaire }}">
+            <div class="pillar-badge">{{ fiche.signal_badge(signalMarcheMonetaire) }}</div>
+            <div class="pillar-icon"><i class="fas fa-university"></i></div>
+            <div class="pillar-title">Pilier 3 — Marché Monétaire</div>
             <div class="pillar-value">
                 {% if reserves and reserves.avoirsLibresCdf %}
                     {{ reserves.avoirsLibresCdf|number_format(0,',',' ') }}
@@ -330,22 +330,24 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 <tr><td>Réserves des banques (CDF)</td>
                     <td>{{ reserves ? reserves.reservesBanquesCdf|number_format(0,',',' ') : 'N/D' }}</td></tr>
                 <tr><td>Encours OT-BCC</td>
-                    <td>{{ encours ? encours.encoursOtBcc|number_format(2,',') : 'N/D' }}</td></tr>
+                    <td>{% if encours and encours.encoursOtBcc is not null %}{{ encours.encoursOtBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
                 <tr><td>Encours B-BCC</td>
-                    <td>{{ encours ? encours.encoursBBcc|number_format(2,',') : 'N/D' }}</td></tr>
-                <tr>
-                    <td>
-                        Ratio stérilisation
-                        <i class="fas fa-info-circle text-muted ms-1" style="font-size: 0.85em; cursor: help;" title="Calcul: (Encours OT-BCC + Encours B-BCC) / Avoirs libres.&#10;Évalue la capacité de la BCC à absorber l'excédent de liquidité."></i>
-                    </td>
-                    <td>{% if ratioSteri is not null %}{{ ratioSteri|number_format(2,',') }}{% else %}N/D{% endif %}
-                        {% if ratioSteri is not null %}
-                            <span class="ms-1 {% if ratioSteri >= 1.5 %}text-success{% elseif ratioSteri >= 1 %}text-warning{% else %}text-danger{% endif %}">
-                                ({{ ratioSteri >= 1.5 ? '✓ Efficace' : (ratioSteri >= 1 ? '⚠ Partiel' : '✗ Insuffisant') }})
-                            </span>
-                        {% endif %}
-                    </td>
-                </tr>
+                    <td>{% if encours and encours.encoursBBcc is not null %}{{ encours.encoursBBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
+                <tr><td>Ratio stérilisation</td>
+                    <td>{% if ratioEncoursBons is not null %}
+                            {{ ratioEncoursBons|number_format(2,',',' ') }} 
+                            {% if ratioEncoursBons >= 1.5 %}(<span class="text-success" style="font-weight:bold;">Efficace</span>)
+                            {% elseif ratioEncoursBons >= 1.0 %}(<span class="text-warning" style="font-weight:bold;">Partiel</span>)
+                            {% else %}(<span class="text-danger" style="font-weight:bold;">Insuffisant</span>)
+                            {% endif %}
+                        {% else %}N/D{% endif %}
+                    </td></tr>
+                <tr><td>Taux moyen pondéré (BBCC)</td>
+                    <td>{% if tauxMoyenPondere is not null %}<span class="badge bg-info text-dark">{{ tauxMoyenPondere|number_format(2,',') }} %</span>{% else %}N/D{% endif %}</td></tr>
+                <tr><td>Masse monétaire (Billets en circ.)</td>
+                    <td>{% if billetsEnCirculation is not null %}{{ billetsEnCirculation|number_format(2,',',' ') }} Mds{% else %}N/D{% endif %}</td></tr>
+               {# <tr><td>Taux interbancaire</td>
+                    <td>{% if tauxInterbancaire is not null %}<span class="badge bg-warning text-dark">{{ tauxInterbancaire|number_format(2,',') }} %</span>{% else %}N/D{% endif %}</td></tr>#}
             </table>
         </div>
 
@@ -471,8 +473,7 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 <tr><td>Reste paie / total</td><td style="text-align:center;">—</td><td style="text-align:center;">&lt; 20%</td><td style="text-align:center;">20–50%</td><td style="text-align:center;">&gt; 50%</td></tr>
                 <tr>
                     <td>
-                        Ratio stérilisation<br>
-                        <span style="font-size: 0.75rem; color: var(--text-secondary);">(OT-BCC + B-BCC) / Avoirs libres</span>
+                        Ratio couverture encours / avoirs libres
                     </td>
                     <td style="text-align:center;">≥ 1,5<br><small>(Efficace)</small></td>
                     <td style="text-align:center;">1 à 1,49<br><small>(Partiel)</small></td>

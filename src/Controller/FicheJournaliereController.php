@@ -8,6 +8,7 @@ use App\Repository\FinancesPubliquesRepository;
 use App\Repository\MarcheChangesRepository;
 use App\Repository\PaieEtatRepository;
 use App\Repository\ReservesFinancieresRepository;
+use App\Repository\TauxDirecteurRepository;
 use App\Repository\TresorerieEtatRepository;
 use App\Service\IndicateursCalculService;
 use App\Service\SlideExportService;
@@ -30,6 +31,7 @@ class FicheJournaliereController extends AbstractController
         FinancesPubliquesRepository $financesRepo,
         TresorerieEtatRepository $tresorerieRepo,
         PaieEtatRepository $paieRepo,
+        TauxDirecteurRepository $tauxRepo,
         IndicateursCalculService $calc
     ): Response {
         $dateStr = $request->query->get('date');
@@ -53,11 +55,21 @@ class FicheJournaliereController extends AbstractController
         $ecartMaxPct = $calc->getEcartMaxPct($marche);
         $spreadPct = $calc->getSpreadParallelePct($marche);
         $midParallele = $calc->getMidParallele($marche);
-        $ratioSteri = $calc->getRatioSterilisation($encours, $reserves);
+        $ratioEncoursBons = $calc->getRatioEncoursBons($encours, $reserves);
+        $totalEncours = $calc->getTotalEncoursBons($encours);
         $tauxPaie = $calc->getTauxExecutionPaie($paie);
         $pctRestePaie = $calc->getPctRestePayie($paie);
 
+        $tauxInterbancaire = $encours ? $encours->getTauxInterbancaire() : null;
+        $tauxMoyenPondere = $encours ? $encours->getTauxMoyenPondereBbcc() : null;
+        $billetsEnCirculation = $encours ? $encours->getBilletsEnCirculation() : null;
+        
+        $activeRate = $tauxRepo->findActiveRateAt($dateObj);
+        $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
+        $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
+
         $signalChange = $calc->getSignalChange($marche);
+        $signalMarcheMonetaire = $calc->getSignalMarcheMonetaire($encours, $reserves);
         $signalLiquidite = $calc->getSignalLiquidite($reserves);
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
@@ -94,11 +106,18 @@ class FicheJournaliereController extends AbstractController
             'ecartMaxPct' => $ecartMaxPct,
             'spreadPct' => $spreadPct,
             'midParallele' => $midParallele,
-            'ratioSteri' => $ratioSteri,
+            'ratioEncoursBons' => $ratioEncoursBons,
+            'totalEncours' => $totalEncours,
+            'tauxInterbancaire' => $tauxInterbancaire,
+            'tauxMoyenPondere' => $tauxMoyenPondere,
+            'billetsEnCirculation' => $billetsEnCirculation,
+            'tauxDirecteur' => $tauxDirecteur,
+            'dateTauxDirecteur' => $dateTauxDirecteur,
             'tauxPaie' => $tauxPaie,
             'pctRestePaie' => $pctRestePaie,
             'signalChange' => $signalChange,
             'signalLiquidite' => $signalLiquidite,
+            'signalMarcheMonetaire' => $signalMarcheMonetaire,
             'signalTresorerie' => $signalTresorerie,
             'signalPaie' => $signalPaie,
             'signalReserves' => $signalReserves,
@@ -139,13 +158,23 @@ class FicheJournaliereController extends AbstractController
 
         $ecartPct = $calc->getEcartPct($marche);
         $ecartMaxPct = $calc->getEcartMaxPct($marche);
-        $ratioSteri = $calc->getRatioSterilisation($encours, $reserves);
+        $ratioEncoursBons = $calc->getRatioEncoursBons($encours, $reserves);
+        $totalEncours = $calc->getTotalEncoursBons($encours);
+        $tauxInterbancaire = $encours ? $encours->getTauxInterbancaire() : null;
+        $tauxMoyenPondere = $encours ? $encours->getTauxMoyenPondereBbcc() : null;
+        $billetsEnCirculation = $encours ? $encours->getBilletsEnCirculation() : null;
+        
+        $activeRate = $tauxRepo->findActiveRateAt($dateObj);
+        $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
+        $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
+
         $tauxPaie = $calc->getTauxExecutionPaie($paie);
         $pctRestePaie = $calc->getPctRestePayie($paie);
         $scenario = $calc->getScenarioPilotage($marche, $reserves, $tresorerie, $paie);
         $phraseCabinet = $calc->getPhraseCabinet($marche, $reserves, $tresorerie, $paie, $scenario);
 
         $signalChange = $calc->getSignalChange($marche);
+        $signalMarcheMonetaire = $calc->getSignalMarcheMonetaire($encours, $reserves);
         $signalLiquidite = $calc->getSignalLiquidite($reserves);
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
@@ -160,11 +189,18 @@ class FicheJournaliereController extends AbstractController
             'paie' => $paie,
             'ecartPct' => $ecartPct,
             'ecartMaxPct' => $ecartMaxPct,
-            'ratioSteri' => $ratioSteri,
+            'ratioEncoursBons' => $ratioEncoursBons,
+            'totalEncours' => $totalEncours,
+            'tauxInterbancaire' => $tauxInterbancaire,
+            'tauxMoyenPondere' => $tauxMoyenPondere,
+            'billetsEnCirculation' => $billetsEnCirculation,
+            'tauxDirecteur' => $tauxDirecteur,
+            'dateTauxDirecteur' => $dateTauxDirecteur,
             'tauxPaie' => $tauxPaie,
             'pctRestePaie' => $pctRestePaie,
             'signalChange' => $signalChange,
             'signalLiquidite' => $signalLiquidite,
+            'signalMarcheMonetaire' => $signalMarcheMonetaire,
             'signalTresorerie' => $signalTresorerie,
             'signalPaie' => $signalPaie,
             'scenario' => $scenario,
@@ -222,11 +258,22 @@ class FicheJournaliereController extends AbstractController
         $ecartPct = $calc->getEcartPct($marche);
         $ecartMaxPct = $calc->getEcartMaxPct($marche);
         $spreadPct = $calc->getSpreadParallelePct($marche);
-        $ratioSteri = $calc->getRatioSterilisation($encours, $reserves);
+        $ratioEncoursBons = $calc->getRatioEncoursBons($encours, $reserves);
+        $totalEncours = $calc->getTotalEncoursBons($encours);
+        
+        $tauxInterbancaire = $encours ? $encours->getTauxInterbancaire() : null;
+        $tauxMoyenPondere = $encours ? $encours->getTauxMoyenPondereBbcc() : null;
+        $billetsEnCirculation = $encours ? $encours->getBilletsEnCirculation() : null;
+        
+        $activeRate = $tauxRepo->findActiveRateAt($dateObj);
+        $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
+        $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
+
         $tauxPaie = $calc->getTauxExecutionPaie($paie);
         $pctRestePaie = $calc->getPctRestePayie($paie);
 
         $signalChange = $calc->getSignalChange($marche);
+        $signalMarcheMonetaire = $calc->getSignalMarcheMonetaire($encours, $reserves);
         $signalLiquidite = $calc->getSignalLiquidite($reserves);
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
@@ -259,11 +306,18 @@ class FicheJournaliereController extends AbstractController
             'ecartPct' => $ecartPct,
             'ecartMaxPct' => $ecartMaxPct,
             'spreadPct' => $spreadPct,
-            'ratioSteri' => $ratioSteri,
+            'ratioEncoursBons' => $ratioEncoursBons,
+            'totalEncours' => $totalEncours,
+            'tauxInterbancaire' => $tauxInterbancaire,
+            'tauxMoyenPondere' => $tauxMoyenPondere,
+            'billetsEnCirculation' => $billetsEnCirculation,
+            'tauxDirecteur' => $tauxDirecteur,
+            'dateTauxDirecteur' => $dateTauxDirecteur,
             'tauxPaie' => $tauxPaie,
             'pctRestePaie' => $pctRestePaie,
             'signalChange' => $signalChange,
             'signalLiquidite' => $signalLiquidite,
+            'signalMarcheMonetaire' => $signalMarcheMonetaire,
             'signalTresorerie' => $signalTresorerie,
             'signalPaie' => $signalPaie,
             'signalReserves' => $signalReserves,

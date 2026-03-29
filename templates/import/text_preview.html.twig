@@ -171,11 +171,14 @@
                     </tbody>
                 </table>
                 <br>
-                <h4 class="mb-10 text-primary">Encours BCC</h4>
+                <h4 class="mb-10 text-primary">Marché Monétaire</h4>
                 <table class="preview-table">
                     <tbody>
                         <tr><td>Encours OT BCC</td><td class="text-right font-bold">{{ data.encours.ot|default('-') }}</td></tr>
                         <tr><td>Encours B BCC</td><td class="text-right font-bold">{{ data.encours.b|default('-') }}</td></tr>
+                        <tr><td>Billets en circulation</td><td class="text-right font-bold">{{ data.encours.billets|default('-') }}</td></tr>
+                        <tr><td>TMP BBCC (%)</td><td class="text-right font-bold">{{ data.encours.taux_moyen_pondere|default('-') }}</td></tr>
+                        <tr><td>Taux Interbancaire (%)</td><td class="text-right font-bold">{{ data.encours.taux_interbancaire|default('-') }}</td></tr>
                     </tbody>
                 </table>
             </div>

@@ -31,6 +31,33 @@ class EncoursBccType extends AbstractType
                     'placeholder' => '0.00'
                 ]
             ])
+            ->add('taux_interbancaire', NumberType::class, [
+                'label' => 'Taux Interbancaire (%)',
+                'required' => false,
+                'scale' => 2,
+                'attr' => [
+                    'class' => 'form-input',
+                    'placeholder' => '0.00'
+                ]
+            ])
+            ->add('taux_moyen_pondere_bbcc', NumberType::class, [
+                'label' => 'Taux Moyen Pondéré BBCC (%)',
+                'required' => false,
+                'scale' => 2,
+                'attr' => [
+                    'class' => 'form-input',
+                    'placeholder' => '0.00'
+                ]
+            ])
+            ->add('billets_en_circulation', NumberType::class, [
+                'label' => 'Billets en circulation (Mds CDF)',
+                'required' => false,
+                'scale' => 2,
+                'attr' => [
+                    'class' => 'form-input',
+                    'placeholder' => '0.00'
+                ]
+            ])
         ;
     }
 

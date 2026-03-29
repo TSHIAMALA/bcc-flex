@@ -181,6 +181,9 @@ class ImportController extends AbstractController
                 }
                 if (isset($data['encours']['ot'])) $eb->setEncoursOtBcc($data['encours']['ot']);
                 if (isset($data['encours']['b'])) $eb->setEncoursBBcc($data['encours']['b']);
+                if (isset($data['encours']['billets'])) $eb->setBilletsEnCirculation($data['encours']['billets']);
+                if (isset($data['encours']['taux_moyen_pondere'])) $eb->setTauxMoyenPondereBbcc($data['encours']['taux_moyen_pondere']);
+                if (isset($data['encours']['taux_interbancaire'])) $eb->setTauxInterbancaire($data['encours']['taux_interbancaire']);
             }
 
             // 5. Finances Publiques
@@ -604,6 +607,15 @@ class ImportController extends AbstractController
         }
         if (isset($row['encours_b_bcc'])) {
             $encours->setEncoursBBcc($this->parseNumber($row['encours_b_bcc']));
+        }
+        if (isset($row['billets_en_circulation'])) {
+            $encours->setBilletsEnCirculation($this->parseNumber($row['billets_en_circulation']));
+        }
+        if (isset($row['taux_moyen_pondere_bbcc'])) {
+            $encours->setTauxMoyenPondereBbcc($this->parseNumber($row['taux_moyen_pondere_bbcc']));
+        }
+        if (isset($row['taux_interbancaire'])) {
+            $encours->setTauxInterbancaire($this->parseNumber($row['taux_interbancaire']));
         }
         
         $em->persist($encours);

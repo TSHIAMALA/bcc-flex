@@ -52,26 +52,35 @@ class TextImportParserService
 
         // --- 4. Réserves Financières ---
         $data['reserves'] = [];
-        if (preg_match('/Réserves Int\s*:\s*\n?\s*USD\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Réserves Int(?:er)?\.?\s*:\s*(?:USD\s*)?([\d ,]+)/iu', $text, $m)) {
             $data['reserves']['int_usd'] = $this->parseFloat($m[1]);
         }
-        if (preg_match('/Avoirs externes\s*:\s*\n?\s*USD\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Avoirs (?:externes|en d[eé]vises)\s*:\s*(?:USD\s*)?([\d ,]+)/iu', $text, $m)) {
             $data['reserves']['ext_usd'] = $this->parseFloat($m[1]);
         }
-        if (preg_match('/Réserves des Banques\s*:\s*\n?\s*CDF\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Réserves des banques\s*(?:\(en Mds\))?\s*[:\n]\s*(?:CDF\s*)?([\d ,]+)/iu', $text, $m)) {
             $data['reserves']['b_cdf'] = $this->parseFloat($m[1]);
         }
-        if (preg_match('/Avoirs libres\s*:\s*\n?\s*CDF\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Avoirs libres\s*:\s*(?:CDF\s*)?([\d ,]+)/iu', $text, $m)) {
             $data['reserves']['lib_cdf'] = $this->parseFloat($m[1]);
         }
 
         // --- 5. Encours BCC ---
         $data['encours'] = [];
-        if (preg_match('/Encours OT-BCC\s*:\s*\n?\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Encours OT-BCC\s*:\s*([\d ,]+)/iu', $text, $m)) {
             $data['encours']['ot'] = $this->parseFloat($m[1]);
         }
-        if (preg_match('/Encours B-BCC\s*:\s*\n?\s*([\d\s,]+)/', $text, $m)) {
+        if (preg_match('/Encours (?:B-BCC|bons BCC)\s*:\s*([\d ,]+)/iu', $text, $m)) {
             $data['encours']['b'] = $this->parseFloat($m[1]);
+        }
+        if (preg_match('/Billets?\s+en\s+circulation\s*:\s*([\d ,]+)/iu', $text, $m)) {
+            $data['encours']['billets'] = $this->parseFloat($m[1]);
+        }
+        if (preg_match('/Taux\s+moyen\s+pond[eé]r[eé]\s+BBCC\s*:[\s\n]*-?\s*7\s+jours\s*:\s*([\d ,]+)/iu', $text, $m)) {
+            $data['encours']['taux_moyen_pondere'] = $this->parseFloat($m[1]);
+        }
+        if (preg_match('/Taux\s+interbancaire[\s:]*\n?\s*([\d ,]+)/iu', $text, $m)) {
+            $data['encours']['taux_interbancaire'] = $this->parseFloat($m[1]);
         }
 
         // --- 6. Finances Publiques ---

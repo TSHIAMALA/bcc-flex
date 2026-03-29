@@ -218,21 +218,24 @@ body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10pt; color: #1a1
                 </table>
             </td>
 
-            <!-- Pilier 3 : Liquidité -->
-            <td class="pillar p-{{ signalLiquidite }}">
-                <div class="pillar-title">Pilier 3 — Liquidité</div>
+            <!-- Pilier 3 : Marché Monétaire -->
+            <td class="pillar p-{{ signalMarcheMonetaire }}">
+                <div class="pillar-title">Pilier 3 — Marché Monétaire</div>
                 <div class="pillar-value">
                     {% if reserves and reserves.avoirsLibresCdf %}{{ reserves.avoirsLibresCdf|number_format(0,',',' ') }}{% else %}N/D{% endif %}
                 </div>
                 <div class="pillar-sub">Avoirs libres (Mds CDF)</div>
-                <span class="badge badge-{{ signalLiquidite }}">
-                    {{ {green:'🟢 Normal',yellow:'🟡 Vigilance',orange:'🟠 Alerte',red:'🔴 Critique',secondary:'⚪ N/D'}[signalLiquidite] ?? signalLiquidite }}
+                <span class="badge badge-{{ signalMarcheMonetaire }}">
+                    {{ {green:'🟢 Normal',yellow:'🟡 Vigilance',orange:'🟠 Alerte',red:'🔴 Critique',secondary:'⚪ N/D'}[signalMarcheMonetaire] ?? signalMarcheMonetaire }}
                 </span>
                 <table class="detail">
-                    <tr><td>OT-BCC</td><td>{{ encours ? encours.encoursOtBcc : 'N/D' }}</td></tr>
-                    <tr><td>B-BCC</td><td>{{ encours ? encours.encoursBBcc : 'N/D' }}</td></tr>
-                    <tr><td>Ratio stérilisation</td>
-                        <td>{% if ratioSteri is not null %}{{ ratioSteri|number_format(2,',') }}{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Réserves banques</td><td>{{ reserves ? reserves.reservesBanquesCdf|number_format(0,',',' ') : 'N/D' }}</td></tr>
+                    <tr><td>Encours OT-BCC</td><td>{% if encours and encours.encoursOtBcc is not null %}{{ encours.encoursOtBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Encours B-BCC</td><td>{% if encours and encours.encoursBBcc is not null %}{{ encours.encoursBBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Ratio stérilisation</td><td>{% if ratioEncoursBons is not null %}{{ ratioEncoursBons|number_format(2,',') }}{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Taux moyen pondéré</td><td>{% if tauxMoyenPondere is not null %}{{ tauxMoyenPondere|number_format(2,',') }} %{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Masse monétaire</td><td>{% if billetsEnCirculation is not null %}{{ billetsEnCirculation|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
+                   {# <tr><td>Taux interbancaire</td><td>{% if tauxInterbancaire is not null %}{{ tauxInterbancaire|number_format(2,',') }} %{% else %}N/D{% endif %}</td></tr> #}
                 </table>
             </td>
 
@@ -277,11 +280,11 @@ body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10pt; color: #1a1
             Vérifier la cohérence du taux indicatif.
         </div>
         {% endif %}
-        {% if signalLiquidite in ['orange','red'] %}
+        {% if signalMarcheMonetaire in ['orange','red'] %}
         <div class="attn-item">
             💧 <strong>Surliquidité bancaire :</strong>
             Avoirs libres {% if reserves %}{{ reserves.avoirsLibresCdf|number_format(0,',',' ') }} Mds CDF{% endif %}.
-            Renforcer la stérilisation.
+            Renforcer la stérilisation sur le Marché Monétaire.
         </div>
         {% endif %}
         {% if signalTresorerie in ['yellow','orange','red'] %}

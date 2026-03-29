@@ -66,7 +66,10 @@ class IndicateursPeriodeController extends AbstractController
         $avLibMax = isset($reserves['avoirs_libres_max']) ? (float) $reserves['avoirs_libres_max'] : null;
         $reservesIntMoy = isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null;
         $soldeMoy = isset($finances['solde_moy']) ? (float) $finances['solde_moy'] : null;
-        $sterilMoy = isset($encours['sterilisation_totale_moy']) ? (float) $encours['sterilisation_totale_moy'] : null;
+        $encoursBonsMoy = isset($encours['encours_bons_moy']) ? (float) $encours['encours_bons_moy'] : null;
+        $tauxInterbancaireMoy = isset($encours['taux_interbancaire_moy']) ? (float) $encours['taux_interbancaire_moy'] : null;
+        $tauxMoyenPondereMoy = isset($encours['taux_moyen_pondere_moy']) ? (float) $encours['taux_moyen_pondere_moy'] : null;
+        $billetsCirculationMoy = isset($encours['billets_circulation_moy']) ? (float) $encours['billets_circulation_moy'] : null;
 
         $signalChange = $this->computeSignalChange($ecartMoy, $ecartMax);
         $signalLiq = $this->computeSignalLiquidite($avLibMax);
@@ -148,7 +151,10 @@ class IndicateursPeriodeController extends AbstractController
             'avLibresMoy' => $avLibMoy,
             'avLibresMax' => $avLibMax,
             'soldeMoy' => $soldeMoy,
-            'sterilisationMoy' => $sterilMoy,
+            'encoursBonsMoy' => $encoursBonsMoy,
+            'tauxInterbancaireMoy' => $tauxInterbancaireMoy,
+            'tauxMoyenPondereMoy' => $tauxMoyenPondereMoy,
+            'billetsCirculationMoy' => $billetsCirculationMoy,
             'reservesIntMoy' => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
             // données graphiques pré-calculées
             'chartChange' => $chartChange,
@@ -220,7 +226,10 @@ class IndicateursPeriodeController extends AbstractController
             'avLibresMoy' => isset($reserves['avoirs_libres_moy']) ? (float) $reserves['avoirs_libres_moy'] : null,
             'avLibresMax' => $avLibMax,
             'soldeMoy' => $soldeMoy,
-            'sterilisationMoy' => isset($encours['sterilisation_totale_moy']) ? (float) $encours['sterilisation_totale_moy'] : null,
+            'encoursBonsMoy' => isset($encours['encours_bons_moy']) ? (float) $encours['encours_bons_moy'] : null,
+            'tauxInterbancaireMoy' => isset($encours['taux_interbancaire_moy']) ? (float) $encours['taux_interbancaire_moy'] : null,
+            'tauxMoyenPondereMoy' => isset($encours['taux_moyen_pondere_moy']) ? (float) $encours['taux_moyen_pondere_moy'] : null,
+            'billetsCirculationMoy' => isset($encours['billets_circulation_moy']) ? (float) $encours['billets_circulation_moy'] : null,
             'reservesIntMoy' => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
             'tauxDirecteur' => $tauxDirecteur,
             'tauxDirecteurPrec' => $tauxDirecteurPrec,

@@ -74,9 +74,12 @@ class EncoursBccRepository extends ServiceEntityRepository
                 AVG(CAST(e.encours_ot_bcc AS DECIMAL(18,2)))            AS ot_bcc_moy,
                 AVG(CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS b_bcc_moy,
                 AVG(CAST(e.encours_ot_bcc AS DECIMAL(18,2))
-                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS sterilisation_totale_moy,
+                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS encours_bons_moy,
                 MAX(CAST(e.encours_ot_bcc AS DECIMAL(18,2))
-                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS sterilisation_totale_max
+                  + CAST(e.encours_b_bcc AS DECIMAL(18,2)))             AS encours_bons_max,
+                AVG(CAST(e.taux_interbancaire AS DECIMAL(6,2)))         AS taux_interbancaire_moy,
+                AVG(CAST(e.taux_moyen_pondere_bbcc AS DECIMAL(6,2)))    AS taux_moyen_pondere_moy,
+                AVG(CAST(e.billets_en_circulation AS DECIMAL(18,2)))    AS billets_circulation_moy
             FROM encours_bcc e
             INNER JOIN conjoncture_jour c ON e.conjoncture_id = c.id
             WHERE c.date_situation BETWEEN :dateDebut AND :dateFin

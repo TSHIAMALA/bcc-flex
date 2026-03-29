@@ -11,6 +11,8 @@ use App\Repository\VolumeUSDRepository;
 use App\Repository\PaieEtatRepository;
 use App\Repository\ParametreGlobalRepository;
 use App\Repository\ScoreItmDetailRepository;
+use App\Repository\EncoursBccRepository;
+use App\Repository\TauxDirecteurRepository;
 use App\Service\AlerteService;
 use App\Service\IndiceTensionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +34,8 @@ class DashboardController extends AbstractController
         ConjonctureJourRepository $conjonctureRepository,
         ParametreGlobalRepository $paramGlobalRepository,
         ScoreItmDetailRepository $scoreItmDetailRepository,
+        EncoursBccRepository $encoursRepository,
+        TauxDirecteurRepository $tauxRepository,
         AlerteService $alerteService,
         IndiceTensionService $itmService
     ): Response {
@@ -93,6 +97,8 @@ class DashboardController extends AbstractController
         $latestReserves = null;
         $latestFinances = null;
         $latestConjoncture = null;
+        $latestEncours = null;
+        $activeTauxDirecteur = null;
         $scoreItmDetails = [];
 
         if ($latestKPI) {
@@ -105,6 +111,10 @@ class DashboardController extends AbstractController
                 $latestMarche = $marcheRepository->findOneBy(['conjoncture' => $latestConjoncture]);
                 $latestReserves = $reservesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
                 $latestFinances = $financesRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+                $latestEncours = $encoursRepository->findOneBy(['conjoncture' => $latestConjoncture]);
+            }
+            if ($dateSituation) {
+                $activeTauxDirecteur = $tauxRepository->findActiveRateAt($dateSituation);
             }
 
             // Fetch detailed scores for auditability
@@ -162,6 +172,8 @@ class DashboardController extends AbstractController
             'latestMarche' => $latestMarche,
             'latestReserves' => $latestReserves,
             'latestFinances' => $latestFinances,
+            'latestEncours' => $latestEncours,
+            'activeTauxDirecteur' => $activeTauxDirecteur,
             'evolutionMarche' => $evolutionMarche,
             'volumes' => $volumes,
             'paie' => $paie,
