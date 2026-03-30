@@ -140,6 +140,7 @@ class FicheJournaliereController extends AbstractController
         FinancesPubliquesRepository $financesRepo,
         TresorerieEtatRepository $tresorerieRepo,
         PaieEtatRepository $paieRepo,
+        TauxDirecteurRepository $tauxRepo,
         IndicateursCalculService $calc
     ): Response {
         $dateStr = $request->query->get('date');
@@ -238,6 +239,7 @@ class FicheJournaliereController extends AbstractController
         FinancesPubliquesRepository $financesRepo,
         TresorerieEtatRepository $tresorerieRepo,
         PaieEtatRepository $paieRepo,
+        TauxDirecteurRepository $tauxRepo,
         IndicateursCalculService $calc,
         SlideExportService $slideService
     ): Response {
@@ -307,7 +309,8 @@ class FicheJournaliereController extends AbstractController
             'ecartMaxPct' => $ecartMaxPct,
             'spreadPct' => $spreadPct,
             'ratioEncoursBons' => $ratioEncoursBons,
-            'totalEncours' => $totalEncours,
+            'ratioSteri'       => $ratioEncoursBons,
+            'totalEncours'     => $totalEncours,
             'tauxInterbancaire' => $tauxInterbancaire,
             'tauxMoyenPondere' => $tauxMoyenPondere,
             'billetsEnCirculation' => $billetsEnCirculation,
