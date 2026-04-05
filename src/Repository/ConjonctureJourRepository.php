@@ -55,4 +55,18 @@ class ConjonctureJourRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Trouver la conjoncture immédiatement antérieure à une date donnée (pour calcul J-1).
+     */
+    public function findPreviousTo(\DateTimeInterface $date): ?ConjonctureJour
+    {
+        return $this->createQueryBuilder('c')
+            ->where('c.date_situation < :date')
+            ->setParameter('date', $date)
+            ->orderBy('c.date_situation', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

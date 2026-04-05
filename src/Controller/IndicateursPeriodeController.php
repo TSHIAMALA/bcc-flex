@@ -9,6 +9,7 @@ use App\Repository\EncoursBccRepository;
 use App\Repository\FinancesPubliquesRepository;
 use App\Repository\ParametreGlobalRepository;
 use App\Repository\TauxDirecteurRepository;
+use App\Repository\TresorerieEtatRepository;
 use App\Service\SlideExportService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,8 @@ class IndicateursPeriodeController extends AbstractController
         EncoursBccRepository $encoursRepo,
         FinancesPubliquesRepository $financesRepo,
         ParametreGlobalRepository $paramRepo,
-        TauxDirecteurRepository $tauxRepo
+        TauxDirecteurRepository $tauxRepo,
+        TresorerieEtatRepository $tresorerieRepo
     ): Response {
         // ── Bornes de période par défaut : 90 derniers jours ──────────────
         $latest = $conjonctureRepo->findLatest();
@@ -130,40 +132,73 @@ class IndicateursPeriodeController extends AbstractController
             ];
         }
 
+        // ── Données CGT (Compte Général du Trésor) ─────────────────────────
+        $cgtHistory = $tresorerieRepo->getCgtHistoryByPeriod($dateDebut, $dateFin);
+
+        // Construire un index des avoirs libres par date pour jointure
+        $avoirsMap = [];
+        foreach ($evolutionReserves as $r) {
+            $k = $r->getConjoncture()?->getDateSituation()?->format('Y-m-d');
+            if ($k) $avoirsMap[$k] = $r->getAvoirsLibresCdf() !== null ? round((float) $r->getAvoirsLibresCdf(), 0) : null;
+        }
+
+        $chartCgt = [];
+        foreach ($cgtHistory as $r) {
+            $k = $r->getConjoncture()?->getDateSituation()?->format('Y-m-d');
+            $chartCgt[] = [
+                'date' => $r->getConjoncture()?->getDateSituation()?->format('d/m') ?? '',
+                'cgt'  => $r->getSoldeCgt() !== null ? round((float) $r->getSoldeCgt(), 2) : null,
+                'av'   => $avoirsMap[$k] ?? null,
+            ];
+        }
+
+        // KPIs CGT sur la période
+        $cgtValues = array_filter(array_column($chartCgt, 'cgt'), fn($v) => $v !== null);
+        $soldeCgtMoy = count($cgtValues) > 0 ? array_sum($cgtValues) / count($cgtValues) : null;
+        $soldeCgtDebut = !empty($chartCgt) ? $chartCgt[0]['cgt'] : null;
+        $soldeCgtFin   = !empty($chartCgt) ? end($chartCgt)['cgt'] : null;
+        $variationCgtCumulee = ($soldeCgtDebut !== null && $soldeCgtFin !== null)
+            ? $soldeCgtFin - $soldeCgtDebut
+            : null;
+
         return $this->render('indicateurs_periode/index.html.twig', [
             'dateDebut' => $dateDebut,
-            'dateFin' => $dateFin,
+            'dateFin'   => $dateFin,
             // agrégats bruts
-            'change' => $change,
-            'reserves' => $reserves,
-            'encours' => $encours,
-            'finances' => $finances,
+            'change'    => $change,
+            'reserves'  => $reserves,
+            'encours'   => $encours,
+            'finances'  => $finances,
             // signaux
-            'signalChange' => $signalChange,
-            'signalLiquidite' => $signalLiq,
-            'signalTresorerie' => $signalTreso,
-            'signalReserves' => $signalReserves,
-            'signalGlobal' => $signalGlobal,
+            'signalChange'      => $signalChange,
+            'signalLiquidite'   => $signalLiq,
+            'signalTresorerie'  => $signalTreso,
+            'signalReserves'    => $signalReserves,
+            'signalGlobal'      => $signalGlobal,
             // taux directeur
-            'tauxDirecteur' => $tauxDirecteur,
-            'tauxDirecteurPrec' => $tauxDirecteurPrec,
-            'recoTaux' => $recoTaux,
+            'tauxDirecteur'      => $tauxDirecteur,
+            'tauxDirecteurPrec'  => $tauxDirecteurPrec,
+            'recoTaux'           => $recoTaux,
             // valeurs calculées pour l'affichage
-            'ecartMoy' => $ecartMoy,
-            'ecartMax' => $ecartMax,
-            'ecartMin' => isset($change['ecart_pct_min']) ? (float) $change['ecart_pct_min'] : null,
-            'avLibresMoy' => $avLibMoy,
-            'avLibresMax' => $avLibMax,
-            'soldeMoy' => $soldeMoy,
-            'encoursBonsMoy' => $encoursBonsMoy,
-            'tauxInterbancaireMoy' => $tauxInterbancaireMoy,
-            'tauxMoyenPondereMoy' => $tauxMoyenPondereMoy,
+            'ecartMoy'              => $ecartMoy,
+            'ecartMax'              => $ecartMax,
+            'ecartMin'              => isset($change['ecart_pct_min']) ? (float) $change['ecart_pct_min'] : null,
+            'avLibresMoy'           => $avLibMoy,
+            'avLibresMax'           => $avLibMax,
+            'soldeMoy'              => $soldeMoy,
+            'encoursBonsMoy'        => $encoursBonsMoy,
+            'tauxInterbancaireMoy'  => $tauxInterbancaireMoy,
+            'tauxMoyenPondereMoy'   => $tauxMoyenPondereMoy,
             'billetsCirculationMoy' => $billetsCirculationMoy,
-            'reservesIntMoy' => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
+            'reservesIntMoy'        => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
             // données graphiques pré-calculées
-            'chartChange' => $chartChange,
+            'chartChange'   => $chartChange,
             'chartReserves' => $chartReserves,
             'chartFinances' => $chartFinances,
+            // CGT
+            'chartCgt'            => $chartCgt,
+            'soldeCgtMoy'         => $soldeCgtMoy,
+            'variationCgtCumulee' => $variationCgtCumulee,
         ]);
     }
 
@@ -180,6 +215,7 @@ class IndicateursPeriodeController extends AbstractController
         ParametreGlobalRepository $paramRepo,
         TauxDirecteurRepository $tauxRepo,
         ConjonctureJourRepository $conjonctureRepo,
+        TresorerieEtatRepository $tresorerieRepo,
         SlideExportService $slideService
     ): Response {
         $latest = $conjonctureRepo->findLatest();
@@ -210,6 +246,14 @@ class IndicateursPeriodeController extends AbstractController
         $soldeMoy = isset($finances['solde_moy']) ? (float) $finances['solde_moy'] : null;
         $reservesIntMoy = isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null;
 
+        // Données CGT pour le slide
+        $cgtHistory = $tresorerieRepo->getCgtHistoryByPeriod($dateDebut, $dateFin);
+        $cgtValues = array_filter(array_map(fn($r) => $r->getSoldeCgt() !== null ? (float)$r->getSoldeCgt() : null, $cgtHistory));
+        $soldeCgtMoy = count($cgtValues) > 0 ? array_sum($cgtValues) / count($cgtValues) : null;
+        $soldeCgtDebut = !empty($cgtHistory) ? (float)($cgtHistory[0]->getSoldeCgt() ?? 0) : null;
+        $soldeCgtFin   = !empty($cgtHistory) ? (float)(end($cgtHistory)->getSoldeCgt() ?? 0) : null;
+        $variationCgtCumulee = ($soldeCgtDebut !== null && $soldeCgtFin !== null) ? $soldeCgtFin - $soldeCgtDebut : null;
+
         $signalChange = $this->computeSignalChange($ecartMoy, $ecartMax);
         $signalLiq = $this->computeSignalLiquidite($avLibMax);
         $signalTreso = $this->computeSignalTresorerie($soldeMoy);
@@ -219,30 +263,33 @@ class IndicateursPeriodeController extends AbstractController
 
         $data = [
             'dateDebut' => new \DateTime($dateDebut),
-            'dateFin' => new \DateTime($dateFin),
-            'change' => $change,
-            'reserves' => $reserves,
-            'encours' => $encours,
-            'finances' => $finances,
-            'ecartMoy' => $ecartMoy,
-            'ecartMax' => $ecartMax,
-            'ecartMin' => isset($change['ecart_pct_min']) ? (float) $change['ecart_pct_min'] : null,
-            'avLibresMoy' => isset($reserves['avoirs_libres_moy']) ? (float) $reserves['avoirs_libres_moy'] : null,
-            'avLibresMax' => $avLibMax,
-            'soldeMoy' => $soldeMoy,
-            'encoursBonsMoy' => isset($encours['encours_bons_moy']) ? (float) $encours['encours_bons_moy'] : null,
-            'tauxInterbancaireMoy' => isset($encours['taux_interbancaire_moy']) ? (float) $encours['taux_interbancaire_moy'] : null,
-            'tauxMoyenPondereMoy' => isset($encours['taux_moyen_pondere_moy']) ? (float) $encours['taux_moyen_pondere_moy'] : null,
+            'dateFin'   => new \DateTime($dateFin),
+            'change'    => $change,
+            'reserves'  => $reserves,
+            'encours'   => $encours,
+            'finances'  => $finances,
+            'ecartMoy'              => $ecartMoy,
+            'ecartMax'              => $ecartMax,
+            'ecartMin'              => isset($change['ecart_pct_min']) ? (float) $change['ecart_pct_min'] : null,
+            'avLibresMoy'           => isset($reserves['avoirs_libres_moy']) ? (float) $reserves['avoirs_libres_moy'] : null,
+            'avLibresMax'           => $avLibMax,
+            'soldeMoy'              => $soldeMoy,
+            'encoursBonsMoy'        => isset($encours['encours_bons_moy']) ? (float) $encours['encours_bons_moy'] : null,
+            'tauxInterbancaireMoy'  => isset($encours['taux_interbancaire_moy']) ? (float) $encours['taux_interbancaire_moy'] : null,
+            'tauxMoyenPondereMoy'   => isset($encours['taux_moyen_pondere_moy']) ? (float) $encours['taux_moyen_pondere_moy'] : null,
             'billetsCirculationMoy' => isset($encours['billets_circulation_moy']) ? (float) $encours['billets_circulation_moy'] : null,
-            'reservesIntMoy' => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
-            'tauxDirecteur' => $tauxDirecteur,
-            'tauxDirecteurPrec' => $tauxDirecteurPrec,
-            'signalChange' => $signalChange,
-            'signalLiquidite' => $signalLiq,
-            'signalTresorerie' => $signalTreso,
-            'signalReserves' => $signalReserves,
-            'signalGlobal' => $signalGlobal,
-            'recoTaux' => $recoTaux,
+            'reservesIntMoy'        => isset($reserves['reserves_int_moy']) ? (float) $reserves['reserves_int_moy'] : null,
+            'tauxDirecteur'         => $tauxDirecteur,
+            'tauxDirecteurPrec'     => $tauxDirecteurPrec,
+            'signalChange'          => $signalChange,
+            'signalLiquidite'       => $signalLiq,
+            'signalTresorerie'      => $signalTreso,
+            'signalReserves'        => $signalReserves,
+            'signalGlobal'          => $signalGlobal,
+            'recoTaux'              => $recoTaux,
+            // CGT
+            'soldeCgtMoy'           => $soldeCgtMoy,
+            'variationCgtCumulee'   => $variationCgtCumulee,
         ];
 
         $tmpFile = $slideService->generatePolitiqueMonetaire($data);

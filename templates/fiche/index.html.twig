@@ -62,16 +62,19 @@
 /* Pillar cards - uses global .card class for dark mode support */
 .pillars-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 6px;
     margin-bottom: 28px;
+}
+.pillar-card {
+    padding: 1.8rem 1.4rem; /* augmente la hauteur/respiration d'environ 20% */
 }
 .pillar-card .pillar-icon {
     width: 48px; height: 48px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.3rem; margin-bottom: 14px;
 }
-.pillar-card .pillar-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 6px; }
+.pillar-card .pillar-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin-bottom: 6px; }
 .pillar-card .pillar-value { font-size: 2rem; font-weight: 800; margin-bottom: 4px; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 .pillar-card .pillar-sub   { font-size: 0.85rem; color: var(--text-secondary); }
 .pillar-card .pillar-badge { position: absolute; top: 18px; right: 18px; }
@@ -138,6 +141,45 @@
 .mini-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; color: var(--text-primary); }
 .mini-table td:first-child { color: var(--text-secondary); font-weight: 500; width: 55%; }
 .mini-table td:last-child  { font-weight: 700; text-align: right; }
+
+/* ── Sous-indicateurs des piliers — style identique page périodique ──────── */
+.pillar-kpi-data {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem 0.6rem;
+    margin-top: 1rem;
+}
+.pillar-kpi-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.pillar-kpi-item.full-width {
+    grid-column: 1 / -1;
+    border-top: 1px dashed rgba(45,109,166,.2);
+    padding-top: 0.3rem;
+    margin-top: 0.2rem;
+}
+.pkdi-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: normal;
+    line-height: 1.25;
+}
+.pkdi-val {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    white-space: normal;
+    line-height: 1.3;
+}
+.pkdi-label.cgt { color: #2d6da6; }
+.pkdi-val.inject { color: #721c24; }
+.pkdi-val.absorb { color: #155724; }
+.pkdi-val.stable { color: #6c757d; }
 
 /* Table wrappers */
 .table-wrapper {
@@ -276,18 +318,28 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 {% if ecartPct is not null %}{{ ecartPct|number_format(2, ',', ' ') }} %{% else %}N/D{% endif %}
             </div>
             <div class="pillar-sub">Écart moyen indicatif / parallèle</div>
-            <table class="mini-table mt-3">
-                <tr><td>Taux indicatif</td>
-                    <td>{{ marche ? marche.coursIndicatif|number_format(4, ',', ' ') : 'N/D' }} CDF</td></tr>
-                <tr><td>Parallèle (achat / vente)</td>
-                    <td>{% if marche %}{{ marche.paralleleAchat|number_format(2,',') }} / {{ marche.paralleleVente|number_format(2,',') }}{% else %}N/D{% endif %}</td></tr>
-                <tr><td>Écart absolu</td>
-                    <td>{{ marche ? marche.ecartIndicParallele|number_format(2,',') : 'N/D' }} CDF</td></tr>
-                <tr><td>Écart max (borne haute)</td>
-                    <td>{% if ecartMaxPct is not null %}{{ ecartMaxPct|number_format(2,',') }} %{% else %}N/D{% endif %}</td></tr>
-                <tr><td>Spread parallèle</td>
-                    <td>{% if spreadPct is not null %}{{ spreadPct|number_format(2,',') }} %{% else %}N/D{% endif %}</td></tr>
-            </table>
+            <div class="pillar-kpi-data">
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Taux indicatif</span>
+                    <span class="pkdi-val">{{ marche ? marche.coursIndicatif|number_format(4, ',', ' ') : '—' }} CDF</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Écart absolu</span>
+                    <span class="pkdi-val">{{ marche ? marche.ecartIndicParallele|number_format(2,',') : '—' }} CDF</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Parallèle (achat / vente)</span>
+                    <span class="pkdi-val">{% if marche %}{{ marche.paralleleAchat|number_format(2,',') }} / {{ marche.paralleleVente|number_format(2,',') }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Écart max (borne haute)</span>
+                    <span class="pkdi-val">{% if ecartMaxPct is not null %}{{ ecartMaxPct|number_format(2,',') }} %{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Spread parallèle</span>
+                    <span class="pkdi-val">{% if spreadPct is not null %}{{ spreadPct|number_format(2,',') }} %{% else %}—{% endif %}</span>
+                </div>
+            </div>
         </div>
 
         {# Pilier 2 : Réserves #}
@@ -301,18 +353,24 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 {% else %}N/D{% endif %}
             </div>
             <div class="pillar-sub">Réserves internationales</div>
-            <table class="mini-table mt-3">
-                <tr><td>Réserves int. (USD Mios)</td>
-                    <td>{{ reserves ? reserves.reservesInternationalesUsd|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Avoirs externes (USD Mios)</td>
-                    <td>{{ reserves ? reserves.avoirsExternesUsd|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Couverture (seuil 5 Md$)</td>
-                    <td>
+            <div class="pillar-kpi-data">
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Réserves int. (USD Mios)</span>
+                    <span class="pkdi-val">{{ reserves ? reserves.reservesInternationalesUsd|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Avoirs externes (USD Mios)</span>
+                    <span class="pkdi-val">{{ reserves ? reserves.avoirsExternesUsd|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Couverture (seuil 5 Md$)</span>
+                    <span class="pkdi-val">
                         {% if reserves and reserves.reservesInternationalesUsd %}
                             {{ (reserves.reservesInternationalesUsd / 5000 * 100)|number_format(0) }} %
-                        {% else %}N/D{% endif %}
-                    </td></tr>
-            </table>
+                        {% else %}—{% endif %}
+                    </span>
+                </div>
+            </div>
         </div>
 
         {# Pilier 3 : Marché Monétaire #}
@@ -326,29 +384,62 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 {% else %}N/D{% endif %}
             </div>
             <div class="pillar-sub">Avoirs libres (Mds CDF)</div>
-            <table class="mini-table mt-3">
-                <tr><td>Réserves des banques (CDF)</td>
-                    <td>{{ reserves ? reserves.reservesBanquesCdf|number_format(0,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Encours OT-BCC</td>
-                    <td>{% if encours and encours.encoursOtBcc is not null %}{{ encours.encoursOtBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
-                <tr><td>Encours B-BCC</td>
-                    <td>{% if encours and encours.encoursBBcc is not null %}{{ encours.encoursBBcc|number_format(2,',',' ') }}{% else %}N/D{% endif %}</td></tr>
-                <tr><td>Ratio stérilisation</td>
-                    <td>{% if ratioEncoursBons is not null %}
-                            {{ ratioEncoursBons|number_format(2,',',' ') }} 
-                            {% if ratioEncoursBons >= 1.5 %}(<span class="text-success" style="font-weight:bold;">Efficace</span>)
-                            {% elseif ratioEncoursBons >= 1.0 %}(<span class="text-warning" style="font-weight:bold;">Partiel</span>)
-                            {% else %}(<span class="text-danger" style="font-weight:bold;">Insuffisant</span>)
+            <div class="pillar-kpi-data">
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Réserves des banques (CDF)</span>
+                    <span class="pkdi-val">{{ reserves ? reserves.reservesBanquesCdf|number_format(0,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Ratio stérilisation</span>
+                    <span class="pkdi-val">{% if ratioEncoursBons is not null %}
+                        {{ ratioEncoursBons|number_format(2,',',' ') }} 
+                        {% if ratioEncoursBons >= 1.5 %}<span class="text-success">(Efficace)</span>
+                        {% elseif ratioEncoursBons >= 1.0 %}<span class="text-warning">(Partiel)</span>
+                        {% else %}<span class="text-danger">(Insuffisant)</span>
+                        {% endif %}
+                    {% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Encours OT-BCC</span>
+                    <span class="pkdi-val">{% if encours and encours.encoursOtBcc is not null %}{{ encours.encoursOtBcc|number_format(2,',',' ') }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Encours B-BCC</span>
+                    <span class="pkdi-val">{% if encours and encours.encoursBBcc is not null %}{{ encours.encoursBBcc|number_format(2,',',' ') }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Taux moyen pondéré (BBCC)</span>
+                    <span class="pkdi-val">{% if tauxMoyenPondere is not null %}{{ tauxMoyenPondere|number_format(2,',') }} %{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Masse monétaire (Billets en circ.)</span>
+                    <span class="pkdi-val">{% if billetsEnCirculation is not null %}{{ billetsEnCirculation|number_format(2,',',' ') }} Mds{% else %}—{% endif %}</span>
+                </div>
+                {# ── CGT ── #}
+                {% if soldeCgt is not null %}
+                <div class="pillar-kpi-item full-width">
+                    <span class="pkdi-label cgt">■ Compte Général du Trésor (CGT)</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Solde CGT</span>
+                    <span class="pkdi-val">{{ soldeCgt|number_format(2,',',' ') }} Mds CDF</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Variation CGT (J-1)</span>
+                    <span class="pkdi-val">
+                        {% if variationCgt is not null %}
+                            {% if variationCgt > 10 %}
+                                <span class="pkdi-val absorb">▲ {{ variationCgt|number_format(0,',',' ') }} Mds — Absorption</span>
+                            {% elseif variationCgt < -10 %}
+                                <span class="pkdi-val inject">▼ {{ (variationCgt)|number_format(0,',',' ') }} Mds — Injection</span>
+                            {% else %}
+                                <span class="pkdi-val stable">≈ {{ variationCgt|number_format(0,',',' ') }} Mds — Stable</span>
                             {% endif %}
-                        {% else %}N/D{% endif %}
-                    </td></tr>
-                <tr><td>Taux moyen pondéré (BBCC)</td>
-                    <td>{% if tauxMoyenPondere is not null %}<span class="badge bg-info text-dark">{{ tauxMoyenPondere|number_format(2,',') }} %</span>{% else %}N/D{% endif %}</td></tr>
-                <tr><td>Masse monétaire (Billets en circ.)</td>
-                    <td>{% if billetsEnCirculation is not null %}{{ billetsEnCirculation|number_format(2,',',' ') }} Mds{% else %}N/D{% endif %}</td></tr>
-               {# <tr><td>Taux interbancaire</td>
-                    <td>{% if tauxInterbancaire is not null %}<span class="badge bg-warning text-dark">{{ tauxInterbancaire|number_format(2,',') }} %</span>{% else %}N/D{% endif %}</td></tr>#}
-            </table>
+                        {% else %}—{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         {# Pilier 4 : Budget & Trésorerie #}
@@ -362,22 +453,41 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                 {% else %}N/D{% endif %}
             </div>
             <div class="pillar-sub">Solde trésorerie avant fin (Mds CDF)</div>
-            <table class="mini-table mt-3">
-                <tr><td>Recettes totales</td>
-                    <td>{{ finances ? finances.recettesTotales|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Dépenses totales</td>
-                    <td>{{ finances ? finances.depensesTotales|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Solde après fin</td>
-                    <td>{{ tresorerie ? tresorerie.soldeApresFin|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Solde cumulé annuel</td>
-                    <td>{{ tresorerie ? tresorerie.soldeCumuleAnnee|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Paie exécutée</td>
-                    <td>{% if tauxPaie is not null %}{{ tauxPaie|number_format(1,',') }} %{% else %}N/D{% endif %}
-                        {{ fiche.signal_badge(signalPaie) }}
-                    </td></tr>
-                <tr><td>Reste à payer</td>
-                    <td>{{ paie ? paie.montantRestant|number_format(2,',',' ') : 'N/D' }} Mds</td></tr>
-            </table>
+            <div class="pillar-kpi-data">
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Recettes totales</span>
+                    <span class="pkdi-val">{{ finances ? finances.recettesTotales|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Dépenses totales</span>
+                    <span class="pkdi-val">{{ finances ? finances.depensesTotales|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Solde après fin</span>
+                    <span class="pkdi-val">{{ tresorerie ? tresorerie.soldeApresFin|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Solde cumulé annuel</span>
+                    <span class="pkdi-val">{{ tresorerie ? tresorerie.soldeCumuleAnnee|number_format(2,',',' ') : '—' }}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Paie exécutée</span>
+                    <span class="pkdi-val">{% if tauxPaie is not null %}{{ tauxPaie|number_format(1,',') }} % {{ fiche.signal_badge(signalPaie) }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Reste à payer</span>
+                    <span class="pkdi-val">
+                        {%- if paie and paie.montantRestant is not null -%}
+                            {{ paie.montantRestant|number_format(2,',',' ') }} Mds
+                        {%- elseif paie and paie.montantTotal is not null and paie.montantPaye is not null -%}
+                            {{ (paie.montantTotal - paie.montantPaye)|number_format(2,',',' ') }} Mds
+                            <span style="font-size:0.65rem;opacity:.6;font-weight:500">(calculé)</span>
+                        {%- else -%}
+                            —
+                        {%- endif -%}
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -439,20 +549,6 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
         </ul>
     </div>
 
-    {# ────────── SOLDES TRÉSORERIE DÉTAIL (si disponibles) ────────── #}
-    {% if tresorerie and (tresorerie.soldeCgt or tresorerie.depensesUrgence) %}
-    <div class="detail-section">
-        <h3><i class="fas fa-table"></i> Soldes de trésorerie détaillés</h3>
-        <div class="table-wrapper">
-            <table class="mini-table">
-                <tr><td>CGT</td><td>{{ tresorerie.soldeCgt ? tresorerie.soldeCgt|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Dépenses d'urgence</td><td>{{ tresorerie.depensesUrgence ? tresorerie.depensesUrgence|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Excédent</td><td>{{ tresorerie.excedent ? tresorerie.excedent|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                <tr><td>Réserve sous titres</td><td>{{ tresorerie.reserveSousTitres ? tresorerie.reserveSousTitres|number_format(2,',',' ') : 'N/D' }}</td></tr>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 
     {# ────────── SEUILS D'ALERTE DE RÉFÉRENCE ────────── #}
     <div class="detail-section">
@@ -479,6 +575,25 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                     <td style="text-align:center;">1 à 1,49<br><small>(Partiel)</small></td>
                     <td style="text-align:center;">—</td>
                     <td style="text-align:center;">&lt; 1<br><small>(Insuffisant)</small></td>
+                <tr style="border-top: 2px solid rgba(45,109,166,.2); background: rgba(45,109,166,.03);">
+                    <td style="color:#1e4b7a;font-weight:600;">
+                        <i class="fas fa-university" style="font-size:.75rem;margin-right:4px;opacity:.6;"></i>
+                        Solde CGT (Mds CDF)
+                    </td>
+                    <td style="text-align:center;">&gt; 500</td>
+                    <td style="text-align:center;">200–500</td>
+                    <td style="text-align:center;">0–200</td>
+                    <td style="text-align:center;">&lt; 0</td>
+                </tr>
+                <tr style="background: rgba(45,109,166,.03);">
+                    <td style="color:#1e4b7a;font-weight:600;">
+                        <i class="fas fa-university" style="font-size:.75rem;margin-right:4px;opacity:.6;"></i>
+                        Variation CGT / J-1 (Mds CDF)
+                    </td>
+                    <td style="text-align:center;">|Δ| ≤ 10<br><small>(Stable)</small></td>
+                    <td style="text-align:center;">—</td>
+                    <td style="text-align:center;">|Δ| &gt; 10<br><small>(Injection/Absorp.)</small></td>
+                    <td style="text-align:center;">—</td>
                 </tr>
             </table>
         </div>

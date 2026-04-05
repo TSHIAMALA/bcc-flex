@@ -585,8 +585,8 @@
 				<div class="kpi-data-item">
 					<span class="kdi-label">PIC AVOIRS LIBRES</span>
 					<span class="kdi-val">
-						{% if reserves.avoirs_max is defined and reserves.avoirs_max is not null %}
-							{{ reserves.avoirs_max|number_format(0, ',', ' ') }} Mds
+						{% if avLibresMax is not null %}
+							{{ avLibresMax|number_format(0, ',', ' ') }} Mds
 						{% else %}—
 						{% endif %}
 					</span>
@@ -615,6 +615,28 @@
 						800 / 1 200 Mds
 					</span>
 				</div>
+				{% if soldeCgtMoy is not null %}
+				<div class="kpi-data-item" style="border-top:1px dashed rgba(0,0,0,.1);padding-top:.3rem;margin-top:.1rem;">
+					<span class="kdi-label" style="color:#2d6da6;">CGT MOY. PÉRIODE</span>
+					<span class="kdi-val" style="color:var(--text-primary);">
+						{{ soldeCgtMoy|number_format(0, ',', ' ') }} Mds
+					</span>
+				</div>
+				<div class="kpi-data-item" style="padding-top:.3rem;">
+					<span class="kdi-label">VARIATION CGT CUMULÉE</span>
+					<span class="kdi-val">
+						{% if variationCgtCumulee is not null %}
+							{% if variationCgtCumulee > 10 %}
+								<span style="color:#155724;">&#9650; {{ variationCgtCumulee|number_format(0,',',' ') }} Mds</span>
+							{% elseif variationCgtCumulee < -10 %}
+								<span style="color:#721c24;">&#9660; {{ (variationCgtCumulee)|number_format(0,',',' ') }} Mds</span>
+							{% else %}
+								<span style="color:#6c757d;">&approx; {{ variationCgtCumulee|number_format(0,',',' ') }} Mds</span>
+							{% endif %}
+						{% else %}—{% endif %}
+					</span>
+				</div>
+				{% endif %}
 			</div>
 			<div class="kpi-title">🏦 Pilier 3 — Marché Monétaire</div>
 		</div>
@@ -716,6 +738,98 @@
 		</div>
 
 	</div>
+
+	{# ── 2 Graphiques CGT (symmétrie : rangée 3 du tableau de bord) ────── #}
+	{% if chartCgt is defined and chartCgt|length > 0 %}
+	<div class="charts-grid">
+
+		{# Graphique 5 : Évolution du Solde CGT #}
+		<div class="chart-card">
+			<h3>
+				<i class="fas fa-university" style="color:#2d6da6"></i>
+				Solde CGT — Évolution sur la Période (Mds CDF)</h3>
+			<div class="chart-wrapper">
+				<canvas id="chartCgtEvo"></canvas>
+			</div>
+		</div>
+
+		{# Graphique 6 remplacé : Effet Miroir — Option A KPI cards #}
+		<div class="chart-card" style="display:flex;flex-direction:column;justify-content:center;">
+			<h3>
+				<i class="fas fa-arrows-alt-v" style="color:#2d6da6"></i>
+				Effet Miroir — CGT &amp; Avoirs Libres</h3>
+
+			{% if soldeCgtMoy is not null %}
+			{% set cgtDir = variationCgtCumulee is not null ? (variationCgtCumulee > 10 ? 'up' : (variationCgtCumulee < -10 ? 'down' : 'stable')) : 'stable' %}
+
+			<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+
+				{# — Carte CGT — #}
+				{% set cgtBg    = cgtDir == 'up' ? 'rgba(21,87,36,.07)'    : (cgtDir == 'down' ? 'rgba(114,28,36,.07)'    : 'rgba(45,109,166,.07)') %}
+				{% set cgtBd    = cgtDir == 'up' ? '#38a16940'              : (cgtDir == 'down' ? '#721c2440'              : '#2d6da640') %}
+				{% set cgtColor = cgtDir == 'up' ? '#155724'                : (cgtDir == 'down' ? '#721c24'                : '#1e4b7a') %}
+				{% set cgtArrow = cgtDir == 'up' ? '▲'                     : (cgtDir == 'down' ? '▼'                     : '≈') %}
+				<div style="background:{{ cgtBg }};border:1px solid {{ cgtBd }};border-radius:12px;padding:16px 14px;">
+					<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:6px;">Solde CGT moy. période</div>
+					<div style="font-size:1.5rem;font-weight:900;color:{{ cgtColor }};line-height:1.1;">
+						{{ cgtArrow }} {{ soldeCgtMoy|number_format(0,',',' ') }} Mds
+					</div>
+					{% if variationCgtCumulee is not null %}
+					<div style="font-size:.75rem;margin-top:6px;font-weight:600;color:{{ cgtColor }};">
+						Δ période : {% if variationCgtCumulee > 0 %}+{% endif %}{{ variationCgtCumulee|number_format(0,',',' ') }} Mds
+					</div>
+					{% endif %}
+					<div style="font-size:.65rem;color:#94a3b8;margin-top:4px;">Compte Général du Trésor</div>
+				</div>
+
+				{# — Carte Avoirs Libres — #}
+				{% set avVal   = avLibresMoy %}
+				{% set avSig   = avVal > 1200 ? 'red' : (avVal > 800 ? 'orange' : 'green') %}
+				{% set avBg    = avSig == 'red' ? 'rgba(197,48,48,.07)'  : (avSig == 'orange' ? 'rgba(221,107,32,.07)'  : 'rgba(56,161,105,.07)') %}
+				{% set avBd    = avSig == 'red' ? '#c5303040'            : (avSig == 'orange' ? '#dd6b2040'             : '#38a16940') %}
+				{% set avColor = avSig == 'red' ? '#721c24'              : (avSig == 'orange' ? '#8a4700'               : '#155724') %}
+				{% set avArrow = cgtDir == 'up' ? '▼' : (cgtDir == 'down' ? '▲' : '≈') %}
+				<div style="background:{{ avBg }};border:1px solid {{ avBd }};border-radius:12px;padding:16px 14px;">
+					<div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:6px;">Avoirs libres moy. période</div>
+					<div style="font-size:1.5rem;font-weight:900;color:{{ avColor }};line-height:1.1;">
+						{{ avArrow }} {{ avVal is not null ? avVal|number_format(0,',',' ') : '—' }} Mds
+					</div>
+					<div style="font-size:.75rem;margin-top:6px;font-weight:600;color:{{ avColor }};">
+						{% if avSig == 'red' %}⚠ Surliquidité critique{% elseif avSig == 'orange' %}⚠ Zone de vigilance{% else %}✓ Niveau maîtrisé{% endif %}
+					</div>
+					<div style="font-size:.65rem;color:#94a3b8;margin-top:4px;">Seuil alerte 800 / 1 200 Mds</div>
+				</div>
+
+			</div>
+
+			{# — Banderole interprétation — #}
+			{% if cgtDir == 'up' %}
+			<div style="background:rgba(21,87,36,.08);border-left:4px solid #38a169;border-radius:8px;padding:10px 14px;font-size:.8rem;line-height:1.5;">
+				<strong style="color:#155724;">📉 Absorption en cours</strong>
+				<span style="color:#1e4b7a;margin-left:6px;">— Le CGT capte des liquidités. Pression baissière prévisible sur les avoirs libres bancaires.</span>
+			</div>
+			{% elseif cgtDir == 'down' %}
+			<div style="background:rgba(114,28,36,.08);border-left:4px solid #c53030;border-radius:8px;padding:10px 14px;font-size:.8rem;line-height:1.5;">
+				<strong style="color:#721c24;">💧 Injection de liquidités</strong>
+				<span style="color:#1e4b7a;margin-left:6px;">— Le CGT restitue des fonds. Pression haussière sur les avoirs libres et risque de surliquidité.</span>
+			</div>
+			{% else %}
+			<div style="background:rgba(45,109,166,.06);border-left:4px solid #2d6da6;border-radius:8px;padding:10px 14px;font-size:.8rem;line-height:1.5;">
+				<strong style="color:#1e4b7a;">≈ Position stable</strong>
+				<span style="color:#64748b;margin-left:6px;">— Variation CGT ≤ 10 Mds. Aucun effet miroir significatif détecté sur la période.</span>
+			</div>
+			{% endif %}
+
+			{% else %}
+			<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:.9rem;">
+				<i class="fas fa-university"></i><br>Aucune donnée CGT sur la période
+			</div>
+			{% endif %}
+		</div>
+
+
+	</div>
+	{% endif %}
 
 	{# ── Tableau synthèse détaillé ─────────────────────────────────────────── #}
 	<div class="summary-card">
@@ -1298,6 +1412,125 @@ maxRotation: 45
 });
 } else {
 document.getElementById('chartBudget').parentElement.innerHTML = '<div class="no-data"><i class="fas fa-balance-scale"></i>Aucune donnée budgétaire</div>';
+}
+
+// ── Graphique 5 : Évolution Solde CGT ─────────────────────────────────
+const evolutionCgt = {{ chartCgt|default([])|json_encode|raw }};
+
+if (evolutionCgt.length > 0) {
+    const elCgtEvo = document.getElementById('chartCgtEvo');
+    if (elCgtEvo) {
+        const ctx5 = elCgtEvo.getContext('2d');
+        const cgtVals = evolutionCgt.map(r => r.cgt);
+        new Chart(ctx5, {
+            type: 'line',
+            data: {
+                labels: evolutionCgt.map(r => r.date),
+                datasets: [{
+                    label: 'Solde CGT (Mds CDF)',
+                    data: cgtVals,
+                    borderColor: '#2d6da6',
+                    backgroundColor: 'rgba(45,109,166,.1)',
+                    borderWidth: 2.5,
+                    pointRadius: 3,
+                    tension: .35,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(0,0,0,.05)' },
+                        ticks: { callback: v => v + ' Mds' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 12, maxRotation: 45 }
+                    }
+                }
+            }
+        });
+    }
+} else {
+    const el = document.getElementById('chartCgtEvo');
+    if (el) el.parentElement.innerHTML = '<div class="no-data"><i class="fas fa-university"></i>Aucune donnée CGT sur la période</div>';
+}
+
+// ── Graphique 6 : Effet Miroir CGT & Avoirs Libres ────────────────────
+if (evolutionCgt.length > 0) {
+    const elMiroir = document.getElementById('chartCgtMiroir');
+    if (elMiroir) {
+        const ctx6 = elMiroir.getContext('2d');
+        const cgtData = evolutionCgt.filter(r => r.cgt !== null);
+        new Chart(ctx6, {
+            type: 'bar',
+            data: {
+                labels: cgtData.map(r => r.date),
+                datasets: [
+                    {
+                        type: 'line',
+                        label: 'Solde CGT (Mds CDF)',
+                        data: cgtData.map(r => r.cgt),
+                        borderColor: '#2d6da6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2.5,
+                        pointRadius: 2,
+                        tension: .35,
+                        yAxisID: 'yCgt'
+                    },
+                    {
+                        type: 'bar',
+                        label: 'Avoirs Libres (Mds CDF)',
+                        data: cgtData.map(r => r.av),
+                        backgroundColor: cgtData.map(r =>
+                            r.av > 1200 ? 'rgba(197,48,48,.55)' :
+                            r.av > 800  ? 'rgba(221,107,32,.55)' :
+                                          'rgba(56,161,105,.55)'
+                        ),
+                        borderRadius: 3,
+                        maxBarThickness: 60,
+                        yAxisID: 'yAv'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { boxWidth: 12, font: { size: 10 } }
+                    }
+                },
+                scales: {
+                    yCgt: {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { color: 'rgba(0,0,0,.05)' },
+                        ticks: { callback: v => v + ' Mds', font: { size: 9 } }
+                    },
+                    yAv: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { callback: v => v + ' Mds', font: { size: 9 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 12, maxRotation: 45 }
+                    }
+                }
+            }
+        });
+    }
+} else {
+    const el = document.getElementById('chartCgtMiroir');
+    if (el) el.parentElement.innerHTML = '<div class="no-data"><i class="fas fa-chart-area"></i>Aucune donnée CGT pour l\'effet miroir</div>';
 }
 
 // ── Info ITM ─────────────────────────────────────────────────────────────

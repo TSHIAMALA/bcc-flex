@@ -47,4 +47,22 @@ class TresorerieEtatRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getOneOrNullResult();
     }
+
+    /**
+     * Retourne l'historique des soldes CGT sur une période, ordonné par date croissante.
+     * Utilisé pour les graphiques de la page Indicateurs Périodiques.
+     */
+    public function getCgtHistoryByPeriod(string $dateDebut, string $dateFin): array
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.conjoncture', 'c')
+            ->where('c.date_situation >= :dateDebut')
+            ->andWhere('c.date_situation <= :dateFin')
+            ->andWhere('t.solde_cgt IS NOT NULL')
+            ->orderBy('c.date_situation', 'ASC')
+            ->setParameter('dateDebut', $dateDebut)
+            ->setParameter('dateFin', $dateFin)
+            ->getQuery()
+            ->getResult();
+    }
 }

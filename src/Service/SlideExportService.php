@@ -284,6 +284,10 @@ class SlideExportService
                     ['Encours OT-BCC', $data['encours'] ? number_format((float) $data['encours']->getEncoursOtBcc(), 2, ',') : 'N/D'],
                     ['Encours B-BCC', $data['encours'] ? number_format((float) $data['encours']->getEncoursBBcc(), 2, ',') : 'N/D'],
                     ['Ratio stérilisation', $data['ratioSteri'] !== null ? number_format($data['ratioSteri'], 2, ',') : 'N/D'],
+                    ['Solde CGT (J)', isset($data['soldeCgt']) && $data['soldeCgt'] !== null ? number_format((float)$data['soldeCgt'], 0, ',', ' ') . ' Mds' : 'N/D'],
+                    ['Variation CGT J-1', isset($data['variationCgt']) && $data['variationCgt'] !== null
+                        ? (($data['variationCgt'] > 10 ? '\u25b2 Absorption ' : ($data['variationCgt'] < -10 ? '\u25bc Injection ' : '\u2248 Stable ')) . number_format(abs((float)$data['variationCgt']), 0, ',') . ' Mds')
+                        : 'N/D'],
                 ],
             ],
             [
@@ -708,6 +712,10 @@ class SlideExportService
                     ['Taux Interbancaire', $data['tauxInterbancaireMoy'] !== null ? $n($data['tauxInterbancaireMoy'], 2) . '%' : 'N/D'],
                     ['TMP BBCC', $data['tauxMoyenPondereMoy'] !== null ? $n($data['tauxMoyenPondereMoy'], 2) . '%' : 'N/D'],
                     ['Billets en circ.', $data['billetsCirculationMoy'] !== null ? $n($data['billetsCirculationMoy'], 0) . ' Mds' : 'N/D'],
+                    ['Solde CGT moy.', isset($data['soldeCgtMoy']) && $data['soldeCgtMoy'] !== null ? $n($data['soldeCgtMoy'], 0) . ' Mds' : 'N/D'],
+                    ['Var. CGT cumulée', isset($data['variationCgtCumulee']) && $data['variationCgtCumulee'] !== null
+                        ? (($data['variationCgtCumulee'] > 10 ? '▲ ' : ($data['variationCgtCumulee'] < -10 ? '▼ ' : '≈ ')) . $n(abs($data['variationCgtCumulee']), 0) . ' Mds')
+                        : 'N/D'],
                 ],
             ],
             [

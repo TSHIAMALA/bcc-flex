@@ -229,6 +229,71 @@ class IndicateursCalculService
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // 5. INDICATEURS CGT (Compte Général du Trésor)
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * Calcule la variation du CGT entre J et J-1 et déduit l'impact sur la liquidité.
+     * Seuil : 10 Mds CDF pour qualifier l'incidence comme significative.
+     *
+     * @return array|null Tableau avec statut, variation, label, color, message — ou null si données manquantes.
+     */
+    public function getImpactCgtSurLiquidite(?TresorerieEtat $current, ?TresorerieEtat $previous): ?array
+    {
+        if (!$current || $current->getSoldeCgt() === null) return null;
+
+        $soldeCgt = (float) $current->getSoldeCgt();
+
+        // Si pas de J-1 disponible, retourner uniquement le solde nominatif
+        if (!$previous || $previous->getSoldeCgt() === null) {
+            return [
+                'statut'    => 'sans_variation',
+                'soldeCgt'  => $soldeCgt,
+                'variation' => null,
+                'label'     => 'Sans histo.',
+                'color'     => 'secondary',
+                'message'   => sprintf('Solde CGT : %.0f Mds CDF (pas de donnée J-1)', $soldeCgt),
+            ];
+        }
+
+        $variation = $soldeCgt - (float) $previous->getSoldeCgt();
+        $seuil = 10.0; // 10 milliards CDF
+
+        if ($variation < -$seuil) {
+            // Le CGT a baissé : de l'argent sort du Trésor vers l'économie → injection de liquidité
+            return [
+                'statut'    => 'injection',
+                'soldeCgt'  => $soldeCgt,
+                'variation' => $variation,
+                'label'     => 'Injection nette',
+                'color'     => 'red',
+                'message'   => sprintf('CGT ↓ de %.0f Mds → liquidité injectée dans le circuit bancaire', abs($variation)),
+            ];
+        }
+
+        if ($variation > $seuil) {
+            // Le CGT a monté : le Trésor absorbe de la liquidité → effet stérilisant
+            return [
+                'statut'    => 'sterilisation',
+                'soldeCgt'  => $soldeCgt,
+                'variation' => $variation,
+                'label'     => 'Absorption Trésor',
+                'color'     => 'green',
+                'message'   => sprintf('CGT ↑ de %.0f Mds → absorption de liquidité, effet stérilisant', $variation),
+            ];
+        }
+
+        return [
+            'statut'    => 'neutre',
+            'soldeCgt'  => $soldeCgt,
+            'variation' => $variation,
+            'label'     => 'Stable (< 10 Mds)',
+            'color'     => 'secondary',
+            'message'   => sprintf('CGT stable (var. %.0f Mds) — impact neutre sur la liquidité', $variation),
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // 5. SCÉNARIO DE PILOTAGE RECOMMANDÉ (1 / 2 / 3)
     // ─────────────────────────────────────────────────────────────────────
 
@@ -337,6 +402,17 @@ class IndicateursCalculService
                     : sprintf("un solde de trésorerie déficitaire de %.0f Mds CDF", abs($soldeAvFin))))
             : "une position budgétaire non disponible";
 
+        // Acte 2bis — CGT (si disponible)
+        $cgtStr = '';
+        if ($tresorerie && $tresorerie->getSoldeCgt() !== null) {
+            $soldeCgt = (float) $tresorerie->getSoldeCgt();
+            $cgtStr = sprintf(
+                ' Le solde du Compte Général du Trésor (CGT) s\'%sà %.0f Mds CDF,',
+                $soldeCgt >= 0 ? 'inscrit en positif ' : 'établit ',
+                abs($soldeCgt)
+            );
+        }
+
         // Acte 2 — Diagnostic de risque
         $risquePhrase = match ($scenario['scenario']) {
             3 => "traduit un désalignement structurel exigeant une intervention monétaire coordonnée sans délai",
@@ -351,7 +427,7 @@ class IndicateursCalculService
             default => "La discipline monétaire en vigueur peut être maintenue. Toute inflexion accommodante devra être conditionnée à une réduction durable de l'écart de change.",
         };
 
-        return "La situation du jour enregistre {$changePhrase}, {$liquPhrase} et {$tresoPhrase}. "
+        return "La situation du jour enregistre {$changePhrase}, {$liquPhrase} et {$tresoPhrase}.{$cgtStr} "
             . "L'ensemble de ces indicateurs {$risquePhrase}. "
             . $orientationPhrase;
     }

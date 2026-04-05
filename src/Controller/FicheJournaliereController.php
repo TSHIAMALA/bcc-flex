@@ -68,6 +68,13 @@ class FicheJournaliereController extends AbstractController
         $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
         $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
 
+        // CGT : variation J vs J-1
+        $prevConj = $conjonctureRepo->findPreviousTo($dateObj);
+        $tresorerieJm1 = $prevConj ? $tresorerieRepo->findOneBy(['conjoncture' => $prevConj]) : null;
+        $impactCgt = $calc->getImpactCgtSurLiquidite($tresorerie, $tresorerieJm1);
+        $variationCgt = $impactCgt ? $impactCgt['variation'] : null;
+        $soldeCgt = $impactCgt ? $impactCgt['soldeCgt'] : null;
+
         $signalChange = $calc->getSignalChange($marche);
         $signalMarcheMonetaire = $calc->getSignalMarcheMonetaire($encours, $reserves);
         $signalLiquidite = $calc->getSignalLiquidite($reserves);
@@ -125,6 +132,10 @@ class FicheJournaliereController extends AbstractController
             'scenario' => $scenario,
             'phraseCabinet' => $phraseCabinet,
             'availableDates' => $availableDates,
+            // CGT
+            'soldeCgt' => $soldeCgt,
+            'variationCgt' => $variationCgt,
+            'impactCgt' => $impactCgt,
         ];
 
         return $this->render('fiche/index.html.twig', $viewData);
@@ -169,6 +180,13 @@ class FicheJournaliereController extends AbstractController
         $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
         $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
 
+        // CGT J-1
+        $prevConj = $conjonctureRepo->findPreviousTo($dateObj);
+        $tresorerieJm1 = $prevConj ? $tresorerieRepo->findOneBy(['conjoncture' => $prevConj]) : null;
+        $impactCgt = $calc->getImpactCgtSurLiquidite($tresorerie, $tresorerieJm1);
+        $variationCgt = $impactCgt ? $impactCgt['variation'] : null;
+        $soldeCgt = $impactCgt ? $impactCgt['soldeCgt'] : null;
+
         $tauxPaie = $calc->getTauxExecutionPaie($paie);
         $pctRestePaie = $calc->getPctRestePayie($paie);
         $scenario = $calc->getScenarioPilotage($marche, $reserves, $tresorerie, $paie);
@@ -206,6 +224,9 @@ class FicheJournaliereController extends AbstractController
             'signalPaie' => $signalPaie,
             'scenario' => $scenario,
             'phraseCabinet' => $phraseCabinet,
+            'soldeCgt' => $soldeCgt,
+            'variationCgt' => $variationCgt,
+            'impactCgt' => $impactCgt,
         ]);
 
         $options = new Options();
@@ -271,6 +292,13 @@ class FicheJournaliereController extends AbstractController
         $tauxDirecteur = $activeRate ? (float) $activeRate->getValeur() : null;
         $dateTauxDirecteur = $activeRate ? $activeRate->getDateApplication() : null;
 
+        // CGT J-1 (slides)
+        $prevConj = $conjonctureRepo->findPreviousTo($dateObj);
+        $tresorerieJm1 = $prevConj ? $tresorerieRepo->findOneBy(['conjoncture' => $prevConj]) : null;
+        $impactCgt = $calc->getImpactCgtSurLiquidite($tresorerie, $tresorerieJm1);
+        $variationCgt = $impactCgt ? $impactCgt['variation'] : null;
+        $soldeCgt = $impactCgt ? $impactCgt['soldeCgt'] : null;
+
         $tauxPaie = $calc->getTauxExecutionPaie($paie);
         $pctRestePaie = $calc->getPctRestePayie($paie);
 
@@ -327,6 +355,10 @@ class FicheJournaliereController extends AbstractController
             'worstSignal' => $worstSignal,
             'scenario' => $scenario,
             'phraseCabinet' => $phraseCabinet,
+            // CGT
+            'soldeCgt' => $soldeCgt,
+            'variationCgt' => $variationCgt,
+            'impactCgt' => $impactCgt,
         ];
 
         $tmpFile = $slideService->generate($data);
