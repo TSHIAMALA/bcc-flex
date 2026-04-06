@@ -213,8 +213,8 @@ body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10pt; color: #1a1
                 <table class="detail">
                     <tr><td>Rés. int. (Mios $)</td><td>{{ reserves ? reserves.reservesInternationalesUsd|number_format(2,',',' ') : 'N/D' }}</td></tr>
                     <tr><td>Avoirs ext. (Mios $)</td><td>{{ reserves ? reserves.avoirsExternesUsd|number_format(2,',',' ') : 'N/D' }}</td></tr>
-                    <tr><td>Couverture / 5Md$</td>
-                        <td>{% if reserves and reserves.reservesInternationalesUsd %}{{ (reserves.reservesInternationalesUsd / 5000 * 100)|number_format(0) }}%{% else %}N/D{% endif %}</td></tr>
+                    <tr><td>Couverture / {{ (seuilReservesOptimal / 1000)|number_format(0) }}Md$</td>
+                        <td>{% if reserves and reserves.reservesInternationalesUsd and seuilReservesOptimal > 0 %}{{ (reserves.reservesInternationalesUsd / seuilReservesOptimal * 100)|number_format(0) }}%{% else %}N/D{% endif %}</td></tr>
                 </table>
             </td>
 

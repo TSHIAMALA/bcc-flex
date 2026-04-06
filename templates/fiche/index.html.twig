@@ -367,10 +367,10 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
                     <span class="pkdi-val">{{ reserves ? reserves.avoirsExternesUsd|number_format(2,',',' ') : '—' }}</span>
                 </div>
                 <div class="pillar-kpi-item">
-                    <span class="pkdi-label">Couverture (seuil 5 Md$)</span>
+                    <span class="pkdi-label">Couverture (seuil {{ (seuilReservesOptimal / 1000)|number_format(0) }} Md$)</span>
                     <span class="pkdi-val">
-                        {% if reserves and reserves.reservesInternationalesUsd %}
-                            {{ (reserves.reservesInternationalesUsd / 5000 * 100)|number_format(0) }} %
+                        {% if reserves and reserves.reservesInternationalesUsd and seuilReservesOptimal > 0 %}
+                            {{ (reserves.reservesInternationalesUsd / seuilReservesOptimal * 100)|number_format(0) }} %
                         {% else %}—{% endif %}
                     </span>
                 </div>

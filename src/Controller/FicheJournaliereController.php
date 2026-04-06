@@ -7,6 +7,7 @@ use App\Repository\EncoursBccRepository;
 use App\Repository\FinancesPubliquesRepository;
 use App\Repository\MarcheChangesRepository;
 use App\Repository\PaieEtatRepository;
+use App\Repository\ParametreGlobalRepository;
 use App\Repository\ReservesFinancieresRepository;
 use App\Repository\TauxDirecteurRepository;
 use App\Repository\TresorerieEtatRepository;
@@ -32,7 +33,8 @@ class FicheJournaliereController extends AbstractController
         TresorerieEtatRepository $tresorerieRepo,
         PaieEtatRepository $paieRepo,
         TauxDirecteurRepository $tauxRepo,
-        IndicateursCalculService $calc
+        IndicateursCalculService $calc,
+        ParametreGlobalRepository $parametreRepo
     ): Response {
         $dateStr = $request->query->get('date');
         if ($dateStr) {
@@ -81,10 +83,13 @@ class FicheJournaliereController extends AbstractController
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
 
+        $seuilReservesOptimal = $parametreRepo->getValue('RADAR_RESERVES_OPTIMAL', 5000);
+        $seuilReservesVigilance = $parametreRepo->getValue('RADAR_RESERVES_VIGILANCE', 3000);
+
         $signalReserves = 'secondary';
         if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
             $r = (float) $reserves->getReservesInternationalesUsd();
-            $signalReserves = $r >= 5000 ? 'green' : ($r >= 3000 ? 'yellow' : 'red');
+            $signalReserves = $r >= $seuilReservesOptimal ? 'green' : ($r >= $seuilReservesVigilance ? 'yellow' : 'red');
         }
 
         $scenario = $calc->getScenarioPilotage($marche, $reserves, $tresorerie, $paie);
@@ -136,6 +141,8 @@ class FicheJournaliereController extends AbstractController
             'soldeCgt' => $soldeCgt,
             'variationCgt' => $variationCgt,
             'impactCgt' => $impactCgt,
+            // Paramètres dynamiques
+            'seuilReservesOptimal' => $seuilReservesOptimal,
         ];
 
         return $this->render('fiche/index.html.twig', $viewData);
@@ -152,7 +159,8 @@ class FicheJournaliereController extends AbstractController
         TresorerieEtatRepository $tresorerieRepo,
         PaieEtatRepository $paieRepo,
         TauxDirecteurRepository $tauxRepo,
-        IndicateursCalculService $calc
+        IndicateursCalculService $calc,
+        ParametreGlobalRepository $parametreRepo
     ): Response {
         $dateStr = $request->query->get('date');
         $dateObj = $dateStr
@@ -197,6 +205,15 @@ class FicheJournaliereController extends AbstractController
         $signalLiquidite = $calc->getSignalLiquidite($reserves);
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
+
+        $seuilReservesOptimal = $parametreRepo->getValue('RADAR_RESERVES_OPTIMAL', 5000);
+
+        $signalReserves = 'secondary';
+        if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
+            $seuilVigilance = $parametreRepo->getValue('RADAR_RESERVES_VIGILANCE', 3000);
+            $r = (float) $reserves->getReservesInternationalesUsd();
+            $signalReserves = $r >= $seuilReservesOptimal ? 'green' : ($r >= $seuilVigilance ? 'yellow' : 'red');
+        }
 
         $html = $this->renderView('fiche/pdf.html.twig', [
             'date' => $dateObj,
@@ -262,7 +279,8 @@ class FicheJournaliereController extends AbstractController
         PaieEtatRepository $paieRepo,
         TauxDirecteurRepository $tauxRepo,
         IndicateursCalculService $calc,
-        SlideExportService $slideService
+        SlideExportService $slideService,
+        ParametreGlobalRepository $parametreRepo
     ): Response {
         $dateStr = $request->query->get('date');
         $dateObj = $dateStr
@@ -308,10 +326,13 @@ class FicheJournaliereController extends AbstractController
         $signalTresorerie = $calc->getSignalTresorerie($tresorerie);
         $signalPaie = $calc->getSignalPaie($paie);
 
+        $seuilReservesOptimal = $parametreRepo->getValue('RADAR_RESERVES_OPTIMAL', 5000);
+        $seuilReservesVigilance = $parametreRepo->getValue('RADAR_RESERVES_VIGILANCE', 3000);
+
         $signalReserves = 'secondary';
         if ($reserves && $reserves->getReservesInternationalesUsd() !== null) {
             $r = (float) $reserves->getReservesInternationalesUsd();
-            $signalReserves = $r >= 5000 ? 'green' : ($r >= 3000 ? 'yellow' : 'red');
+            $signalReserves = $r >= $seuilReservesOptimal ? 'green' : ($r >= $seuilReservesVigilance ? 'yellow' : 'red');
         }
 
         $colorRank = ['secondary' => 0, 'green' => 1, 'yellow' => 2, 'orange' => 3, 'red' => 4];
@@ -359,6 +380,8 @@ class FicheJournaliereController extends AbstractController
             'soldeCgt' => $soldeCgt,
             'variationCgt' => $variationCgt,
             'impactCgt' => $impactCgt,
+            // Paramètres dynamiques
+            'seuilReservesOptimal' => $seuilReservesOptimal,
         ];
 
         $tmpFile = $slideService->generate($data);
