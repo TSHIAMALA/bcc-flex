@@ -38,10 +38,10 @@ class FicheJournaliereController extends AbstractController
     ): Response {
         $dateStr = $request->query->get('date');
         if ($dateStr) {
-            $dateObj = \DateTime::createFromFormat('Y-m-d', $dateStr);
+            $dateObj = \DateTime::createFromFormat('!Y-m-d', $dateStr);
         } else {
             $latest = $conjonctureRepo->findLatest();
-            $dateObj = $latest ? clone $latest->getDateSituation() : new \DateTime();
+            $dateObj = $latest ? clone $latest->getDateSituation() : (new \DateTime())->setTime(0, 0, 0);
         }
 
         $conjoncture = $conjonctureRepo->findOneBy(['date_situation' => $dateObj]);
@@ -164,8 +164,8 @@ class FicheJournaliereController extends AbstractController
     ): Response {
         $dateStr = $request->query->get('date');
         $dateObj = $dateStr
-            ? \DateTime::createFromFormat('Y-m-d', $dateStr)
-            : (($latest = $conjonctureRepo->findLatest()) ? clone $latest->getDateSituation() : new \DateTime());
+            ? \DateTime::createFromFormat('!Y-m-d', $dateStr)
+            : (($latest = $conjonctureRepo->findLatest()) ? clone $latest->getDateSituation() : (new \DateTime())->setTime(0, 0, 0));
 
         $conjoncture = $conjonctureRepo->findOneBy(['date_situation' => $dateObj]);
 
@@ -239,11 +239,14 @@ class FicheJournaliereController extends AbstractController
             'signalMarcheMonetaire' => $signalMarcheMonetaire,
             'signalTresorerie' => $signalTresorerie,
             'signalPaie' => $signalPaie,
+            'signalReserves' => $signalReserves,
             'scenario' => $scenario,
             'phraseCabinet' => $phraseCabinet,
             'soldeCgt' => $soldeCgt,
             'variationCgt' => $variationCgt,
             'impactCgt' => $impactCgt,
+            // Paramètres dynamiques
+            'seuilReservesOptimal' => $seuilReservesOptimal,
         ]);
 
         $options = new Options();
@@ -284,8 +287,8 @@ class FicheJournaliereController extends AbstractController
     ): Response {
         $dateStr = $request->query->get('date');
         $dateObj = $dateStr
-            ? \DateTime::createFromFormat('Y-m-d', $dateStr)
-            : (($latest = $conjonctureRepo->findLatest()) ? clone $latest->getDateSituation() : new \DateTime());
+            ? \DateTime::createFromFormat('!Y-m-d', $dateStr)
+            : (($latest = $conjonctureRepo->findLatest()) ? clone $latest->getDateSituation() : (new \DateTime())->setTime(0, 0, 0));
 
         $conjoncture = $conjonctureRepo->findOneBy(['date_situation' => $dateObj]);
 
