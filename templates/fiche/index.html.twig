@@ -321,15 +321,19 @@ body.dark-mode .thresholds-header td { background: inherit; color: inherit; }
             <div class="pillar-kpi-data">
                 <div class="pillar-kpi-item">
                     <span class="pkdi-label">Taux indicatif</span>
-                    <span class="pkdi-val">{{ marche ? marche.coursIndicatif|number_format(4, ',', ' ') : '—' }} CDF</span>
+                    <span class="pkdi-val">{{ marche ? marche.coursIndicatif|number_format(2, ',', ' ') : '—' }} CDF</span>
                 </div>
                 <div class="pillar-kpi-item">
                     <span class="pkdi-label">Écart absolu</span>
                     <span class="pkdi-val">{{ marche ? marche.ecartIndicParallele|number_format(2,',') : '—' }} CDF</span>
                 </div>
                 <div class="pillar-kpi-item">
-                    <span class="pkdi-label">Parallèle (achat / vente)</span>
-                    <span class="pkdi-val">{% if marche %}{{ marche.paralleleAchat|number_format(2,',') }} / {{ marche.paralleleVente|number_format(2,',') }}{% else %}—{% endif %}</span>
+                    <span class="pkdi-label">Parallèle Achat</span>
+                    <span class="pkdi-val">{% if marche %}{{ marche.paralleleAchat|number_format(2,',',' ') }} CDF{% else %}—{% endif %}</span>
+                </div>
+                <div class="pillar-kpi-item">
+                    <span class="pkdi-label">Parallèle Vente</span>
+                    <span class="pkdi-val">{% if marche %}{{ marche.paralleleVente|number_format(2,',',' ') }} CDF{% else %}—{% endif %}</span>
                 </div>
                 <div class="pillar-kpi-item">
                     <span class="pkdi-label">Écart max (borne haute)</span>
